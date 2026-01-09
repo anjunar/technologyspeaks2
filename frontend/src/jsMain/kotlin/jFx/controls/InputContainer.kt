@@ -8,6 +8,7 @@ import jFx.core.DSL.element
 import jFx.core.DSL.ParentScope
 import jFx.core.DSL.component
 import jFx.core.DSL.condition
+import jFx.core.DSL.conditionReader
 import jFx.core.DSL.render
 import jFx.core.DSL.style
 import jFx.layout.Span.Companion.span
@@ -41,6 +42,13 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
                 ) { value: String ->
                     ! value.isBlank()
                 }
+
+                val inputSub = input.valueProperty.observe {
+                    node.ctx.invalidate()
+                }
+
+                onDispose { inputSub() }
+
             } else {
                 isEmptyProperty.set(false)
             }
@@ -49,13 +57,13 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
         component {
             vbox {
 
-                condition(this@InputContainer.isEmptyProperty) {
+                conditionReader({ this@InputContainer.isEmptyProperty.get()!! }) {
                     span {
                         style {
                             fontSize = "xx-small"
-                            color = "${if (this@InputContainer.isEmptyProperty.get()!!) "gray" else "black"}"
+                            color = "gray"
                         }
-                        textProperty.bind(this@InputContainer.placeholderProperty)
+                        textReader { this@InputContainer.placeholderProperty.get()!! }
                     }
                 }
 

@@ -9,7 +9,7 @@ import jFx.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLSpanElement
 
-class Span : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
+class Span(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
 
     val textProperty = Property("")
 
@@ -21,6 +21,12 @@ class Span : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
         spanElement
     }
 
+    fun textReader(callback : () -> String) {
+        ctx.addDirtyComponent(this)
+        dirty { node.textContent = callback() }
+        write { node.textContent = callback() }
+    }
+
     var text: String
         get() = read(node.textContent ?: "")
         set(value) = write { node.textContent = value }
@@ -29,7 +35,7 @@ class Span : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
 
     companion object {
         fun ParentScope.span(body: Span.(DSL.BuildContext) -> Unit): Span {
-            val builder = Span()
+            val builder = Span(ctx)
             addNode(builder, body)
             return builder
         }

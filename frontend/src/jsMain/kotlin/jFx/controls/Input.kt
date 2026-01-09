@@ -11,14 +11,14 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
-class Input(val ctx: DSL.BuildContext): AbstractComponent(), NodeBuilder<HTMLInputElement> {
+class Input(override val ctx: DSL.BuildContext): AbstractComponent(), NodeBuilder<HTMLInputElement> {
 
     val valueProperty = Property("")
 
     val node by lazy {
         val inputElement = document.createElement("input") as HTMLInputElement
 
-        EventHelper.events(inputElement, {ctx.flushDirty()}, "input", "blur", "focus")
+        EventHelper.events(inputElement, {ctx.invalidate()}, "input", "blur", "focus")
 
         bind(valueProperty)
 

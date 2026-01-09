@@ -2,6 +2,7 @@ package app
 
 import jFx.controls.Button.Companion.button
 import jFx.controls.Input.Companion.input
+import jFx.controls.InputContainer.Companion.inputContainer
 import jFx.core.DSL.component
 import jFx.layout.Div
 import jFx.layout.Div.Companion.div
@@ -26,9 +27,12 @@ fun main() {
                     }
                 }
 
-                input {
-                    valueWriter { count.set(it + "aa")}
+                inputContainer {
                     placeholder = "Enter text"
+                    input {
+                        valueWriter { count.set(it + "aa")}
+                        placeholder = "Enter text"
+                    }
                 }
             }
         }

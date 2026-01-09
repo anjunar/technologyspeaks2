@@ -9,12 +9,12 @@ import jFx.util.EventHelper
 import kotlinx.browser.document
 import org.w3c.dom.HTMLButtonElement
 
-class Button(val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
+class Button(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
 
     val node by lazy {
         val element = document.createElement("button") as HTMLButtonElement
 
-        EventHelper.events(element, {ctx.flushDirty()}, "click")
+        EventHelper.events(element, {ctx.invalidate()}, "click")
 
         textProperty.observe { element.textContent = it }
 

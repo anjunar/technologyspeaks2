@@ -5,6 +5,7 @@ import jFx.state.DisposeBag
 import jFx.state.ListProperty
 import jFx.state.ReadOnlyProperty
 import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -26,7 +27,10 @@ object DSL {
 
         val stack: ArrayDeque<ElementBuilder<*>> = ArrayDeque()
         val afterTreeBuilt: MutableList<() -> Unit> = mutableListOf()
-        val dirtyComponents : MutableSet<ElementBuilder<*>> = mutableSetOf()
+        val dirtyComponents: MutableSet<ElementBuilder<*>> = mutableSetOf()
+
+        private var flushScheduled: Boolean = false
+        private var pendingInvalidate: Boolean = false
 
         fun push(builder: ElementBuilder<*>) {
             stack.addLast(builder)
@@ -41,10 +45,33 @@ object DSL {
 
         fun addDirtyComponent(component: ElementBuilder<*>) {
             dirtyComponents.add(component)
+            // Optional: wenn du beim Registrieren sofort initial flush willst:
+            // invalidate()
         }
 
         fun flushDirty() {
-            dirtyComponents.forEach { it.dirtyValues.forEach { it() } }
+            val comps = dirtyComponents.toList()
+            comps.forEach { c ->
+                c.dirtyValues.forEach { it() }
+            }
+        }
+
+        fun invalidate() {
+            if (!isIdle()) {
+                pendingInvalidate = true
+                return
+            }
+            scheduleFlushIfNeeded()
+        }
+
+        private fun scheduleFlushIfNeeded() {
+            if (flushScheduled) return
+            flushScheduled = true
+
+            window.requestAnimationFrame {
+                flushScheduled = false
+                flushDirty()
+            }
         }
 
         fun current(): ElementBuilder<*>? = stack.lastOrNull()
@@ -56,10 +83,6 @@ object DSL {
 
         internal fun isIdle(): Boolean = stack.isEmpty()
 
-        /**
-         * Runs after the whole tree (root and all nested addNode calls) has been built and
-         * the root stack is idle again.
-         */
         fun afterTreeBuilt(action: () -> Unit) {
             afterTreeBuilt.add(action)
         }
@@ -68,11 +91,18 @@ object DSL {
             val actions = afterTreeBuilt.toList()
             afterTreeBuilt.clear()
             actions.forEach { it() }
+
+            if (pendingInvalidate) {
+                pendingInvalidate = false
+                scheduleFlushIfNeeded()
+            }
         }
     }
 
     @JFxDsl
     interface ElementBuilder<E> {
+        val ctx: BuildContext
+
         fun build(): E
 
         fun afterBuild() {}
@@ -117,6 +147,7 @@ object DSL {
 
     interface ParentScope {
         val ctx: BuildContext
+
         fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.(BuildContext) -> Unit): T
     }
 
@@ -233,12 +264,12 @@ object DSL {
 
     fun <B> ParentScope.render(slot: ReadOnlyProperty<out B?>)
             where B : ElementBuilder<*>, B : Any {
-        addNode(RenderHost(slot), body = {})
+        addNode(RenderHost(slot, ctx), body = {})
     }
 
     // NOTE: AbstractComponent is assumed to provide sensible defaults for applyValues/dirtyValues/lifeCycle/disposeBag.
     // If AbstractComponent does not implement ParentScope, we provide a ctx here.
-    private class RenderHost<B>(private val slot: ReadOnlyProperty<out B?>) :
+    private class RenderHost<B>(private val slot: ReadOnlyProperty<out B?>, override val ctx: BuildContext) :
         AbstractComponent(),
         ElementBuilder<HTMLDivElement>
             where B : ElementBuilder<*>, B : Any {
@@ -280,6 +311,100 @@ object DSL {
         }
     }
 
+    fun ParentScope.conditionReader(
+        predicate: () -> Boolean,
+        body: ParentScope.() -> Unit
+    ) {
+        addNode(ConditionReaderHost(ctx, predicate, body), body = {})
+    }
+
+    private class ConditionReaderHost(
+        override val ctx: BuildContext,
+        private val predicate: () -> Boolean,
+        private val body: ParentScope.() -> Unit
+    ) : AbstractComponent(), ElementBuilder<HTMLDivElement> {
+
+        private val host: HTMLDivElement by lazy {
+            document.createElement("div") as HTMLDivElement
+        }
+
+        private val mountedBuilders: MutableList<ElementBuilder<*>> = mutableListOf()
+
+        override fun build(): HTMLDivElement {
+            ctx.addDirtyComponent(this)
+
+            dirty {
+                host.update(predicate())
+            }
+
+            write {
+                host.update(predicate())
+            }
+
+            return host
+        }
+
+        private fun HTMLDivElement.update(visible: Boolean) {
+            clearMounted()
+
+            if (!visible) return
+
+            val hostScope = object : ParentScope {
+                override val ctx: BuildContext = this@ConditionReaderHost.ctx
+
+                override fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.(BuildContext) -> Unit): T {
+                    val ctx = this.ctx
+
+                    ctx.push(builder)
+                    try {
+                        builder.lifeCycle = LifeCycle.Build
+                        val node = builder.build()
+
+                        builder.body(ctx)
+
+                        mountedBuilders.add(builder)
+                        this@update.appendChild(node)
+
+                        builder.lifeCycle = LifeCycle.Apply
+                        builder.applyValues.forEach { it() }
+                        builder.applyValues.clear()
+
+                        builder.lifeCycle = LifeCycle.Finished
+
+                        if (builder is NodeBuilder<*>) {
+                            builder.registerLayoutListener()
+                        }
+
+                        builder.afterBuild()
+
+                        return node
+                    } finally {
+                        ctx.pop(builder)
+                        if (ctx.isIdle()) {
+                            ctx.flushAfterTreeBuilt()
+                        }
+                    }
+                }
+            }
+
+            hostScope.body()
+        }
+
+        private fun clearMounted() {
+            while (host.firstChild != null) host.removeChild(host.firstChild!!)
+
+            mountedBuilders.forEach { b ->
+                try { b.dispose() } catch (_: Throwable) { /* fail-safe */ }
+            }
+            mountedBuilders.clear()
+        }
+
+        override fun dispose() {
+            clearMounted()
+            super.dispose()
+        }
+    }
+
     fun ParentScope.condition(
         predicate: ReadOnlyProperty<Boolean>,
         body: ParentScope.() -> Unit
@@ -288,7 +413,7 @@ object DSL {
     }
 
     private class ConditionHost(
-        val ctx: BuildContext,
+        override val ctx: BuildContext,
         private val predicate: ReadOnlyProperty<Boolean>,
         private val body: ParentScope.() -> Unit
     ) : AbstractComponent(), ElementBuilder<HTMLDivElement> {
@@ -409,6 +534,8 @@ object DSL {
     }
 
     fun <E : HTMLElement> ElementBuilder<E>.style(block: CSSStyleDeclaration.() -> Unit) {
+        ctx.addDirtyComponent(this)
+        dirty { build().style.block() }
         write {
             build().style.block()
         }
