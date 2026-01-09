@@ -1,4 +1,4 @@
-package javascriptFx.state
+package jFx.state
 
 class ListProperty<T>(initial: List<T> = emptyList()) : ReadOnlyProperty<List<T>> {
     private val inner = Property(initial)

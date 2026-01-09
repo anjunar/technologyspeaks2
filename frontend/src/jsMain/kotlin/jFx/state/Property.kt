@@ -1,11 +1,6 @@
-package javascriptFx.state
+package jFx.state
 
 typealias Disposable = () -> Unit
-
-interface ReadOnlyProperty<T> {
-    fun get(): T
-    fun observe(listener: (T) -> Unit): Disposable
-}
 
 class Property<T>(initial: T) : ReadOnlyProperty<T> {
     private var value: T = initial
@@ -26,5 +21,28 @@ class Property<T>(initial: T) : ReadOnlyProperty<T> {
         listeners[id] = listener
         listener(value)
         return { listeners.remove(id) }
+    }
+
+    fun subscribe(other: Property<T>): Disposable {
+        var updating = false
+
+        val d1 = this.observe { v ->
+            if (updating) return@observe
+            updating = true
+            other.set(v)
+            updating = false
+        }
+
+        val d2 = other.observe { v ->
+            if (updating) return@observe
+            updating = true
+            this.set(v)
+            updating = false
+        }
+
+        return {
+            d1()
+            d2()
+        }
     }
 }

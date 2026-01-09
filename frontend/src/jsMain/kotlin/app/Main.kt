@@ -1,31 +1,42 @@
 package app
 
-import javascriptFx.controls.Button
-import javascriptFx.core.KotlinDSL
-import javascriptFx.core.KotlinDSL.component
+import jFx.controls.Button.Companion.button
+import jFx.controls.Input.Companion.input
+import jFx.controls.InputContainer.Companion.inputContainer
+import jFx.core.DSL.component
+import jFx.layout.Div.Companion.div
+import jFx.state.Property
 import kotlinx.browser.document
-import kotlinx.browser.window
-import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 
 fun main() {
 
-    val root: HTMLDivElement = component { ctx ->
+    fun counterComponent(): HTMLElement {
+        val count = Property("tst")
 
-        Fx.div()(ctx, this) {
+        return component {
+            div {
+                button {
+                    text = "+"
+                    textProperty.subscribe(count)
+                    onClick {
+                        count.set(count.get() + "+")
+                    }
+                }
 
-            Fx.input()(ctx, this) {
-                placeholder = "Search…"
-                value = ""
-            }
-
-            Fx.button()(ctx, this) {
-                text = "OK"
-                onClick {
-                    window.alert("clicked")
+                inputContainer {
+                    input {
+                        placeholder = "Count"
+                    }
                 }
             }
         }
     }
 
-    document.body!!.appendChild(root)
+    val root = document.getElementById("root")!! // <div id="root"></div>
+
+    val renderCounter = counterComponent()
+
+    root.appendChild(renderCounter)
+
 }
