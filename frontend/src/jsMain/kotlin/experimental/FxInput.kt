@@ -1,8 +1,7 @@
-package controls
+package experimental
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.Element
 import org.w3c.dom.ElementCreationOptions
 import org.w3c.dom.ElementDefinitionOptions
 import org.w3c.dom.HTMLInputElement
@@ -17,8 +16,8 @@ object FxInput {
 
     }
 
-    fun create(): Element {
-        return document.createElement(  "input", ElementCreationOptions("fx-input"))
+    fun create(): Component {
+        return document.createElement(  "input", ElementCreationOptions("fx-input")) as Component
     }
 
     val element = window.customElements.define(

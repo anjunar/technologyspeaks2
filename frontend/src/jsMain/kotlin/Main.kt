@@ -1,27 +1,28 @@
-import controls.FxInput
-import controls.FxInputContainer
-import dsl.*
+import controls.input
+import controls.placeholder
+import controls.value
+import core.mountInto
+import core.span
+import core.text
+import core.vbox
 import kotlinx.browser.document
+import state.Property
+import state.map
 
 fun main() {
-    val root = document.getElementById("root")
+
+    val text = Property("Hello")
 
     mountInto(document.body!!) {
-        div {
-            className("app")
-            vbox {
-                span { text("Hello111a12") }
-                span { text("World") }
+        vbox {
+            span {
+                text(text.map { it })
             }
 
+            input {
+                placeholder = "Type..."
+                value(text)
+            }
         }
     }
-
-    val inputContainer = FxInputContainer.create()
-
-    val input = FxInput.create()
-
-    inputContainer.append(input)
-
-    root?.append(inputContainer)
 }
