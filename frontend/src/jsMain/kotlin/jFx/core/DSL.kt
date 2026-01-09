@@ -26,18 +26,25 @@ object DSL {
 
         val stack: ArrayDeque<ElementBuilder<*>> = ArrayDeque()
         val afterTreeBuilt: MutableList<() -> Unit> = mutableListOf()
+        val dirtyComponents : MutableSet<ElementBuilder<*>> = mutableSetOf()
 
         fun push(builder: ElementBuilder<*>) {
             stack.addLast(builder)
         }
 
         fun pop(builder: ElementBuilder<*>) {
-/*
             val last = stack.removeLastOrNull()
             check(last === builder) {
                 "BuildContext stack corrupted: expected to pop $builder but was $last"
             }
-*/
+        }
+
+        fun addDirtyComponent(component: ElementBuilder<*>) {
+            dirtyComponents.add(component)
+        }
+
+        fun flushDirty() {
+            dirtyComponents.forEach { it.dirtyValues.forEach { it() } }
         }
 
         fun current(): ElementBuilder<*>? = stack.lastOrNull()

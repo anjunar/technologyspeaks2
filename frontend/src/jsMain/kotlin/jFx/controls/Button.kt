@@ -5,13 +5,16 @@ import jFx.core.DSL
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.Property
+import jFx.util.EventHelper
 import kotlinx.browser.document
 import org.w3c.dom.HTMLButtonElement
 
-class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
+class Button(val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
 
     val node by lazy {
         val element = document.createElement("button") as HTMLButtonElement
+
+        EventHelper.events(element, {ctx.flushDirty()}, "click")
 
         textProperty.observe { element.textContent = it }
 
@@ -25,6 +28,7 @@ class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
     val textProperty = Property("")
 
     fun textReader(callback : () -> String) {
+        ctx.addDirtyComponent(this)
         dirty { node.textContent = callback() }
     }
 
@@ -38,7 +42,7 @@ class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
 
     companion object {
         fun ParentScope.button(body: Button.(DSL.BuildContext) -> Unit): Button {
-            val builder = Button()
+            val builder = Button(ctx)
             addNode(builder, body)
             return builder
         }

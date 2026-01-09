@@ -33,8 +33,6 @@ fun main() {
             }
         }
 
-        count.observe { v -> div.ctx.stack.forEach { it.dirtyValues.forEach { it() } } }
-
         return div.build()
     }
 

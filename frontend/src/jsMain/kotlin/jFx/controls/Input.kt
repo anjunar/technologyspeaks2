@@ -5,17 +5,20 @@ import jFx.core.DSL
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.Property
+import jFx.util.EventHelper
 import kotlinx.browser.document
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
-class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
+class Input(val ctx: DSL.BuildContext): AbstractComponent(), NodeBuilder<HTMLInputElement> {
 
     val valueProperty = Property("")
 
     val node by lazy {
         val inputElement = document.createElement("input") as HTMLInputElement
+
+        EventHelper.events(inputElement, {ctx.flushDirty()}, "input", "blur", "focus")
 
         bind(valueProperty)
 
@@ -23,7 +26,7 @@ class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
     }
 
     fun valueWriter(callback : (String) -> Unit) {
-        dirty { callback(node.value) }
+        node.addEventListener("input", { callback(node.value) })
     }
 
     var value: String
@@ -60,7 +63,7 @@ class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
 
     companion object {
         fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
-            val builder = Input()
+            val builder = Input(ctx)
             addNode(builder, body)
             return builder
         }
