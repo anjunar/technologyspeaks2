@@ -1,7 +1,10 @@
 package jFx.core
 
+import jFx.state.DisposeBag
 import jFx.state.ListProperty
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import org.w3c.dom.css.CSSStyleDeclaration
 
 object DSL {
 
@@ -24,6 +27,16 @@ object DSL {
         val applyValues: MutableList<() -> Unit>
 
         var lifeCycle: LifeCycle
+
+        val disposeBag: DisposeBag
+
+        fun onDispose(action: () -> Unit) {
+            disposeBag.add(action)
+        }
+
+        fun dispose() {
+            disposeBag.dispose()
+        }
 
         fun write(action: () -> Unit) {
             if (lifeCycle == LifeCycle.Finished || lifeCycle == LifeCycle.Layout) {
@@ -102,6 +115,8 @@ object DSL {
 
         override var lifeCycle: LifeCycle = LifeCycle.Build
 
+        override val disposeBag: DisposeBag = DisposeBag()
+
         override fun add(child: ElementBuilder<*>) {
             children.add(child)
         }
@@ -117,4 +132,51 @@ object DSL {
         root.body()
         return root.build()
     }
+
+    fun ParentScope.condition(condition: Boolean, body: ParentScope.() -> Unit) {
+        if (condition) this.body()
+    }
+
+    inline fun <T> ParentScope.list(
+        items: Iterable<T>,
+        crossinline body: ParentScope.(T) -> Unit
+    ) {
+        for (item in items) {
+            this.body(item)
+        }
+    }
+
+    inline fun <T> ParentScope.listIndexed(
+        items: Iterable<T>,
+        crossinline body: ParentScope.(Int, T) -> Unit
+    ) {
+        var i = 0
+        for (item in items) {
+            this.body(i++, item)
+        }
+    }
+
+    inline fun ParentScope.repeat(
+        times: Int,
+        crossinline body: ParentScope.(Int) -> Unit
+    ) {
+        for (i in 0 until times) {
+            this.body(i)
+        }
+    }
+
+    fun <E : HTMLElement> ElementBuilder<E>.style(block: CSSStyleDeclaration.() -> Unit) {
+        write {
+            build().style.block()
+        }
+    }
+
+    var <E : HTMLElement> ElementBuilder<E>.className : String
+        get() = read(build().className)
+        set(value) = write { build().className = value }
+
+    var <E : HTMLElement> ElementBuilder<E>.id : String
+        get() = read(build().id)
+        set(value) = write { build().id = value }
+
 }

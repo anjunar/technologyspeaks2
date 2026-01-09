@@ -25,8 +25,10 @@ fun main() {
                 }
 
                 inputContainer {
+                    placeholder = "Count"
+
                     input {
-                        placeholder = "Count"
+
                     }
                 }
             }

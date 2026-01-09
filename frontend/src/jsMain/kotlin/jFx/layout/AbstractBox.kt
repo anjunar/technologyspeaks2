@@ -1,14 +1,14 @@
 package jFx.layout
 
+import jFx.core.AbstractComponent
 import jFx.core.DSL.ChildNodeBuilder
 import jFx.core.DSL.ElementBuilder
-import jFx.core.DSL.LifeCycle
 import jFx.state.ListProperty
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 
-abstract class AbstractBox(val className : String) : ChildNodeBuilder<HTMLDivElement, HTMLElement> {
+abstract class AbstractBox(val className : String) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
     private val node by lazy {
         val divElement = document.createElement("div") as HTMLDivElement
@@ -17,9 +17,6 @@ abstract class AbstractBox(val className : String) : ChildNodeBuilder<HTMLDivEle
     }
 
     override val children: ListProperty<ElementBuilder<*>> = ListProperty(emptyList())
-    override val applyValues: MutableList<() -> Unit> = mutableListOf()
-
-    override var lifeCycle: LifeCycle = LifeCycle.Build
 
     private val nodeCache = mutableMapOf<ElementBuilder<*>, HTMLElement>()
 

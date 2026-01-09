@@ -1,13 +1,13 @@
 package jFx.controls
 
-import jFx.core.DSL.LifeCycle
+import jFx.core.AbstractComponent
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLButtonElement
 
-class Button() : NodeBuilder<HTMLButtonElement> {
+class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
 
     val node by lazy {
         val element = document.createElement("button") as HTMLButtonElement
@@ -30,10 +30,6 @@ class Button() : NodeBuilder<HTMLButtonElement> {
     fun onClick(handler: () -> Unit) = write {
         node.onclick = { handler(); null }
     }
-
-    override val applyValues: MutableList<() -> Unit> = mutableListOf()
-
-    override var lifeCycle: LifeCycle = LifeCycle.Build
 
     companion object {
         fun ParentScope.button(body: Button.() -> Unit): Button {

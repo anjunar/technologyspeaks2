@@ -1,7 +1,5 @@
 package jFx.state
 
-typealias Disposable = () -> Unit
-
 class Property<T>(initial: T) : ReadOnlyProperty<T> {
     private var value: T = initial
     private val listeners = LinkedHashMap<Int, (T) -> Unit>()

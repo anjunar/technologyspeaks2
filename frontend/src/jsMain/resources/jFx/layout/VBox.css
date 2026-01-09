@@ -1,0 +1,4 @@
+.vbox {
+    display: flex;
+    flex-direction: row;
+}
