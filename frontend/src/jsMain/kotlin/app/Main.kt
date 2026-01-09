@@ -1,6 +1,7 @@
 package app
 
 import jFx.controls.Button.Companion.button
+import jFx.controls.Input
 import jFx.controls.Input.Companion.input
 import jFx.controls.InputContainer.Companion.inputContainer
 import jFx.core.DSL.component
@@ -32,6 +33,7 @@ fun main() {
                     input {
                         valueWriter { count.set(it + "aa")}
                         placeholder = "Enter text"
+                        validators(Input.Companion.SizeValidator(3, 12))
                     }
                 }
             }
@@ -40,7 +42,7 @@ fun main() {
         return div.build()
     }
 
-    val root = document.getElementById("root")!! // <div id="root"></div>
+    val root = document.getElementById("root")!!
 
     val renderCounter = counterComponent()
 

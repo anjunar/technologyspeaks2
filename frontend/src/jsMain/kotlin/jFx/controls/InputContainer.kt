@@ -11,6 +11,7 @@ import jFx.core.DSL.condition
 import jFx.core.DSL.conditionReader
 import jFx.core.DSL.render
 import jFx.core.DSL.style
+import jFx.layout.Div
 import jFx.layout.Div.Companion.div
 import jFx.layout.HorizontalLine.Companion.hr
 import jFx.layout.Span.Companion.span
@@ -25,7 +26,9 @@ import org.w3c.dom.HTMLElement
 
 class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
-    private val slot = Property<Input>(null)
+    private lateinit var slot : Div
+
+    private lateinit var errors : Div
 
     private val isEmptyProperty = Property(false)
 
@@ -33,36 +36,14 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
 
     val node: VBox by lazy {
 
-        slot.observe { input ->
-
-            if (input != null) {
-                input.placeholder = placeholder
-
-                Operators.computed(
-                    source = input.valueProperty,
-                    target = isEmptyProperty
-                ) { value: String ->
-                    ! value.isBlank()
-                }
-
-                val inputSub = input.valueProperty.observe {
-                    node.ctx.invalidate()
-                }
-
-                onDispose { inputSub() }
-
-            } else {
-                isEmptyProperty.set(false)
-            }
-        }
-
         component {
             vbox {
 
                 div {
 
                     style {
-                        height = "14px"
+                        height = "10px"
+                        marginBottom = "5px"
                     }
 
                     conditionReader({ this@InputContainer.isEmptyProperty.get()!! }) {
@@ -76,12 +57,21 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
                     }
                 }
 
-                render(this@InputContainer.slot)
+                this@InputContainer.slot = div {}
 
                 hr {
                     style {
                         margin = "0px"
                     }
+                }
+
+                div {
+
+                    style {
+                        height = "10px"
+                    }
+
+                    this@InputContainer.errors = div {}
                 }
             }
         }
@@ -94,14 +84,42 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
     override val children: ListProperty<ElementBuilder<*>> = ListProperty(emptyList())
 
     override fun add(child: ElementBuilder<*>) {
-        children.set(emptyList<ElementBuilder<*>>() + child)
-
-        write {
-            slot.set(child as Input)
-        }
+        children.set(children.get() + child)
     }
 
     override fun build(): HTMLDivElement = node.build()
+
+    override fun afterBuild() {
+
+        children.get().find { it is Input }?.let {
+            val input = it as Input
+            slot.add(input)
+
+            input.placeholder = placeholder
+
+            Operators.computed(
+                source = input.valueProperty,
+                target = isEmptyProperty
+            ) { value: String ->
+                ! value.isBlank()
+            }
+
+            input.valueProperty.observe {
+                node.ctx.invalidate()
+            }
+
+            input.errorsProperty.observe {
+                val errorSpans = it?.map { e -> span {
+                    text = e
+                    style {
+                        color = "var(--color-error)"
+                        fontSize = "xx-small"
+                    }
+                } }
+                errors.children.set(errorSpans ?: emptyList())
+            }
+        }
+    }
 
     companion object  {
         fun ParentScope.inputContainer(body: InputContainer.(DSL.BuildContext) -> Unit): InputContainer {
