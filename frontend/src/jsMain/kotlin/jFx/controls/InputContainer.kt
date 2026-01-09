@@ -11,6 +11,8 @@ import jFx.core.DSL.condition
 import jFx.core.DSL.conditionReader
 import jFx.core.DSL.render
 import jFx.core.DSL.style
+import jFx.layout.Div.Companion.div
+import jFx.layout.HorizontalLine.Companion.hr
 import jFx.layout.Span.Companion.span
 import jFx.layout.VBox
 import jFx.layout.VBox.Companion.vbox
@@ -57,17 +59,30 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
         component {
             vbox {
 
-                conditionReader({ this@InputContainer.isEmptyProperty.get()!! }) {
-                    span {
-                        style {
-                            fontSize = "xx-small"
-                            color = "gray"
+                div {
+
+                    style {
+                        height = "14px"
+                    }
+
+                    conditionReader({ this@InputContainer.isEmptyProperty.get()!! }) {
+                        span {
+                            style {
+                                fontSize = "xx-small"
+                                color = "gray"
+                            }
+                            textReader { this@InputContainer.placeholderProperty.get()!! }
                         }
-                        textReader { this@InputContainer.placeholderProperty.get()!! }
                     }
                 }
 
                 render(this@InputContainer.slot)
+
+                hr {
+                    style {
+                        margin = "0px"
+                    }
+                }
             }
         }
     }

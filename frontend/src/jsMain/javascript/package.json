@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "node ssr.js"
+  },
+  "dependencies": {
+    "happy-dom": "^20.1.0"
+  }
+}
