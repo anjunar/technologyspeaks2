@@ -1,6 +1,7 @@
 package jFx.layout
 
 import jFx.core.AbstractComponent
+import jFx.core.DSL
 import jFx.core.DSL.LifeCycle
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
@@ -27,7 +28,7 @@ class Span : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
     override fun build(): HTMLSpanElement = node
 
     companion object {
-        fun ParentScope.span(body: Span.() -> Unit): Span {
+        fun ParentScope.span(body: Span.(DSL.BuildContext) -> Unit): Span {
             val builder = Span()
             addNode(builder, body)
             return builder

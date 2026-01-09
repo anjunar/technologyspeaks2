@@ -1,6 +1,7 @@
 package jFx.controls
 
 import jFx.core.AbstractComponent
+import jFx.core.DSL
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.Property
@@ -19,6 +20,10 @@ class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
         bind(valueProperty)
 
         inputElement
+    }
+
+    fun valueWriter(callback : (String) -> Unit) {
+        dirty { callback(node.value) }
     }
 
     var value: String
@@ -54,7 +59,7 @@ class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
     override fun build(): HTMLInputElement = node
 
     companion object {
-        fun ParentScope.input(body: Input.() -> Unit): Input {
+        fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
             val builder = Input()
             addNode(builder, body)
             return builder

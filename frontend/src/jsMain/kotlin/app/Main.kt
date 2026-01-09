@@ -2,37 +2,40 @@ package app
 
 import jFx.controls.Button.Companion.button
 import jFx.controls.Input.Companion.input
-import jFx.controls.InputContainer.Companion.inputContainer
 import jFx.core.DSL.component
+import jFx.layout.Div
 import jFx.layout.Div.Companion.div
 import jFx.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLElement
+import kotlin.random.Random
 
 fun main() {
 
     fun counterComponent(): HTMLElement {
         val count = Property("tst")
 
-        return component {
+        val div : Div = component {
             div {
                 button {
-                    text = "+"
-                    textProperty.subscribe(count)
+                    text = "Click me"
+                    textReader { count.get()!! }
+//                    textProperty.subscribe(count)
                     onClick {
                         count.set(count.get() + "+")
                     }
                 }
 
-                inputContainer {
-                    placeholder = "Count"
-
-                    input {
-
-                    }
+                input {
+                    valueWriter { count.set(it + "aa")}
+                    placeholder = "Enter text"
                 }
             }
         }
+
+        count.observe { v -> div.ctx.stack.forEach { it.dirtyValues.forEach { it() } } }
+
+        return div.build()
     }
 
     val root = document.getElementById("root")!! // <div id="root"></div>

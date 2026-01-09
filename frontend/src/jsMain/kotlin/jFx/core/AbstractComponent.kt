@@ -7,6 +7,8 @@ abstract class AbstractComponent {
 
     val applyValues: MutableList<() -> Unit> = mutableListOf()
 
+    val dirtyValues: MutableList<() -> Unit> = mutableListOf()
+
     var lifeCycle: LifeCycle = LifeCycle.Build
 
     val disposeBag: DisposeBag = DisposeBag()

@@ -1,6 +1,7 @@
 package jFx.controls
 
 import jFx.core.AbstractComponent
+import jFx.core.DSL
 import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.Property
@@ -23,6 +24,10 @@ class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
 
     val textProperty = Property("")
 
+    fun textReader(callback : () -> String) {
+        dirty { node.textContent = callback() }
+    }
+
     var text: String
         get() = read(node.textContent ?: "")
         set(value) = write { node.textContent = value }
@@ -32,7 +37,7 @@ class Button() : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
     }
 
     companion object {
-        fun ParentScope.button(body: Button.() -> Unit): Button {
+        fun ParentScope.button(body: Button.(DSL.BuildContext) -> Unit): Button {
             val builder = Button()
             addNode(builder, body)
             return builder
