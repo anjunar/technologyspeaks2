@@ -1,0 +1,106 @@
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-background-primary) inset !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+input {
+    font-size: 16px;
+    outline: 0;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background-color: inherit;
+
+    &.focus {
+        color: var(--color-selected);
+
+        &::placeholder {
+            color: var(--color-selected);
+        }
+    }
+
+    &.dirty {
+        color: var(--color-warning);
+
+        &::placeholder {
+            color: var(--color-warning);
+        }
+    }
+
+    &.invalid {
+        color: var(--color-error);
+
+        &::placeholder {
+            color: var(--color-error);
+        }
+    }
+
+    &::placeholder {
+        color: var(--color-text);
+        opacity: 1;
+    }
+
+    &[disabled]::placeholder {
+        opacity: 0.5;
+    }
+
+    &[type=date] {
+        &[disabled] {
+            opacity: 0.5;
+        }
+    }
+}
+
+button {
+    cursor: pointer;
+    background-color: inherit;
+    border: 0;
+    font-size: 16px;
+
+    color: var(--color-text);
+
+    &.active {
+        color: var(--color-selected);
+    }
+
+    &[disabled] {
+        color: var(--color-background-secondary);
+    }
+
+    &.container {
+        display : flex;
+        align-items : center;
+        justify-content : flex-start;
+        gap : 5px
+    }
+
+    &.hover {
+        &:not([disabled]):hover {
+            background-color: var(--color-selected);
+            color: var(--color-background-primary);
+        }
+    }
+}
+
+select, textarea {
+    outline: 0;
+    resize: none;
+    border: 0;
+}
+
+p {
+    margin: 8px 0;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+}
