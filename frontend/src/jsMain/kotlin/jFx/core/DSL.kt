@@ -1,7 +1,11 @@
 package jFx.core
 
+import jFx.state.Disposable
 import jFx.state.DisposeBag
 import jFx.state.ListProperty
+import jFx.state.ReadOnlyProperty
+import kotlinx.browser.document
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.css.CSSStyleDeclaration
@@ -133,8 +137,132 @@ object DSL {
         return root.build()
     }
 
-    fun ParentScope.condition(condition: Boolean, body: ParentScope.() -> Unit) {
-        if (condition) this.body()
+    fun <B> ParentScope.render(slot: ReadOnlyProperty<out B?>)
+            where B : ElementBuilder<*>, B : Any {
+        addNode(RenderHost(slot), body = {})
+    }
+
+    private class RenderHost<B>(private val slot: ReadOnlyProperty<out B?>) : AbstractComponent(), ElementBuilder<HTMLDivElement>
+            where B : ElementBuilder<*>, B : Any {
+
+        private val host: HTMLDivElement by lazy {
+            document.createElement("div") as HTMLDivElement
+        }
+
+        private var subscription: Disposable? = null
+        private var initialized = false
+
+        override fun build(): HTMLDivElement {
+            if (!initialized) {
+                initialized = true
+                subscription = slot.observe { builderOrNull ->
+                    host.replaceWithBuilder(builderOrNull)
+                }
+            }
+            return host
+        }
+
+        private fun HTMLDivElement.replaceWithBuilder(builderOrNull: B?) {
+            while (firstChild != null) removeChild(firstChild!!)
+
+            if (builderOrNull != null) {
+                val built = builderOrNull.build()
+                if (built is Node) {
+                    appendChild(built)
+                } else {
+                    error("render(slot): builder.build() must return a DOM Node, but was ${built!!::class}")
+                }
+            }
+        }
+
+        override fun dispose() {
+            subscription?.invoke()
+            subscription = null
+        }
+    }
+
+    fun ParentScope.condition(
+        predicate: ReadOnlyProperty<Boolean>,
+        body: ParentScope.() -> Unit
+    ) {
+        addNode(ConditionHost(predicate, body), body = {})
+    }
+
+    private class ConditionHost(
+        private val predicate: ReadOnlyProperty<Boolean>,
+        private val body: ParentScope.() -> Unit
+    ) : AbstractComponent(), ElementBuilder<HTMLDivElement> {
+
+        private val host: HTMLDivElement by lazy {
+            document.createElement("div") as HTMLDivElement
+        }
+
+        private var subscription: Disposable? = null
+        private var initialized = false
+
+        private val mountedBuilders: MutableList<ElementBuilder<*>> = mutableListOf()
+
+        override fun build(): HTMLDivElement {
+            if (!initialized) {
+                initialized = true
+                subscription = predicate.observe { visible ->
+                    host.update(visible == true)
+                }
+            }
+            return host
+        }
+
+        private fun HTMLDivElement.update(visible: Boolean) {
+            clearMounted()
+
+            if (!visible) return
+
+            val hostScope = object : ParentScope {
+                override fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.() -> Unit): T {
+                    builder.lifeCycle = LifeCycle.Build
+                    val node = builder.build()
+
+                    builder.body()
+
+                    mountedBuilders.add(builder)
+
+                    if (node is Node) {
+                        this@update.appendChild(node)
+                    } else {
+                        error("condition: builder.build() must return a DOM Node")
+                    }
+
+                    builder.lifeCycle = LifeCycle.Apply
+                    builder.applyValues.forEach { it() }
+                    builder.applyValues.clear()
+
+                    builder.lifeCycle = LifeCycle.Finished
+
+                    if (builder is NodeBuilder<*>) {
+                        builder.registerLayoutListener()
+                    }
+
+                    return node
+                }
+            }
+
+            hostScope.body()
+        }
+
+        private fun clearMounted() {
+            while (host.firstChild != null) host.removeChild(host.firstChild!!)
+
+            mountedBuilders.forEach { b ->
+                try { b.dispose() } catch (_: Throwable) { /* fail-safe */ }
+            }
+            mountedBuilders.clear()
+        }
+
+        override fun dispose() {
+            subscription?.invoke()
+            subscription = null
+            clearMounted()
+        }
     }
 
     inline fun <T> ParentScope.list(

@@ -5,12 +5,13 @@ import jFx.core.DSL.ChildNodeBuilder
 import jFx.core.DSL.ElementBuilder
 import jFx.core.DSL.component
 import jFx.core.DSL.ParentScope
+import jFx.core.DSL.condition
+import jFx.core.DSL.render
 import jFx.core.DSL.style
-import jFx.layout.Div
-import jFx.layout.Div.Companion.div
 import jFx.layout.Span.Companion.span
 import jFx.layout.VBox.Companion.vbox
 import jFx.state.ListProperty
+import jFx.state.Operators
 import jFx.state.Operators.bind
 import jFx.state.Property
 import org.w3c.dom.HTMLDivElement
@@ -18,29 +19,55 @@ import org.w3c.dom.HTMLElement
 
 class InputContainer : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
-    private lateinit var slot: Div
+    private val slot = Property<Input>(null)
+
+    private val isEmptyProperty = Property(false)
 
     val placeholderProperty = Property("")
 
+    private var emptyBindingDispose: (() -> Unit)? = null
+
     val node: HTMLDivElement by lazy {
+
+        slot.observe { input ->
+            emptyBindingDispose?.invoke()
+            emptyBindingDispose = null
+
+            if (input != null) {
+                input.placeholder = placeholder
+
+                emptyBindingDispose = Operators.computed(
+                    source = input.valueProperty,
+                    target = isEmptyProperty
+                ) { value: String ->
+                    ! value.isBlank()
+                }
+            } else {
+                isEmptyProperty.set(false)
+            }
+        }
 
         component {
             vbox {
-                span {
-                    style {
-                        fontSize = "xx-small"
-                        color = "gray"
+
+                condition(this@InputContainer.isEmptyProperty) {
+                    span {
+                        style {
+                            fontSize = "xx-small"
+                            color = "gray"
+                        }
+                        val disposable = textProperty.bind(this@InputContainer.placeholderProperty)
+                        onDispose { disposable.invoke() }
                     }
-                    textProperty.bind(this@InputContainer.placeholderProperty)
                 }
 
-                this@InputContainer.slot = div {}
+                render(this@InputContainer.slot)
             }
         }
     }
 
     var placeholder: String
-        get() = placeholderProperty.get()
+        get() = placeholderProperty.get()!!
         set(value) { placeholderProperty.set(value) }
 
     override val children: ListProperty<ElementBuilder<*>> = ListProperty(emptyList())
@@ -49,7 +76,7 @@ class InputContainer : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTM
         children.set(emptyList<ElementBuilder<*>>() + child)
 
         write {
-            slot.add(child)
+            slot.set(child as Input)
         }
     }
 

@@ -11,8 +11,14 @@ import org.w3c.dom.events.EventListener
 
 class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
 
+    val valueProperty = Property("")
+
     val node by lazy {
-        document.createElement("input") as HTMLInputElement
+        val inputElement = document.createElement("input") as HTMLInputElement
+
+        bind(valueProperty)
+
+        inputElement
     }
 
     var value: String
@@ -32,7 +38,7 @@ class Input : AbstractComponent(), NodeBuilder<HTMLInputElement> {
             val input = build()
 
             val disposeObs = property.observe { v ->
-                if (input.value != v) input.value = v
+                if (input.value != v) input.value = v!!
             }
             onDispose(disposeObs)
 

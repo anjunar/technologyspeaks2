@@ -22,7 +22,7 @@ abstract class AbstractBox(val className : String) : AbstractComponent(), ChildN
 
     init {
         children.observe { items ->
-            syncChildren(items)
+            syncChildren(items!!)
         }
     }
 
