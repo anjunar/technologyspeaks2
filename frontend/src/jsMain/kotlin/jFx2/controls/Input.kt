@@ -1,14 +1,13 @@
 package jFx2.controls
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.registerField
 import jFx2.forms.FormField
 import org.w3c.dom.HTMLInputElement
 
-class Input(val name : String, override val node: HTMLInputElement) : FormField<String, HTMLInputElement> {
+class Input(val name : String, override val node: HTMLInputElement) : FormField<String, HTMLInputElement>, HasPlaceholder {
 
-    var placeholder: String
+    override var placeholder: String
         get() = node.placeholder
         set(v) {
             node.placeholder = v

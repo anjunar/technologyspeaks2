@@ -1,7 +1,9 @@
 package jFx2.core.dsl
 
 import jFx2.core.Component
+import jFx2.core.capabilities.HasUi
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import jFx2.forms.FormField
 import org.w3c.dom.Node
 

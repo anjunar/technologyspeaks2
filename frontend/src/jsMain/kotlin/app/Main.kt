@@ -27,8 +27,10 @@ fun main() {
                         div {
                             inputContainer {
                                 placeholder = "Extra input"
-                                input("firstName") {
-                                    placeholder = "Type..."
+                                field {
+                                    input("firstName") {
+                                        placeholder = "Type..."
+                                    }
                                 }
                             }
                         }

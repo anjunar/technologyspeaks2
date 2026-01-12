@@ -10,8 +10,18 @@ class NodeScope internal constructor(
     val ui: UiScope,
     val parent: Node
 ) {
-    fun attach(child: Component<*>) = ui.dom.attach(parent, child.node)
-    fun <E: Element> create(tag: String): E = ui.dom.create(tag)
+    fun attach(child: Component<*>): Component<*> {
+        ui.dom.attach(parent, child.node)
+
+        if (child is HasUi) {
+            child.ui = ui
+        }
+
+        return child
+    }
+
+    fun <E : Element> create(tag: String): E = ui.dom.create(tag)
+
     val build get() = ui.build
     val dispose get() = ui.dispose
     val render get() = ui.render

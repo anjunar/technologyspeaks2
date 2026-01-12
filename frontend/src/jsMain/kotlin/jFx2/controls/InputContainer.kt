@@ -1,42 +1,48 @@
 package jFx2.controls
 
 import jFx2.core.Component
+import jFx2.core.capabilities.HasUi
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
+import jFx2.forms.FormField
 import org.w3c.dom.HTMLDivElement
 
 class InputContainer(
     override val node: HTMLDivElement
-) : Component<HTMLDivElement> {
+) : Component<HTMLDivElement>, HasUi {
 
-    internal var ownerScope: NodeScope? = null
+    override lateinit var ui: UiScope
 
-    var input: Input? = null
-        private set
+    private val fields = ArrayList<FormField<*, *>>()
+    fun fields(): List<FormField<*, *>> = fields.toList()
 
     var placeholder: String = ""
         set(v) {
             field = v
-            input?.placeholder = v
+            applyPlaceholderToExisting()
         }
 
-    fun input(block: Input.() -> Unit = {}): Input {
-        val scope = ownerScope
-            ?: error("InputContainer.input() can only be used inside inputContainer { ... }")
+    fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
+        val scope = NodeScope(ui, node)
+        val f = scope.factory()
 
-        val childScope = NodeScope(scope.ui, node)
-        val i = childScope.input(input?.name!!, block)
+        fields += f
+        applyContainerDefaults(f)
 
-        input = i
-
-        if (placeholder.isNotBlank()) {
-            i.placeholder = placeholder
-        }
-
-        return i
+        return f
     }
 
-    internal fun applyToChildren() {
-        input?.placeholder = placeholder
+    private fun applyContainerDefaults(field: FormField<*, *>) {
+        if (placeholder.isNotBlank() && field is HasPlaceholder) {
+            field.placeholder = placeholder
+        }
+    }
+
+    private fun applyPlaceholderToExisting() {
+        if (placeholder.isBlank()) return
+        for (f in fields) {
+            if (f is HasPlaceholder) f.placeholder = placeholder
+        }
     }
 }
 
@@ -46,15 +52,7 @@ fun NodeScope.inputContainer(block: InputContainer.() -> Unit): InputContainer {
 
     val c = InputContainer(el)
     attach(c)
+    c.block()
 
-    val prev = c.ownerScope
-    c.ownerScope = this
-    try {
-        c.block()
-    } finally {
-        c.ownerScope = prev
-    }
-
-    c.applyToChildren()
     return c
 }
