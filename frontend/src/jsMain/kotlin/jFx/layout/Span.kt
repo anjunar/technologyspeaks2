@@ -9,7 +9,7 @@ import jFx.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLSpanElement
 
-class Span(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLSpanElement> {
+class Span(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLSpanElement>(), NodeBuilder<HTMLSpanElement> {
 
     val textProperty = Property("")
 

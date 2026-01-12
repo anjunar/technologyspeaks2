@@ -1,5 +1,8 @@
 package jFx.core
 
+import jFx.controls.Form
+import jFx.controls.Formular
+import jFx.controls.SubForm
 import jFx.state.Disposable
 import jFx.state.DisposeBag
 import jFx.state.ListProperty
@@ -28,6 +31,7 @@ object DSL {
         val stack: ArrayDeque<ElementBuilder<*>> = ArrayDeque()
         val afterTreeBuilt: MutableList<() -> Unit> = mutableListOf()
         val dirtyComponents: MutableSet<ElementBuilder<*>> = mutableSetOf()
+        val formStack : ArrayDeque<Formular> = ArrayDeque()
 
         private var flushScheduled: Boolean = false
         private var pendingInvalidate: Boolean = false
@@ -42,6 +46,14 @@ object DSL {
                 "BuildContext stack corrupted: expected to pop $builder but was $last"
             }
         }
+
+        fun pushFormular(form : Formular) {
+            formStack.addLast(form)
+        }
+
+        fun popFormular() = formStack.removeLastOrNull()
+
+        fun nearestFormular() = formStack.lastOrNull()
 
         fun addDirtyComponent(component: ElementBuilder<*>) {
             dirtyComponents.add(component)
@@ -121,7 +133,6 @@ object DSL {
         fun dispose() {
             disposeBag.dispose()
         }
-
 
         fun write(action: () -> Unit) {
             if (lifeCycle == LifeCycle.Finished || lifeCycle == LifeCycle.Layout) {
@@ -270,7 +281,7 @@ object DSL {
     // NOTE: AbstractComponent is assumed to provide sensible defaults for applyValues/dirtyValues/lifeCycle/disposeBag.
     // If AbstractComponent does not implement ParentScope, we provide a ctx here.
     private class RenderHost<B>(private val slot: ReadOnlyProperty<out B?>, override val ctx: BuildContext) :
-        AbstractComponent(),
+        AbstractComponent<HTMLDivElement>(),
         ElementBuilder<HTMLDivElement>
             where B : ElementBuilder<*>, B : Any {
 
@@ -307,7 +318,7 @@ object DSL {
         override fun dispose() {
             subscription?.invoke()
             subscription = null
-            super.dispose()
+            super<AbstractComponent>.dispose()
         }
     }
 
@@ -322,7 +333,7 @@ object DSL {
         override val ctx: BuildContext,
         private val predicate: () -> Boolean,
         private val body: ParentScope.() -> Unit
-    ) : AbstractComponent(), ElementBuilder<HTMLDivElement> {
+    ) : AbstractComponent<HTMLDivElement>(), ElementBuilder<HTMLDivElement> {
 
         private val host: HTMLDivElement by lazy {
             document.createElement("div") as HTMLDivElement
@@ -401,7 +412,7 @@ object DSL {
 
         override fun dispose() {
             clearMounted()
-            super.dispose()
+            super<AbstractComponent>.dispose()
         }
     }
 
@@ -416,7 +427,7 @@ object DSL {
         override val ctx: BuildContext,
         private val predicate: ReadOnlyProperty<Boolean>,
         private val body: ParentScope.() -> Unit
-    ) : AbstractComponent(), ElementBuilder<HTMLDivElement> {
+    ) : AbstractComponent<HTMLDivElement>(), ElementBuilder<HTMLDivElement> {
 
         private val host: HTMLDivElement by lazy {
             document.createElement("div") as HTMLDivElement
@@ -501,7 +512,7 @@ object DSL {
             subscription?.invoke()
             subscription = null
             clearMounted()
-            super.dispose()
+            super<AbstractComponent>.dispose()
         }
     }
 

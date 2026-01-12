@@ -25,7 +25,7 @@ import jFx.state.Property
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 
-class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
+class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLDivElement>(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
     private val slot = Property<Input>(null)
 
@@ -133,6 +133,11 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
                 errors.children.setAll(errorSpans ?: emptyList())
             }
         }
+    }
+
+    override fun dispose() {
+        slot.get()?.dispose()
+        super<AbstractComponent>.dispose()
     }
 
     companion object  {

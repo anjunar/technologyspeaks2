@@ -1,6 +1,7 @@
 @import "./control/Button.css";
 @import "./control/Input.css";
 @import "./control/InputContainer.css";
+@import "./control/SubForm.css";
 
 @import "./layout/HBox.css";
 @import "./layout/VBox.css";

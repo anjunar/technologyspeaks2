@@ -1,40 +1,92 @@
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalSerializationApi::class)
+
 package app
 
 import jFx.controls.Button.Companion.button
+import jFx.controls.Form
+import jFx.controls.Form.Companion.form
 import jFx.controls.Input
 import jFx.controls.Input.Companion.input
 import jFx.controls.InputContainer.Companion.inputContainer
+import jFx.controls.SubForm.Companion.subForm
 import jFx.core.DSL.component
+import jFx.core.DSL.condition
 import jFx.layout.Div
 import jFx.layout.Div.Companion.div
 import jFx.state.Property
 import kotlinx.browser.document
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.w3c.dom.HTMLElement
-import kotlin.random.Random
 
 fun main() {
 
     fun counterComponent(): HTMLElement {
-        val count = Property("tst")
 
-        val div : Div = component {
+        var formular: Form? = null
+
+        val showStreet = Property(true)
+
+        val div: Div = component {
             div {
-                button {
-                    text = "Click me"
-                    textReader { count.get()!! }
-//                    textProperty.subscribe(count)
-                    onClick {
-                        count.set(count.get() + "+")
+                formular = form {
+                    name = "user"
+                    inputContainer {
+                        placeholder = "Nickname"
+                        input {
+                            name = "nickName"
+                            validators(Input.Companion.SizeValidator(0, 12))
+                        }
                     }
+
+                    subForm {
+                        name = "userInfo"
+                        inputContainer {
+                            placeholder = "First Name"
+                            input {
+                                name = "firstName"
+                                validators(Input.Companion.SizeValidator(0, 12))
+                            }
+                        }
+                        inputContainer {
+                            placeholder = "Last Name"
+                            input {
+                                name = "lastName"
+                                validators(Input.Companion.SizeValidator(0, 12))
+                            }
+                        }
+                    }
+
+                    button {
+                        text = "Toggle Address"
+                        onClick {
+                            it.preventDefault()
+                            showStreet.set(!showStreet.get()!!)
+                        }
+                    }
+
+                    subForm {
+                        name = "address"
+                        condition(showStreet) {
+                            inputContainer {
+                                placeholder = "Street"
+                                input {
+                                    name = "street"
+                                    validators(Input.Companion.SizeValidator(0, 80))
+                                }
+                            }
+                        }
+                    }
+
+                    button {
+                        text = "Submit"
+                        onClick {
+                            it.preventDefault()
+                            println(formular.toString())
+                        }
+                    }
+
                 }
 
-                inputContainer {
-                    placeholder = "Enter text"
-                    input {
-                        valueWriter { count.set(it + "aa")}
-                        validators(Input.Companion.SizeValidator(0, 12))
-                    }
-                }
             }
         }
 

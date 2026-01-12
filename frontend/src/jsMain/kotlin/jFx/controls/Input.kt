@@ -7,12 +7,13 @@ import jFx.core.DSL.ParentScope
 import jFx.state.ListProperty
 import jFx.state.Property
 import kotlinx.browser.document
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
 @Suppress("UNCHECKED_CAST")
-class Input(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLInputElement> {
+class Input(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLInputElement>(), NodeBuilder<HTMLInputElement> {
 
     val valueProperty = Property("")
 
@@ -47,6 +48,10 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuild
     }
 
     fun validators(vararg validators: Validator<*,*>) = validatorsProperty.setAll(validators.toList() as List<Validator<in Any,in Any>>)
+
+    var name : String
+        get() = read(node.name)
+        set(value) = write { node.name = value }
 
     var value: String
         get() = read(node.value)
@@ -124,9 +129,18 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuild
         bind(valueProperty)
     }
 
+    override fun toString(): String {
+        return "$name:$value"
+    }
+
     companion object {
         fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
             val builder = Input(ctx)
+
+            val owner = ctx.nearestFormular()
+            owner?.register(builder)
+            builder.onDispose { owner?.unregister(builder) }
+
             addNode(builder, body)
             return builder
         }

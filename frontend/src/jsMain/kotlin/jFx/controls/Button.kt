@@ -8,8 +8,10 @@ import jFx.state.Property
 import jFx.util.EventHelper
 import kotlinx.browser.document
 import org.w3c.dom.HTMLButtonElement
+import org.w3c.dom.events.Event
+import org.w3c.dom.events.MouseEvent
 
-class Button(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuilder<HTMLButtonElement> {
+class Button(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLButtonElement>(), NodeBuilder<HTMLButtonElement> {
 
     val node by lazy {
         val element = document.createElement("button") as HTMLButtonElement
@@ -36,8 +38,8 @@ class Button(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuil
         get() = read(node.textContent ?: "")
         set(value) = write { node.textContent = value }
 
-    fun onClick(handler: () -> Unit) = write {
-        node.onclick = { handler(); null }
+    fun onClick(handler: (MouseEvent) -> Unit) = write {
+        node.onclick = { handler(it) }
     }
 
     companion object {

@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform") version "2.3.0"
+    kotlin("plugin.serialization") version "2.3.0"
 }
 
 repositories {
@@ -23,7 +24,7 @@ kotlin {
     sourceSets {
         val jsMain by getting {
             dependencies {
-                // für später hilfreich: Kotlin JS Standardlib ist automatisch da
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             }
         }
     }
