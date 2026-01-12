@@ -27,5 +27,8 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             }
         }
+        all {
+            languageSettings.enableLanguageFeature("ContextParameters")
+        }
     }
 }

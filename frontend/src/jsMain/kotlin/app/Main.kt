@@ -1,102 +1,116 @@
-@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalSerializationApi::class)
-
 package app
 
-import jFx.controls.Button.Companion.button
-import jFx.controls.Form
-import jFx.controls.Form.Companion.form
-import jFx.controls.Input
-import jFx.controls.Input.Companion.input
-import jFx.controls.InputContainer.Companion.inputContainer
-import jFx.controls.SubForm.Companion.subForm
-import jFx.core.Condition.condition
-import jFx.core.DSL.component
-import jFx.layout.Div
-import jFx.layout.Div.Companion.div
-import jFx.state.Property
+import jFx2.core.runtime.component
+import jFx2.rendering.RenderScopeImpl
+import jFx2.state.ReadOnlyProperty
+import jFx2.rendering.condition
+import jFx2.core.capabilities.Disposable
+import jFx2.controls.button
+import jFx2.controls.div
+import jFx2.controls.input
 import kotlinx.browser.document
-import kotlinx.serialization.ExperimentalSerializationApi
-import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.Node
+
+// Minimal Property fürs Demo
+class Property<T>(initial: T) : ReadOnlyProperty<T> {
+    private var value: T = initial
+    private val listeners = LinkedHashMap<Int, (T) -> Unit>()
+    private var nextId = 1
+
+    override fun get(): T = value
+
+    fun set(newValue: T) {
+        if (newValue == value) return
+        value = newValue
+        listeners.values.toList().forEach { it(newValue) }
+    }
+
+    override fun observe(listener: (T) -> Unit): Disposable {
+        val id = nextId++
+        listeners[id] = listener
+        listener(value)
+        return { listeners.remove(id) }
+    }
+}
 
 fun main() {
+    val root = document.createElement("div") as HTMLDivElement
 
-    fun counterComponent(): HTMLElement {
+    component(root) {
+        val render = RenderScopeImpl(dom)
 
-        var formular: Form? = null
+        val count = Property(0)
+        val showExtra = Property(true)
 
-        val showStreet = Property(false)
+        render.mount(dom.root) {
+            with(dom) {
+                with(render) {
+                    with(build) {
 
-        val div: Div = component {
-            div {
-                formular = form {
-                    name = "user"
-                    inputContainer {
-                        placeholder = "Nickname"
-                        input {
-                            name = "nickName"
-                            validators(Input.Companion.SizeValidator(0, 12))
-                        }
-                    }
+                        div {
 
-                    subForm {
-                        name = "userInfo"
-                        inputContainer {
-                            placeholder = "First Name"
-                            input {
-                                name = "firstName"
-                                validators(Input.Companion.SizeValidator(0, 12))
-                            }
-                        }
-                        inputContainer {
-                            placeholder = "Last Name"
-                            input {
-                                name = "lastName"
-                                validators(Input.Companion.SizeValidator(0, 12))
-                            }
-                        }
-                    }
-
-                    button {
-                        text = "Toggle Address"
-                        onClick {
-                            it.preventDefault()
-                            showStreet.set(!showStreet.get()!!)
-                        }
-                    }
-
-                    subForm {
-                        name = "address"
-                        condition(showStreet) {
-                            inputContainer {
-                                placeholder = "Street"
-                                input {
-                                    name = "street"
-                                    validators(Input.Companion.SizeValidator(0, 80))
+                            val plusBtn = button(
+                                text = "Count +1",
+                                onClick = {
+                                    count.set(count.get() + 1)
+                                    build.flush()
                                 }
+                            )
+                            attach(this, plusBtn)
+
+                            val toggleBtn = button(
+                                text = "Toggle extra",
+                                onClick = {
+                                    showExtra.set(!showExtra.get())
+                                    build.flush()
+                                }
+                            )
+                            attach(this, toggleBtn)
+
+                            val label = create<HTMLDivElement>("div")
+                            label.textContent = "Count: ${count.get()}"
+                            attach(this, label)
+
+                            val sub = count.observe { v ->
+                                dirty { label.textContent = "Count: $v" }
                             }
+                            register(sub)
+
+                            val inp = input(
+                                name = "dummy",
+                                placeholder = "Type (not used)"
+                            )
+                            attach(this, inp)
+
+                            condition(
+                                parent = this@div,
+                                predicate = showExtra,
+                                whenTrue = {
+                                    with(dom) {
+                                        val extra = create<org.w3c.dom.HTMLInputElement>("input")
+                                        extra.placeholder = "Extra input visible"
+                                        extra
+                                    }
+                                },
+                                whenFalse = {
+                                    with(dom) {
+                                        val info = create<HTMLDivElement>("div")
+                                        info.textContent = "Extra input hidden"
+                                        info
+                                    }
+                                }
+                            )
+
                         }
                     }
-
-                    button {
-                        text = "Submit"
-                        onClick {
-                            it.preventDefault()
-                            println(formular.toString())
-                        }
-                    }
-
                 }
 
             }
         }
 
-        return div.build()
+        build.flush()
     }
 
-    val root = document.getElementById("root")!!
-
-    val renderCounter = counterComponent()
-
-    root.appendChild(renderCounter)
-
+    document.body!!.appendChild(root)
 }
