@@ -1,9 +1,9 @@
 package jFx.controls
 
 import jFx.core.AbstractComponent
-import jFx.core.DSL
-import jFx.core.DSL.NodeBuilder
-import jFx.core.DSL.ParentScope
+import jFx.core.BuildContext
+import jFx.core.NodeBuilder
+import jFx.core.ParentScope
 import jFx.state.Property
 import jFx.util.EventHelper
 import kotlinx.browser.document
@@ -11,7 +11,7 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 
-class Button(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLButtonElement>(), NodeBuilder<HTMLButtonElement> {
+class Button(override val ctx: BuildContext) : AbstractComponent<HTMLButtonElement>(), NodeBuilder<HTMLButtonElement> {
 
     val node by lazy {
         val element = document.createElement("button") as HTMLButtonElement
@@ -43,7 +43,7 @@ class Button(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLButtonE
     }
 
     companion object {
-        fun ParentScope.button(body: Button.(DSL.BuildContext) -> Unit): Button {
+        fun ParentScope.button(body: Button.(BuildContext) -> Unit): Button {
             val builder = Button(ctx)
             addNode(builder, body)
             return builder

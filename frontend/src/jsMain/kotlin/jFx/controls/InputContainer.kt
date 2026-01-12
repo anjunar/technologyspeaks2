@@ -1,15 +1,16 @@
 package jFx.controls
 
 import jFx.core.AbstractComponent
+import jFx.core.BuildContext
+import jFx.core.ChildNodeBuilder
+import jFx.core.Condition.condition
 import jFx.core.DSL
-import jFx.core.DSL.ChildNodeBuilder
-import jFx.core.DSL.ElementBuilder
-import jFx.core.DSL.ParentScope
 import jFx.core.DSL.className
 import jFx.core.DSL.component
-import jFx.core.DSL.conditionReader
-import jFx.core.DSL.render
 import jFx.core.DSL.style
+import jFx.core.ElementBuilder
+import jFx.core.ParentScope
+import jFx.core.Render.render
 import jFx.layout.Div
 import jFx.layout.Div.Companion.div
 import jFx.layout.HorizontalLine
@@ -25,7 +26,8 @@ import jFx.state.Property
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 
-class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLDivElement>(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
+class InputContainer(override val ctx: BuildContext) : AbstractComponent<HTMLDivElement>(),
+    ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
     private val slot = Property<Input>(null)
 
@@ -55,7 +57,7 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent<HTM
                         marginBottom = "5px"
                     }
 
-                    conditionReader({ this@InputContainer.isEmptyProperty.get()!! }) {
+                    condition({ this@InputContainer.isEmptyProperty.get()!! }) {
                         span {
                             style {
                                 fontSize = "xx-small"
@@ -141,7 +143,7 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent<HTM
     }
 
     companion object  {
-        fun ParentScope.inputContainer(body: InputContainer.(DSL.BuildContext) -> Unit): InputContainer {
+        fun ParentScope.inputContainer(body: InputContainer.(BuildContext) -> Unit): InputContainer {
             val builder = InputContainer(this.ctx)
             addNode(builder, body)
             return builder

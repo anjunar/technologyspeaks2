@@ -9,8 +9,8 @@ import jFx.controls.Input
 import jFx.controls.Input.Companion.input
 import jFx.controls.InputContainer.Companion.inputContainer
 import jFx.controls.SubForm.Companion.subForm
+import jFx.core.Condition.condition
 import jFx.core.DSL.component
-import jFx.core.DSL.condition
 import jFx.layout.Div
 import jFx.layout.Div.Companion.div
 import jFx.state.Property

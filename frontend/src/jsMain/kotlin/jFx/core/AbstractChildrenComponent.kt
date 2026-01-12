@@ -1,11 +1,10 @@
 package jFx.core
 
-import jFx.core.DSL.ElementBuilder
 import jFx.state.ListProperty
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 
-abstract class AbstractChildrenComponent<E : Node, V: Node> : AbstractComponent<E>(), DSL.ChildNodeBuilder<E,V> {
+abstract class AbstractChildrenComponent<E : Node, V: Node> : AbstractComponent<E>(), ChildNodeBuilder<E,V> {
 
     override val children: ListProperty<ElementBuilder<*>> = ListProperty(emptyList())
 

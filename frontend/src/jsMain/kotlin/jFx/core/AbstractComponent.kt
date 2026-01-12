@@ -1,9 +1,8 @@
 package jFx.core
 
-import jFx.core.DSL.LifeCycle
 import jFx.state.DisposeBag
 
-abstract class AbstractComponent<E>  : DSL.ElementBuilder<E> {
+abstract class AbstractComponent<E>  : ElementBuilder<E> {
 
     override val applyValues: MutableList<() -> Unit> = mutableListOf()
 

@@ -1,19 +1,19 @@
 package jFx.controls
 
 import jFx.core.AbstractComponent
+import jFx.core.BuildContext
 import jFx.core.DSL
-import jFx.core.DSL.NodeBuilder
-import jFx.core.DSL.ParentScope
+import jFx.core.NodeBuilder
+import jFx.core.ParentScope
 import jFx.state.ListProperty
 import jFx.state.Property
 import kotlinx.browser.document
-import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
 @Suppress("UNCHECKED_CAST")
-class Input(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLInputElement>(), NodeBuilder<HTMLInputElement> {
+class Input(override val ctx: BuildContext) : AbstractComponent<HTMLInputElement>(), NodeBuilder<HTMLInputElement> {
 
     val valueProperty = Property("")
 
@@ -134,7 +134,7 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLInputEle
     }
 
     companion object {
-        fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
+        fun ParentScope.input(body: Input.(BuildContext) -> Unit): Input {
             val builder = Input(ctx)
 
             val owner = ctx.scope.get(DSL.FormularKey)

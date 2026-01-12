@@ -1,14 +1,14 @@
 package jFx.controls
 
 import jFx.core.AbstractChildrenComponent
+import jFx.core.BuildContext
 import jFx.core.DSL
-import jFx.core.DSL.ParentScope
+import jFx.core.ParentScope
 import kotlinx.browser.document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLFormElement
 
-class Form(override val ctx: DSL.BuildContext) : AbstractChildrenComponent<HTMLFormElement, HTMLElement>(),
-    DSL.ChildNodeBuilder<HTMLFormElement, HTMLElement>, Formular {
+class Form(override val ctx: BuildContext) : AbstractChildrenComponent<HTMLFormElement, HTMLElement>(), Formular {
 
     val inputs : MutableList<Input> = mutableListOf()
 
@@ -46,7 +46,7 @@ class Form(override val ctx: DSL.BuildContext) : AbstractChildrenComponent<HTMLF
     }
 
     companion object {
-        fun ParentScope.form(body: Form.(DSL.BuildContext) -> Unit): Form {
+        fun ParentScope.form(body: Form.(BuildContext) -> Unit): Form {
             val builder = Form(ctx)
 
             val prevScope = ctx.scope

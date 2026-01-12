@@ -1,6 +1,7 @@
 package jFx.state
 
-import jFx.core.DSL.ParentScope
+import jFx.core.ParentScope
+
 
 class SwitchScope<T>(
     private val parent: ParentScope,
