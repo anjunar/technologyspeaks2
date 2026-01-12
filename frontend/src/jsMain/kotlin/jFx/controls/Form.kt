@@ -49,12 +49,11 @@ class Form(override val ctx: DSL.BuildContext) : AbstractChildrenComponent<HTMLF
         fun ParentScope.form(body: Form.(DSL.BuildContext) -> Unit): Form {
             val builder = Form(ctx)
 
-            ctx.pushFormular(builder)
-            try {
-                addNode(builder, body)
-            } finally {
-//                ctx.popFormular()
-            }
+            val prevScope = ctx.scope
+            ctx.scope = prevScope.with(DSL.FormularKey, builder)
+
+            addNode(builder, body)
+
             return builder
         }
     }

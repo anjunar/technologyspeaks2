@@ -47,16 +47,15 @@ class SubForm(override val ctx: DSL.BuildContext) : AbstractChildrenComponent<HT
         fun ParentScope.subForm(body: SubForm.(DSL.BuildContext) -> Unit): SubForm {
             val builder = SubForm(ctx)
 
-            val owner = ctx.nearestFormular()
+            val owner = ctx.scope.get(DSL.FormularKey)
             owner?.register(builder)
             builder.onDispose { owner?.unregister(builder) }
 
-            ctx.pushFormular(builder)
-            try {
-                addNode(builder, body)
-            } finally {
-                ctx.popFormular()
-            }
+            val prevScope = ctx.scope
+            ctx.scope = prevScope.with(DSL.FormularKey, builder)
+
+            addNode(builder, body)
+
             return builder
         }
     }

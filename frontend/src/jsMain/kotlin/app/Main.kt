@@ -24,7 +24,7 @@ fun main() {
 
         var formular: Form? = null
 
-        val showStreet = Property(true)
+        val showStreet = Property(false)
 
         val div: Div = component {
             div {

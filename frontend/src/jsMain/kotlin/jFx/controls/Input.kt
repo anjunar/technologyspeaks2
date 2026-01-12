@@ -137,7 +137,7 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent<HTMLInputEle
         fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
             val builder = Input(ctx)
 
-            val owner = ctx.nearestFormular()
+            val owner = ctx.scope.get(DSL.FormularKey)
             owner?.register(builder)
             builder.onDispose { owner?.unregister(builder) }
 

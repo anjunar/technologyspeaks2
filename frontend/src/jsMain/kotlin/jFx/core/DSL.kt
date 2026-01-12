@@ -26,12 +26,34 @@ object DSL {
         Layout
     }
 
+    class ScopeKey<T : Any>
+
+    class Scope private constructor(
+        private val parent: Scope?,
+        private val values: Map<ScopeKey<*>, Any>
+    ) {
+        constructor() : this(parent = null, values = emptyMap())
+
+        fun <T : Any> get(key: ScopeKey<T>): T? {
+            @Suppress("UNCHECKED_CAST")
+            return (values[key] as? T) ?: parent?.get(key)
+        }
+
+        fun <T : Any> with(key: ScopeKey<T>, value: T): Scope =
+            Scope(parent = this, values = mapOf(key to value))
+
+        inline fun <R> use(temp: Scope, block: () -> R): R = block()
+    }
+
+    val FormularKey = ScopeKey<Formular>()
+
     class BuildContext internal constructor() {
 
         val stack: ArrayDeque<ElementBuilder<*>> = ArrayDeque()
         val afterTreeBuilt: MutableList<() -> Unit> = mutableListOf()
         val dirtyComponents: MutableSet<ElementBuilder<*>> = mutableSetOf()
-        val formStack : ArrayDeque<Formular> = ArrayDeque()
+
+        var scope: Scope = Scope()
 
         private var flushScheduled: Boolean = false
         private var pendingInvalidate: Boolean = false
@@ -46,14 +68,6 @@ object DSL {
                 "BuildContext stack corrupted: expected to pop $builder but was $last"
             }
         }
-
-        fun pushFormular(form : Formular) {
-            formStack.addLast(form)
-        }
-
-        fun popFormular() = formStack.removeLastOrNull()
-
-        fun nearestFormular() = formStack.lastOrNull()
 
         fun addDirtyComponent(component: ElementBuilder<*>) {
             dirtyComponents.add(component)
@@ -333,7 +347,7 @@ object DSL {
         override val ctx: BuildContext,
         private val predicate: () -> Boolean,
         private val body: ParentScope.() -> Unit
-    ) : AbstractComponent<HTMLDivElement>(), ElementBuilder<HTMLDivElement> {
+    ) : AbstractComponent<HTMLDivElement>() {
 
         private val host: HTMLDivElement by lazy {
             document.createElement("div") as HTMLDivElement
@@ -341,80 +355,85 @@ object DSL {
 
         private val mountedBuilders: MutableList<ElementBuilder<*>> = mutableListOf()
 
+        private val capturedScope: DSL.Scope = ctx.scope
+
         override fun build(): HTMLDivElement {
             ctx.addDirtyComponent(this)
 
             dirty {
                 host.update(predicate())
             }
-
             write {
                 host.update(predicate())
             }
-
             return host
         }
 
         private fun HTMLDivElement.update(visible: Boolean) {
             clearMounted()
-
             if (!visible) return
 
-            val hostScope = object : ParentScope {
-                override val ctx: BuildContext = this@ConditionReaderHost.ctx
+            val prevScope = ctx.scope
+            ctx.scope = capturedScope
+            try {
+                val hostScope = object : ParentScope {
+                    override val ctx: BuildContext = this@ConditionReaderHost.ctx
 
-                override fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.(BuildContext) -> Unit): T {
-                    val ctx = this.ctx
+                    override fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.(BuildContext) -> Unit): T {
+                        val ctx = this.ctx
 
-                    ctx.push(builder)
-                    try {
-                        builder.lifeCycle = LifeCycle.Build
-                        val node = builder.build()
+                        ctx.push(builder)
+                        try {
+                            builder.lifeCycle = LifeCycle.Build
+                            val node = builder.build()
 
-                        builder.body(ctx)
+                            builder.body(ctx)
 
-                        mountedBuilders.add(builder)
-                        this@update.appendChild(node)
+                            mountedBuilders.add(builder)
+                            this@update.appendChild(node)
 
-                        builder.lifeCycle = LifeCycle.Apply
-                        builder.applyValues.forEach { it() }
-                        builder.applyValues.clear()
+                            builder.lifeCycle = LifeCycle.Apply
+                            builder.applyValues.forEach { it() }
+                            builder.applyValues.clear()
 
-                        builder.lifeCycle = LifeCycle.Finished
+                            builder.lifeCycle = LifeCycle.Finished
 
-                        if (builder is NodeBuilder<*>) {
-                            builder.registerLayoutListener()
-                        }
+                            if (builder is NodeBuilder<*>) {
+                                builder.registerLayoutListener()
+                            }
 
-                        builder.afterBuild()
-
-                        return node
-                    } finally {
-                        ctx.pop(builder)
-                        if (ctx.isIdle()) {
-                            ctx.flushAfterTreeBuilt()
+                            builder.afterBuild()
+                            return node
+                        } finally {
+                            ctx.pop(builder)
+                            if (ctx.isIdle()) {
+                                ctx.flushAfterTreeBuilt()
+                            }
                         }
                     }
                 }
-            }
 
-            hostScope.body()
+                hostScope.body()
+            } finally {
+                ctx.scope = prevScope
+            }
         }
 
         private fun clearMounted() {
             while (host.firstChild != null) host.removeChild(host.firstChild!!)
 
             mountedBuilders.forEach { b ->
-                try { b.dispose() } catch (_: Throwable) { /* fail-safe */ }
+                try { b.dispose() } catch (_: Throwable) { }
             }
             mountedBuilders.clear()
         }
 
         override fun dispose() {
             clearMounted()
-            super<AbstractComponent>.dispose()
+            super.dispose()
         }
     }
+
 
     fun ParentScope.condition(
         predicate: ReadOnlyProperty<Boolean>,
@@ -427,7 +446,7 @@ object DSL {
         override val ctx: BuildContext,
         private val predicate: ReadOnlyProperty<Boolean>,
         private val body: ParentScope.() -> Unit
-    ) : AbstractComponent<HTMLDivElement>(), ElementBuilder<HTMLDivElement> {
+    ) : AbstractComponent<HTMLDivElement>() {
 
         private val host: HTMLDivElement by lazy {
             document.createElement("div") as HTMLDivElement
@@ -437,6 +456,8 @@ object DSL {
         private var initialized = false
 
         private val mountedBuilders: MutableList<ElementBuilder<*>> = mutableListOf()
+
+        private val capturedScope: DSL.Scope = ctx.scope
 
         override fun build(): HTMLDivElement {
             if (!initialized) {
@@ -450,60 +471,62 @@ object DSL {
 
         private fun HTMLDivElement.update(visible: Boolean) {
             clearMounted()
-
             if (!visible) return
 
-            val hostScope = object : ParentScope {
-                override val ctx: BuildContext = this@ConditionHost.ctx
+            val prevScope = ctx.scope
+            ctx.scope = capturedScope
+            try {
+                val hostScope = object : ParentScope {
+                    override val ctx: BuildContext = this@ConditionHost.ctx
 
-                override fun <T : Node, B : ElementBuilder<T>> addNode(builder: B, body: B.(BuildContext) -> Unit): T {
-                    val ctx = this.ctx
+                    override fun <T : Node, B : ElementBuilder<T>> addNode(
+                        builder: B,
+                        body: B.(BuildContext) -> Unit
+                    ): T {
+                        val ctx = this.ctx
 
-                    ctx.push(builder)
-                    try {
-                        builder.lifeCycle = LifeCycle.Build
-                        val node = builder.build()
+                        ctx.push(builder)
+                        try {
+                            builder.lifeCycle = LifeCycle.Build
+                            val node = builder.build()
 
-                        builder.body(ctx)
+                            builder.body(ctx)
 
-                        mountedBuilders.add(builder)
+                            mountedBuilders.add(builder)
+                            this@update.appendChild(node)
 
-                        this@update.appendChild(node)
+                            builder.lifeCycle = LifeCycle.Apply
+                            builder.applyValues.forEach { it() }
+                            builder.applyValues.clear()
 
-                        builder.lifeCycle = LifeCycle.Apply
-                        builder.applyValues.forEach { it() }
-                        builder.applyValues.clear()
+                            builder.lifeCycle = LifeCycle.Finished
 
-                        builder.lifeCycle = LifeCycle.Finished
+                            if (builder is NodeBuilder<*>) {
+                                builder.registerLayoutListener()
+                            }
 
-                        if (builder is NodeBuilder<*>) {
-                            builder.registerLayoutListener()
-                        }
-
-                        builder.afterBuild()
-
-                        return node
-                    } finally {
-                        ctx.pop(builder)
-                        if (ctx.isIdle()) {
-                            ctx.flushAfterTreeBuilt()
+                            builder.afterBuild()
+                            return node
+                        } finally {
+                            ctx.pop(builder)
+                            if (ctx.isIdle()) {
+                                ctx.flushAfterTreeBuilt()
+                            }
                         }
                     }
                 }
-            }
 
-            hostScope.body()
+                hostScope.body()
+            } finally {
+                ctx.scope = prevScope
+            }
         }
 
         private fun clearMounted() {
             while (host.firstChild != null) host.removeChild(host.firstChild!!)
 
             mountedBuilders.forEach { b ->
-                try {
-                    b.dispose()
-                } catch (_: Throwable) {
-                    /* fail-safe */
-                }
+                try { b.dispose() } catch (_: Throwable) { }
             }
             mountedBuilders.clear()
         }
@@ -512,9 +535,11 @@ object DSL {
             subscription?.invoke()
             subscription = null
             clearMounted()
-            super<AbstractComponent>.dispose()
+            super.dispose()
         }
     }
+
+
 
     inline fun <T> ParentScope.list(
         items: Iterable<T>,
