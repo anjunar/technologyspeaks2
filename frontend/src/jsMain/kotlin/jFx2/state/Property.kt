@@ -1,15 +1,24 @@
 package jFx2.state
 
+import jFx2.core.capabilities.Disposable
+
 class Property<T>(initial: T) : ReadOnlyProperty<T> {
-    private var v: T = initial
+    private var value: T = initial
     private val listeners = LinkedHashMap<Int, (T) -> Unit>()
-    private var id = 1
-    fun set(n: T) { if (n == v) return; v = n; listeners.values.toList().forEach { it(n) } }
-    override fun get(): T = v
-    override fun observe(listener: (T) -> Unit): () -> Unit {
-        val my = id++
-        listeners[my] = listener
-        listener(v)
-        return { listeners.remove(my) }
+    private var nextId = 1
+
+    override fun get(): T = value
+
+    fun set(newValue: T) {
+        if (newValue == value) return
+        value = newValue
+        listeners.values.toList().forEach { it(newValue) }
+    }
+
+    override fun observe(listener: (T) -> Unit): Disposable {
+        val id = nextId++
+        listeners[id] = listener
+        listener(value)
+        return { listeners.remove(id) }
     }
 }

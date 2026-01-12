@@ -4,7 +4,6 @@ import jFx2.core.capabilities.BuildScope
 import jFx2.core.capabilities.DisposeBag
 import jFx2.core.capabilities.DisposeScope
 import jFx2.core.capabilities.DomScope
-import jFx2.core.capabilities.LogScope
 import org.w3c.dom.Element
 
 class BuildScopeImpl : BuildScope {
@@ -19,7 +18,7 @@ class BuildScopeImpl : BuildScope {
     override fun flush() {
         while (afterBuildQ.isNotEmpty()) afterBuildQ.removeFirst().invoke()
         while (applyQ.isNotEmpty()) applyQ.removeFirst().invoke()
-        while (dirtyQ.isNotEmpty()) dirtyQ.removeFirst().invoke()
+        dirtyQ.forEach { it.invoke() }
     }
 }
 
@@ -34,11 +33,3 @@ class DisposeScopeImpl(
         bag.add(disposable)
     }
 }
-
-data class Runtime(
-    val dom: DomScope,
-    val build: BuildScopeImpl,
-    val disposeBag: DisposeBag,
-    val dispose: DisposeScope,
-    val log: LogScope
-)

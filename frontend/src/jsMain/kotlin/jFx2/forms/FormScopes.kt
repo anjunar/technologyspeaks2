@@ -1,33 +1,27 @@
 package jFx2.forms
 
 import jFx2.core.capabilities.DisposeScope
+import org.w3c.dom.Node
 
-class FormRegistryImpl : FormRegistryScope {
-    private val map = linkedMapOf<String, MutableSet<String>>()
+class FormRegistry : FormRegistryScope {
 
-    override fun registerInput(formName: String, inputName: String) {
-        map.getOrPut(formName) { linkedSetOf() }.add(inputName)
+    private val forms: MutableMap<String, MutableMap<String, FormField<*, *>>> = linkedMapOf()
+
+    override fun <T> registerField(form: FormScope, name: String, field: FormField<T, *>) {
+        forms.getOrPut(form.name) { linkedMapOf() }[name] = field
     }
 
-    override fun unregisterInput(formName: String, inputName: String) {
-        map[formName]?.remove(inputName)
+    override fun unregisterField(form: FormScope, name: String, field: FormField<*, *>) {
+        val map = forms[form.name] ?: return
+        val current = map[name]
+        if (current === field) map.remove(name)
+        if (map.isEmpty()) forms.remove(form.name)
     }
 
-    fun snapshot(): Map<String, Set<String>> =
-        map.mapValues { it.value.toSet() }
+    fun values(formName: String): Map<String, Any?> {
+        val map = forms[formName] ?: return emptyMap()
+        return map.mapValues { (_, f) -> f.read() as Any? }
+    }
 }
 
-/**
- * Kontext für "wir sind gerade in einer Form".
- */
-data class FormScope(val formName: String)
-
-/**
- * Helper: registriert automatisch in DisposeScope (so wird unregister garantiert).
- */
-context(scope: FormScope, registryScope: FormRegistryScope, disposeScope: DisposeScope)
-fun registerInputScoped(inputName: String) {
-    val f = scope.formName
-    registryScope.registerInput(f, inputName)
-    disposeScope.register { registryScope.unregisterInput(f, inputName) }
-}
+data class FormScope(val name: String)

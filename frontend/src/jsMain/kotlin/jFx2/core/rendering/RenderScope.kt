@@ -1,14 +1,10 @@
-package jFx2.rendering
+package jFx2.core.rendering
 
 import jFx2.core.capabilities.DisposeBag
 import jFx2.core.capabilities.DisposeScope
 import jFx2.core.capabilities.DomScope
 import org.w3c.dom.Node
 
-/**
- * Ein "Mount" kapselt Node + Dispose-Lebenszyklus.
- * So stellst du sicher: replace/detach -> dispose wird garantiert.
- */
 class Mount(
     val node: Node,
     private val bag: DisposeBag
@@ -16,13 +12,9 @@ class Mount(
     fun dispose() = bag.dispose()
 }
 
-/**
- * RenderScope ist die einzige Stelle, die DOM replace/detach + dispose korrekt koppelt.
- * Controls/DSL verwenden nur diese API.
- */
 interface RenderScope {
-    fun mount(parent: Node, factory: DisposeScope.( ) -> Node): Mount
-    fun replace(parent: Node, current: Mount?, nextFactory: (context(DisposeScope) () -> Node)?): Mount?
+    fun mount(parent: Node, factory: DisposeScope.() -> Node): Mount
+    fun replace(parent: Node, current: Mount?, nextFactory: (DisposeScope.() -> Node)?): Mount?
     fun unmount(parent: Node, current: Mount?)
 }
 
@@ -35,8 +27,7 @@ class RenderScopeImpl(
         val disposeScope = object : DisposeScope {
             override fun register(disposable: () -> Unit) = bag.add(disposable)
         }
-
-        val node = disposeScope.factory()   // <-- Receiver ist DisposeScope!
+        val node = disposeScope.factory()
         dom.attach(parent, node)
         return Mount(node, bag)
     }
@@ -44,7 +35,7 @@ class RenderScopeImpl(
     override fun replace(
         parent: Node,
         current: Mount?,
-        nextFactory: (context(DisposeScope) () -> Node)?
+        nextFactory: (DisposeScope.() -> Node)?
     ): Mount? {
         if (current == null && nextFactory == null) return null
         if (current != null && nextFactory == null) {
@@ -57,7 +48,6 @@ class RenderScopeImpl(
 
         // current != null && nextFactory != null
         val newMount = mount(parent, nextFactory!!)
-        // replace in DOM
         parent.replaceChild(newMount.node, current!!.node)
         current.dispose()
         return newMount
