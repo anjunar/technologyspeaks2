@@ -4,16 +4,17 @@ import jFx.core.AbstractComponent
 import jFx.core.DSL
 import jFx.core.DSL.ChildNodeBuilder
 import jFx.core.DSL.ElementBuilder
-import jFx.core.DSL.element
 import jFx.core.DSL.ParentScope
+import jFx.core.DSL.className
 import jFx.core.DSL.component
-import jFx.core.DSL.condition
 import jFx.core.DSL.conditionReader
 import jFx.core.DSL.render
 import jFx.core.DSL.style
 import jFx.layout.Div
 import jFx.layout.Div.Companion.div
+import jFx.layout.HorizontalLine
 import jFx.layout.HorizontalLine.Companion.hr
+import jFx.layout.Span
 import jFx.layout.Span.Companion.span
 import jFx.layout.VBox
 import jFx.layout.VBox.Companion.vbox
@@ -26,11 +27,15 @@ import org.w3c.dom.HTMLElement
 
 class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
-    private lateinit var slot : Div
+    private val slot = Property<Input>(null)
 
     private lateinit var errors : Div
 
-    private val isEmptyProperty = Property(false)
+    private lateinit var label : Div
+
+    private lateinit var horizontalLine: HorizontalLine
+
+    val isEmptyProperty = Property(false)
 
     val placeholderProperty = Property("")
 
@@ -39,7 +44,11 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
         component {
             vbox {
 
-                div {
+                className = "input-container"
+
+                this@InputContainer.label = div {
+
+                    className = "input-label"
 
                     style {
                         height = "10px"
@@ -50,28 +59,22 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
                         span {
                             style {
                                 fontSize = "xx-small"
-                                color = "gray"
                             }
                             textReader { this@InputContainer.placeholderProperty.get()!! }
                         }
                     }
                 }
 
-                this@InputContainer.slot = div {}
+                render(this@InputContainer.slot)
 
-                hr {
-                    style {
-                        margin = "0px"
-                    }
+                this@InputContainer.horizontalLine = hr {
+                    className = "input-separator"
                 }
 
                 div {
-
-                    style {
-                        height = "10px"
+                    this@InputContainer.errors = div {
+                        className = "input-errors"
                     }
-
-                    this@InputContainer.errors = div {}
                 }
             }
         }
@@ -84,7 +87,7 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
     override val children: ListProperty<ElementBuilder<*>> = ListProperty(emptyList())
 
     override fun add(child: ElementBuilder<*>) {
-        children.set(children.get() + child)
+        children.setAll(children.get() + child)
     }
 
     override fun build(): HTMLDivElement = node.build()
@@ -93,19 +96,30 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
 
         children.get().find { it is Input }?.let {
             val input = it as Input
-            slot.add(input)
+            slot.set(input)
 
             input.placeholder = placeholder
 
-            Operators.computed(
-                source = input.valueProperty,
-                target = isEmptyProperty
-            ) { value: String ->
-                ! value.isBlank()
-            }
-
             input.valueProperty.observe {
                 node.ctx.invalidate()
+            }
+
+            input.statusProperty.observeChanges { change ->
+                when (change) {
+                    is ListProperty.Change.Add -> {
+                        val status = change.items.first()
+                        label.node.classList.add(status.name)
+                        horizontalLine.node.classList.add(status.name)
+                        if (status == Input.Companion.Status.empty) isEmptyProperty.set(false)
+                    }
+                    is ListProperty.Change.Remove -> {
+                        val status = change.items.first()
+                        label.node.classList.remove(status.name)
+                        horizontalLine.node.classList.remove(status.name)
+                        if (status == Input.Companion.Status.empty) isEmptyProperty.set(true)
+                    }
+                    else -> {}
+                }
             }
 
             input.errorsProperty.observe {
@@ -116,7 +130,7 @@ class InputContainer(override val ctx: DSL.BuildContext) : AbstractComponent(), 
                         fontSize = "xx-small"
                     }
                 } }
-                errors.children.set(errorSpans ?: emptyList())
+                errors.children.setAll(errorSpans ?: emptyList())
             }
         }
     }

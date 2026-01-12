@@ -8,9 +8,9 @@ import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 
-abstract class AbstractBox(val className : String) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
+abstract class AbstractBox(private val className : String) : AbstractComponent(), ChildNodeBuilder<HTMLDivElement, HTMLElement> {
 
-    private val node by lazy {
+    val node by lazy {
         val divElement = document.createElement("div") as HTMLDivElement
         if (className.isNotEmpty()) divElement.classList.add()
         divElement
@@ -32,7 +32,7 @@ abstract class AbstractBox(val className : String) : AbstractComponent(), ChildN
     }
 
     override fun add(child: ElementBuilder<*>) {
-        children.set(children.get() + child)
+        children.setAll(children.get() + child)
     }
 
     protected fun syncChildren(newItems: List<ElementBuilder<*>>) {

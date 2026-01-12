@@ -6,7 +6,6 @@ import jFx.core.DSL.NodeBuilder
 import jFx.core.DSL.ParentScope
 import jFx.state.ListProperty
 import jFx.state.Property
-import jFx.util.EventHelper
 import kotlinx.browser.document
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
@@ -21,33 +20,33 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuild
 
     val errorsProperty = ListProperty<String>()
 
-    val node by lazy {
-        val inputElement = document.createElement("input") as HTMLInputElement
+    val statusProperty = ListProperty<Status>(listOf(Status.empty))
 
-        EventHelper.events(inputElement, { ctx.invalidate() }, "input", "blur", "focus")
-
-        bind(valueProperty)
-
-        inputElement.addEventListener("input", { validate() })
-
-        inputElement
-    }
+    val node by lazy { document.createElement("input") as HTMLInputElement }
 
     fun validate() {
-        errorsProperty.set(emptyList())
+        errorsProperty.setAll(emptyList())
 
-        errorsProperty.set(
+        errorsProperty.setAll(
             validatorsProperty.get().filter { validator -> !validator.validate(node.value) }
                 .map { validator -> validator.message(validator) }
                 .toList()
         )
+
+        if (errorsProperty.get().isEmpty()) {
+            statusProperty.remove(Status.invalid)
+            statusProperty.add(Status.valid)
+        } else {
+            statusProperty.add(Status.invalid)
+            statusProperty.remove(Status.valid)
+        }
     }
 
     fun valueWriter(callback: (String) -> Unit) {
         node.addEventListener("input", { callback(node.value) })
     }
 
-    fun validators(vararg validators: Validator<*,*>) = validatorsProperty.set(validators.toList() as List<Validator<in Any,in Any>>)
+    fun validators(vararg validators: Validator<*,*>) = validatorsProperty.setAll(validators.toList() as List<Validator<in Any,in Any>>)
 
     var value: String
         get() = read(node.value)
@@ -81,11 +80,59 @@ class Input(override val ctx: DSL.BuildContext) : AbstractComponent(), NodeBuild
 
     override fun build(): HTMLInputElement = node
 
+    override fun afterBuild() {
+        val defaultValue = node.value
+
+        node.addEventListener("input", {
+            ctx.invalidate()
+            validate()
+
+            val inputValue = (it.target as HTMLInputElement).value
+
+            if (inputValue.isEmpty()) {
+                statusProperty.add(Status.empty)
+            } else {
+                statusProperty.remove(Status.empty)
+            }
+
+            if (inputValue == defaultValue) {
+                statusProperty.remove(Status.dirty)
+            } else {
+                statusProperty.add(Status.dirty)
+            }
+
+        })
+
+        node.addEventListener("focus", {
+            ctx.invalidate()
+            statusProperty.add(Status.focus)
+        })
+
+        node.addEventListener("blur", {
+            ctx.invalidate()
+            statusProperty.remove(Status.focus)
+        })
+
+        statusProperty.observeChanges { change ->
+            when (change) {
+                is ListProperty.Change.Add -> node.classList.add(change.items.first().name)
+                is ListProperty.Change.Remove -> node.classList.remove(change.items.first().name)
+                else -> {}
+            }
+        }
+
+        bind(valueProperty)
+    }
+
     companion object {
         fun ParentScope.input(body: Input.(DSL.BuildContext) -> Unit): Input {
             val builder = Input(ctx)
             addNode(builder, body)
             return builder
+        }
+
+        enum class Status {
+            valid, invalid, empty, focus, dirty
         }
 
         interface Validator<T, V> {

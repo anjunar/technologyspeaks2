@@ -32,8 +32,7 @@ fun main() {
                     placeholder = "Enter text"
                     input {
                         valueWriter { count.set(it + "aa")}
-                        placeholder = "Enter text"
-                        validators(Input.Companion.SizeValidator(3, 12))
+                        validators(Input.Companion.SizeValidator(0, 12))
                     }
                 }
             }

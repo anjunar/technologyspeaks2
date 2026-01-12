@@ -1,0 +1,30 @@
+.input-container {
+
+    .input-label.focus {
+        color: var(--color-selected);
+    }
+
+    .input-label.dirty {
+        color: var(--color-warning);
+    }
+
+    .input-label.invalid {
+        color: var(--color-error);
+    }
+
+
+
+    hr.focus {
+        color: var(--color-selected);
+    }
+
+    hr.dirty {
+        color: var(--color-warning);
+    }
+
+    hr.invalid {
+        color: var(--color-error);
+    }
+
+
+}
