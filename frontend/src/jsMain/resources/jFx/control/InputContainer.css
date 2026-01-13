@@ -1,21 +1,34 @@
 .input-container {
 
-    .input-label.focus {
+    .label {
+        height: 12px;
+        margin-bottom: 4px;
+
+        span.placeholder {
+            font-size: 10px;
+        }
+    }
+    .label.focus {
         color: var(--color-selected);
     }
 
-    .input-label.dirty {
+    .label.dirty {
         color: var(--color-warning);
     }
 
-    .input-label.invalid {
+    .label.invalid {
         color: var(--color-error);
     }
 
 
 
+
     hr.focus {
         color: var(--color-selected);
+    }
+
+    hr {
+        border-bottom: 1px solid;
     }
 
     hr.dirty {

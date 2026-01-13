@@ -9,11 +9,7 @@ import jFx2.forms.NamespacedFormRegistry
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
 
-class Form(
-    override val node: HTMLFormElement,
-    val formScope: FormScope,
-    val registry: FormRegistryScope?
-) : Component<HTMLFormElement> {
+class Form(override val node: HTMLFormElement, val formScope: FormScope, val registry: FormRegistryScope?) : Component<HTMLFormElement>() {
 
     private val inputsByName = LinkedHashMap<String, Any>()
 
@@ -52,6 +48,6 @@ fun NodeScope.form(
         formRegistry = effectiveRegistry
     )
 
-    NodeScope(childUi, el as Node).block()
+    NodeScope(childUi, el as Node, form).block()
     return form
 }

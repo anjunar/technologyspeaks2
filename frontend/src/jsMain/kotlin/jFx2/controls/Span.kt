@@ -4,9 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import org.w3c.dom.HTMLDivElement
 
-class Span(
-    override val node: HTMLDivElement
-) : Component<HTMLDivElement>
+class Span(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
 
 fun NodeScope.span(block: NodeScope.() -> Unit): Span {
@@ -15,7 +13,7 @@ fun NodeScope.span(block: NodeScope.() -> Unit): Span {
 
     attach(span)
 
-    val childScope = NodeScope(ui, span.node)
+    val childScope = NodeScope(ui, span.node, span)
     childScope.block()
 
     return span

@@ -1,5 +1,6 @@
 package app
 
+import jFx2.controls.SizeValidator
 import jFx2.controls.button
 import jFx2.controls.div
 import jFx2.controls.form
@@ -27,7 +28,9 @@ fun main() {
                     then {
                         inputContainer("Nick name") {
                             field {
-                                input("nickName") {}
+                                input("nickName") {
+                                    validators.add(SizeValidator(3, 12))
+                                }
                             }
                         }
                     }
@@ -41,12 +44,16 @@ fun main() {
                 subForm("userInfo") {
                     inputContainer("First name") {
                         field {
-                            input("firstName") {}
+                            input("firstName") {
+                                validators.add(SizeValidator(3, 12))
+                            }
                         }
                     }
                     inputContainer("Last name") {
                         field {
-                            input("lastName") {}
+                            input("lastName") {
+                                validators.add(SizeValidator(3, 12))
+                            }
                         }
                     }
 

@@ -5,6 +5,8 @@ import jFx2.core.capabilities.BuildScope
 import jFx2.core.capabilities.HasUi
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.dsl.className
+import jFx2.core.dsl.classProperty
 import jFx2.core.dsl.render
 import jFx2.core.dsl.style
 import jFx2.core.dsl.text
@@ -12,13 +14,14 @@ import jFx2.core.rendering.condition
 import jFx2.core.runtime.component
 import jFx2.forms.FormField
 import jFx2.layout.hr
+import jFx2.state.subscribe
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.random.Random
 
 class InputContainer(override val node: HTMLDivElement,
                      override var ui : UiScope,
-                     val placeholder: String) : Component<HTMLDivElement>, HasUi {
+                     val placeholder: String) : Component<HTMLDivElement>(), HasUi {
 
     private lateinit var field : FormField<*, *>
 
@@ -27,16 +30,12 @@ class InputContainer(override val node: HTMLDivElement,
     }
 
     fun template() {
-        component(node) {
+        component(node, this) {
             div {
-                style {
-                    height = "12px"
-                    marginBottom = "5px"
-                }
+                className { "label" }
+                field.statusProperty.subscribe(classProperty)
                 span {
-                    style {
-                        fontSize = "10px"
-                    }
+                    className { "placeholder" }
                     text { placeholder }
                 }
             }
@@ -44,16 +43,14 @@ class InputContainer(override val node: HTMLDivElement,
             render(field)
 
             hr {
-                style {
-                    margin = "0"
-                }
+                field.statusProperty.subscribe(classProperty)
             }
 
         }
     }
 
     fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
-        val scope = NodeScope(ui, node)
+        val scope = NodeScope(ui, node, this)
         val f = scope.factory()
 
         field = f

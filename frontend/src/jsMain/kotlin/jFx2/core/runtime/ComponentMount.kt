@@ -1,8 +1,8 @@
 package jFx2.core.runtime
 
+import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
-import jFx2.forms.NamespacedFormRegistry
 import jFx2.forms.RootFormRegistry
 import org.w3c.dom.Element
 
@@ -12,7 +12,7 @@ class ComponentMount<E : Element>(
     val dispose: () -> Unit
 )
 
-fun <E : Element> component(root: E, body: NodeScope.() -> Unit): ComponentMount<E> {
+fun <E : Element> component(root: E, owner: Component<*>? = null, body: NodeScope.() -> Unit): ComponentMount<E> {
     val rt = createRuntime(root)
     val registry = RootFormRegistry()
 
@@ -24,7 +24,7 @@ fun <E : Element> component(root: E, body: NodeScope.() -> Unit): ComponentMount
         formRegistry = registry
     )
 
-    NodeScope(ui, root).body()
+    NodeScope(ui, root, owner).body()
     rt.build.flush()
 
     return ComponentMount(

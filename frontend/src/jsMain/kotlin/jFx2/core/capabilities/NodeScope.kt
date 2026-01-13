@@ -8,7 +8,8 @@ import org.w3c.dom.Node
 @JFxDsl
 class NodeScope internal constructor(
     val ui: UiScope,
-    val parent: Node
+    val parent: Node,
+    val owner: Component<*>? = null
 ) {
     fun attach(child: Component<*>): Component<*> {
         ui.dom.attach(parent, child.node)

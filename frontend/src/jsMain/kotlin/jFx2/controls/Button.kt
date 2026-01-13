@@ -5,9 +5,7 @@ import jFx2.core.capabilities.NodeScope
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.Event
 
-class Button(
-    override val node: HTMLButtonElement
-) : Component<HTMLButtonElement> {
+class Button(override val node: HTMLButtonElement) : Component<HTMLButtonElement>() {
 
     var text: String
         get() = node.textContent ?: ""

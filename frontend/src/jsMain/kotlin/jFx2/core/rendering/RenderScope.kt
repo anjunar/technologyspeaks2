@@ -26,6 +26,7 @@ class RenderScopeImpl(
         val bag = DisposeBag()
         val disposeScope = object : DisposeScope {
             override fun register(disposable: () -> Unit) = bag.add(disposable)
+            override fun dispose() = bag.dispose()
         }
         val node = disposeScope.factory()
         dom.attach(parent, node)

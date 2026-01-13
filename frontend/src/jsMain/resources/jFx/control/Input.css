@@ -23,6 +23,7 @@ input {
         }
     }
 
+
     &.dirty {
         color: var(--color-warning);
 

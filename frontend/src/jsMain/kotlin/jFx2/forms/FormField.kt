@@ -1,12 +1,16 @@
 package jFx2.forms
 
+import jFx2.controls.Status
 import jFx2.core.Component
 import jFx2.core.capabilities.Disposable
+import jFx2.state.ListProperty
 import org.w3c.dom.Node
 
-interface FormField<V, T : Node> : Component<T> {
+abstract class FormField<V, T : Node> : Component<T>() {
 
-    fun read(): V
+    val statusProperty = ListProperty<String>()
+
+    abstract fun read(): V
     fun write(value: V) {}
 
     fun observeValue(listener: (V) -> Unit): Disposable = { }

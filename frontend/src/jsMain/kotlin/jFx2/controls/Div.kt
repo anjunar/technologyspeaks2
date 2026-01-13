@@ -4,9 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import org.w3c.dom.HTMLDivElement
 
-class Div(
-    override val node: HTMLDivElement
-) : Component<HTMLDivElement>
+class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
 
 fun NodeScope.div(block: NodeScope.() -> Unit): Div {
@@ -15,7 +13,7 @@ fun NodeScope.div(block: NodeScope.() -> Unit): Div {
 
     attach(div)
 
-    val childScope = NodeScope(ui, div.node)
+    val childScope = NodeScope(ui, div.node, owner = div)
     childScope.block()
 
     return div
