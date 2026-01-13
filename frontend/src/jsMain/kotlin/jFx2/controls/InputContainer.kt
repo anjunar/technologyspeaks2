@@ -16,15 +16,17 @@ import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.random.Random
 
-class InputContainer(override val node: HTMLDivElement, val build : BuildScope, val placeholder: String) : Component<HTMLDivElement>, HasUi {
-
-    override lateinit var ui: UiScope
+class InputContainer(override val node: HTMLDivElement,
+                     override var ui : UiScope,
+                     val placeholder: String) : Component<HTMLDivElement>, HasUi {
 
     private lateinit var field : FormField<*, *>
 
     fun initialize() {
         (field as HasPlaceholder).placeholder = placeholder
+    }
 
+    fun template() {
         component(node) {
             div {
                 style {
@@ -65,9 +67,12 @@ fun NodeScope.inputContainer(placeholder: String, block: InputContainer.() -> Un
     val el = create<HTMLDivElement>("div")
     el.classList.add("input-container")
 
-    val c = InputContainer(el, build, placeholder)
+    val c = InputContainer(el, ui, placeholder)
 
-    build.afterBuild { c.initialize() }
+    build.afterBuild {
+        c.initialize()
+        c.template()
+    }
 
     attach(c)
     c.block()

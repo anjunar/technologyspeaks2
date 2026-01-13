@@ -11,11 +11,15 @@ import org.w3c.dom.Element
 
 fun <E : Element> createRuntime(root: E): Runtime {
 
-    // 1) Dispose
     val bag = DisposeBag()
+
     val disposeScope = object : DisposeScope {
         override fun register(disposable: Disposable) {
             bag.add(disposable)
+        }
+
+        override fun dispose() {
+            bag.dispose()
         }
     }
 

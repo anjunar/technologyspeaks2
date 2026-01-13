@@ -6,7 +6,13 @@ import jFx2.forms.NamespacedFormRegistry
 import jFx2.forms.RootFormRegistry
 import org.w3c.dom.Element
 
-fun <E : Element> component(root: E, body: NodeScope.() -> Unit): E {
+class ComponentMount<E : Element>(
+    val root: E,
+    val ui: UiScope,
+    val dispose: () -> Unit
+)
+
+fun <E : Element> component(root: E, body: NodeScope.() -> Unit): ComponentMount<E> {
     val rt = createRuntime(root)
     val registry = RootFormRegistry()
 
@@ -20,5 +26,10 @@ fun <E : Element> component(root: E, body: NodeScope.() -> Unit): E {
 
     NodeScope(ui, root).body()
     rt.build.flush()
-    return root
+
+    return ComponentMount(
+        root = root,
+        ui = ui,
+        dispose = { rt.dispose.dispose() }
+    )
 }

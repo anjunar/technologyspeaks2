@@ -32,4 +32,7 @@ class DisposeScopeImpl(
     override fun register(disposable: () -> Unit) {
         bag.add(disposable)
     }
+    override fun dispose() {
+        bag.dispose()
+    }
 }
