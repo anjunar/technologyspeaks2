@@ -22,15 +22,9 @@ class InputContainer(override val node: HTMLDivElement, val build : BuildScope, 
 
     private lateinit var field : FormField<*, *>
 
-    val uuid = Random.nextInt().toString()
-
-    init {
-        node.classList.add("input-container4")
-    }
-
     fun initialize() {
-        node.classList.add("input-container2")
         (field as HasPlaceholder).placeholder = placeholder
+
         component(node) {
             div {
                 style {
