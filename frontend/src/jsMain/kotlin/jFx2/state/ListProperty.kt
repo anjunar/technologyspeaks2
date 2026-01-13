@@ -269,3 +269,53 @@ fun <T> ListProperty<T>.subscribe(target: ListProperty<T>): Disposable {
         }
     }
 }
+
+fun <T> ListProperty<T>.subscribeBidirectional(
+    other: ListProperty<T>,
+    initialToOther: Boolean = true
+): Disposable {
+
+    if (initialToOther) other.setAll(this.get()) else this.setAll(other.get())
+
+    var guard = 0
+    fun guarded(block: () -> Unit) {
+        if (guard != 0) return
+        guard++
+        try { block() } finally { guard-- }
+    }
+
+    val d1 = this.observeChanges { ch ->
+        guarded {
+            when (ch) {
+                is ListChange.Add -> other.addAll(ch.fromIndex, ch.items)
+                is ListChange.Remove -> repeat(ch.items.size) { other.removeAt(ch.fromIndex) }
+                is ListChange.Replace -> {
+                    repeat(ch.old.size) { other.removeAt(ch.fromIndex) }
+                    other.addAll(ch.fromIndex, ch.new)
+                }
+                is ListChange.Clear -> other.clear()
+                is ListChange.SetAll -> other.setAll(ch.new)
+            }
+        }
+    }
+
+    val d2 = other.observeChanges { ch ->
+        guarded {
+            when (ch) {
+                is ListChange.Add -> this.addAll(ch.fromIndex, ch.items)
+                is ListChange.Remove -> repeat(ch.items.size) { this.removeAt(ch.fromIndex) }
+                is ListChange.Replace -> {
+                    repeat(ch.old.size) { this.removeAt(ch.fromIndex) }
+                    this.addAll(ch.fromIndex, ch.new)
+                }
+                is ListChange.Clear -> this.clear()
+                is ListChange.SetAll -> this.setAll(ch.new)
+            }
+        }
+    }
+
+    return {
+        d1()
+        d2()
+    }
+}

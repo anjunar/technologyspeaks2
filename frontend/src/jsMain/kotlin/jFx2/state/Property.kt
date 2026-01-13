@@ -1,9 +1,10 @@
 package jFx2.state
 
 import jFx2.core.capabilities.Disposable
+import kotlinx.serialization.Serializable
 
-class Property<T>(initial: T) : ReadOnlyProperty<T> {
-    private var value: T = initial
+@Serializable
+class Property<T>(var value: T) : ReadOnlyProperty<T> {
     private val listeners = LinkedHashMap<Int, (T) -> Unit>()
     private var nextId = 1
 
@@ -20,5 +21,28 @@ class Property<T>(initial: T) : ReadOnlyProperty<T> {
         listeners[id] = listener
         listener(value)
         return { listeners.remove(id) }
+    }
+}
+
+fun <T> Property<T>.subscribeBidirectional(
+    other: Property<T>,
+    initialToOther: Boolean = true
+): Disposable {
+
+    if (initialToOther) other.set(this.get()) else this.set(other.get())
+
+    var guard = 0
+    fun guarded(block: () -> Unit) {
+        if (guard != 0) return
+        guard++
+        try { block() } finally { guard-- }
+    }
+
+    val d1 = this.observe { v -> guarded { other.set(v) } }
+    val d2 = other.observe { v -> guarded { this.set(v) } }
+
+    return {
+        d1()
+        d2()
     }
 }

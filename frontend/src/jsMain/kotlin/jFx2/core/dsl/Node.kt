@@ -2,10 +2,12 @@ package jFx2.core.dsl
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.forms.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
+import jFx2.state.Property
+import jFx2.state.ReadOnlyProperty
 import jFx2.state.subscribe
+import jFx2.state.subscribeBidirectional
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -91,8 +93,24 @@ val NodeScope.classProperty : ListProperty<String>
 
 fun <T> NodeScope.subscribe(source: ListProperty<T>, target: ListProperty<T>) {
     val d = source.subscribe(target)
-    dispose.register(d) // oder ui.dispose.register(d)
+    dispose.register(d)
 }
+
+fun <T> NodeScope.subscribeBidirectional(source: ListProperty<T>, target: ListProperty<T>) {
+    val d = source.subscribeBidirectional(target)
+    dispose.register(d)
+}
+
+fun <T> NodeScope.subscribe(source: ReadOnlyProperty<T>, target: Property<T>) {
+    val d = source.subscribe(target)
+    dispose.register(d)
+}
+
+fun <T> NodeScope.subscribeBidirectional(source: Property<T>, target: Property<T>) {
+    val d = source.subscribeBidirectional(target)
+    dispose.register(d)
+}
+
 
 fun NodeScope.registerField(name: String, field: Any) {
     val fs = ui.formScope ?: error("registerField() used outside of a form scope")

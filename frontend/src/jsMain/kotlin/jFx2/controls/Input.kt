@@ -44,7 +44,11 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
 
     fun initialize() {
 
-        val defaultValue = node.value
+        val defaultValue = valueProperty.get()
+
+        valueProperty.observe {
+            node.value = it
+        }
 
         node.addEventListener("input", {
             if (node.value.isBlank()) {
