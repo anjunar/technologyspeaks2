@@ -13,6 +13,6 @@ abstract class FormField<V, T : Node> : Component<T>() {
     abstract fun read(): V
     fun write(value: V) {}
 
-    fun observeValue(listener: (V) -> Unit): Disposable = { }
+    abstract fun observeValue(listener: (V) -> Unit): Disposable
 
 }

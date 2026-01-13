@@ -7,6 +7,7 @@ import jFx2.forms.Disposable
 import jFx2.forms.FormField
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
+import jFx2.state.Property
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
 
@@ -39,6 +40,8 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
 
     val validators = ListProperty<Validator>()
 
+    val valueProperty = Property(node.value)
+
     fun initialize() {
 
         val defaultValue = node.value
@@ -56,11 +59,21 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
                 statusProperty.remove(Status.dirty.name)
             }
 
+            valueProperty.set(node.value)
+
             validate()
+
+            ui.build.flush()
         })
 
-        node.addEventListener("focus", { statusProperty.add(Status.focus.name) })
-        node.addEventListener("blur", { statusProperty.remove(Status.focus.name) })
+        node.addEventListener("focus", {
+            statusProperty.add(Status.focus.name)
+            ui.build.flush()
+        })
+        node.addEventListener("blur", {
+            statusProperty.remove(Status.focus.name)
+            ui.build.flush()
+        })
 
         bindStatusClasses(node, statusProperty)
     }
@@ -74,6 +87,10 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
             statusProperty.remove(Status.invalid.name)
             statusProperty.add(Status.valid.name)
         }
+    }
+
+    override fun observeValue(listener: (String) -> Unit): Disposable {
+        return valueProperty.observe(listener)
     }
 
     fun bindStatusClasses(

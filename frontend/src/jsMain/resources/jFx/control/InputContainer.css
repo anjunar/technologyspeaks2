@@ -8,6 +8,7 @@
             font-size: 10px;
         }
     }
+
     .label.focus {
         color: var(--color-selected);
     }
@@ -23,12 +24,12 @@
 
 
 
-    hr.focus {
-        color: var(--color-selected);
-    }
-
     hr {
         border-bottom: 1px solid;
+    }
+
+    hr.focus {
+        color: var(--color-selected);
     }
 
     hr.dirty {

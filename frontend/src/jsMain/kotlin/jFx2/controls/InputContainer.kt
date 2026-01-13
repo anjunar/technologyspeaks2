@@ -30,11 +30,17 @@ class InputContainer(override val node: HTMLDivElement,
     }
 
     fun template() {
-        component(node, this) {
+        val componentMount = component(node, this) {
             div {
                 className { "label" }
-                field.statusProperty.subscribe(classProperty)
+                dispose.register {
+                    field.statusProperty.subscribe(classProperty)
+                }
+
                 span {
+                    style {
+                        display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
+                    }
                     className { "placeholder" }
                     text { placeholder }
                 }
@@ -43,10 +49,14 @@ class InputContainer(override val node: HTMLDivElement,
             render(field)
 
             hr {
-                field.statusProperty.subscribe(classProperty)
+                dispose.register {
+                    field.statusProperty.subscribe(classProperty)
+                }
             }
 
         }
+
+        field.observeValue { componentMount.ui.build.flush() }
     }
 
     fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
