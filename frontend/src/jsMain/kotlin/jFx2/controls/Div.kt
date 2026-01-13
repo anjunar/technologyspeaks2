@@ -9,9 +9,9 @@ class Div(
 ) : Component<HTMLDivElement>
 
 
-fun NodeScope.div(block: NodeScope.() -> Unit): Span {
+fun NodeScope.div(block: NodeScope.() -> Unit): Div {
     val el = create<HTMLDivElement>("div")
-    val div = Span(el)
+    val div = Div(el)
 
     attach(div)
 

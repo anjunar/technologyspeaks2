@@ -25,8 +25,7 @@ fun main() {
             form {
                 condition(showExtra) {
                     then {
-                        inputContainer {
-                            placeholder = "Nick name"
+                        inputContainer("Nick name") {
                             field {
                                 input("nickName") {}
                             }
@@ -40,14 +39,12 @@ fun main() {
                 }
 
                 subForm("userInfo") {
-                    inputContainer {
-                        placeholder = "First name"
+                    inputContainer("First name") {
                         field {
                             input("firstName") {}
                         }
                     }
-                    inputContainer {
-                        placeholder = "Last name"
+                    inputContainer("Last name") {
                         field {
                             input("lastName") {}
                         }

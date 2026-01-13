@@ -12,21 +12,34 @@ import jFx2.core.rendering.condition
 import jFx2.core.runtime.component
 import jFx2.forms.FormField
 import jFx2.layout.hr
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
+import kotlin.random.Random
 
-class InputContainer(override val node: HTMLDivElement, val build : BuildScope) : Component<HTMLDivElement>, HasUi {
+class InputContainer(override val node: HTMLDivElement, val build : BuildScope, val placeholder: String) : Component<HTMLDivElement>, HasUi {
 
     override lateinit var ui: UiScope
 
     private lateinit var field : FormField<*, *>
 
+    val uuid = Random.nextInt().toString()
+
+    init {
+        node.classList.add("input-container4")
+    }
+
     fun initialize() {
+        node.classList.add("input-container2")
+        (field as HasPlaceholder).placeholder = placeholder
         component(node) {
             div {
                 style {
                     height = "10px"
                 }
                 span {
+                    style {
+                        fontSize = "10px"
+                    }
                     text { placeholder }
                 }
             }
@@ -42,44 +55,22 @@ class InputContainer(override val node: HTMLDivElement, val build : BuildScope) 
         }
     }
 
-    var placeholder: String = ""
-        set(v) {
-            build.apply {
-                field = v
-                applyPlaceholderToExisting()
-            }
-        }
-
     fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
         val scope = NodeScope(ui, node)
         val f = scope.factory()
 
         field = f
-        applyContainerDefaults(f)
 
         return f
     }
 
-    private fun applyContainerDefaults(field: FormField<*, *>) {
-        build.apply {
-            if (field is HasPlaceholder) {
-                field.placeholder = placeholder
-            }
-        }
-    }
-
-    private fun applyPlaceholderToExisting() {
-        build.apply {
-            if (field is HasPlaceholder) (field as HasPlaceholder).placeholder = placeholder
-        }
-    }
 }
 
-fun NodeScope.inputContainer(block: InputContainer.() -> Unit): InputContainer {
+fun NodeScope.inputContainer(placeholder: String, block: InputContainer.() -> Unit): InputContainer {
     val el = create<HTMLDivElement>("div")
     el.classList.add("input-container")
 
-    val c = InputContainer(el, build)
+    val c = InputContainer(el, build, placeholder)
 
     build.afterBuild { c.initialize() }
 

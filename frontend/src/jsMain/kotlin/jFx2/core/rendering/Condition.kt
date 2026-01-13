@@ -42,7 +42,6 @@ class ConditionBuilder internal constructor(
                 )
 
                 val container = dom.create<HTMLDivElement>("div")
-                dom.attach(host, container)
 
                 val branchScope = NodeScope(innerUi, container)
                 branchScope.block()
@@ -53,13 +52,15 @@ class ConditionBuilder internal constructor(
 
         fun select(v: Boolean) = if (v) toFactory(whenTrue) else toFactory(whenFalse)
 
-        current = render.replace(host, current, select(predicate.get()))
+        var last = predicate.get()
+        current = render.replace(host, current, select(last))
 
         val sub = predicate.observe { v ->
-            build.dirty {
-                current = render.replace(host, current, select(v))
-            }
+            if (v == last) return@observe
+            last = v
+            current = render.replace(host, current, select(v))
         }
+
         outerDispose.register(sub)
     }
 }
