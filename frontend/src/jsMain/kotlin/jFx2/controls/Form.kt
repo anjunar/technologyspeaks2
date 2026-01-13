@@ -5,6 +5,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.forms.FormRegistryScope
 import jFx2.forms.FormScope
+import jFx2.forms.FormScopeImpl
 import jFx2.forms.NamespacedFormRegistry
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
@@ -28,8 +29,13 @@ fun NodeScope.form(
 
     val el = create<HTMLFormElement>("form")
 
-    val parentFormScope = ui.formScope
-    val formScope = FormScope(name, parent = parentFormScope)
+    val rootRegistry = ui.formRegistry
+        ?: error("form() requires UiScope.formRegistry (root) to be set")
+
+    val parentScope: FormScope? = ui.formScope
+
+    val formScope: FormScope =
+        parentScope?.child(name) ?: FormScopeImpl(path = name, registry = rootRegistry)
 
     val effectiveRegistry = when (registry) {
         null -> null

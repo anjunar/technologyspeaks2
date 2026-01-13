@@ -29,7 +29,7 @@ fun main() {
 
     component(root) {
         div {
-            form {
+            val myForm = form {
                 condition(showExtra) {
                     then {
                         inputContainer("Nick name") {
@@ -92,9 +92,9 @@ fun main() {
             button("Toggle extra") {
                 onClick {
                     showExtra.set(!showExtra.get())
-                    val reg = formRegistry
-                    console.log(reg?.resolveOrNull("form.nickName"))
-                    console.log(reg?.resolveOrNull("form.userInfo.firstName"))
+                    val reg = myForm.formScope
+                    console.log(reg?.child("nickName"))
+                    console.log(reg?.child("userInfo")?.child("firstName"))
                 }
             }
 
