@@ -11,8 +11,7 @@ fun NodeScope.text(value: () -> String) {
 
     build.dirty {
         val result = value()
-        val tn = ui.dom.textNode(result)
-        ui.dom.attach(parent, tn)
+        parent.textContent = result
     }
 
 }

@@ -28,7 +28,8 @@ class InputContainer(override val node: HTMLDivElement, val build : BuildScope, 
         component(node) {
             div {
                 style {
-                    height = "10px"
+                    height = "12px"
+                    marginBottom = "5px"
                 }
                 span {
                     style {
