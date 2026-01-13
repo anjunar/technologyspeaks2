@@ -25,19 +25,16 @@ fun main() {
             form {
                 condition(showExtra) {
                     then {
-                        div {
-                            inputContainer {
-                                placeholder = "Nick name"
-                                field {
-                                    input("nickName") {}
-                                }
+                        inputContainer {
+                            placeholder = "Nick name"
+                            field {
+                                input("nickName") {}
                             }
                         }
                     }
                     elseDo {
                         div {
                             text {"count: ${count.get()}"}
-
                         }
                     }
                 }
@@ -49,6 +46,13 @@ fun main() {
                             input("firstName") {}
                         }
                     }
+                    inputContainer {
+                        placeholder = "Last name"
+                        field {
+                            input("lastName") {}
+                        }
+                    }
+
                 }
 
             }

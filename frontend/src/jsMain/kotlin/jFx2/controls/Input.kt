@@ -25,6 +25,7 @@ class Input(val name : String, override val node: HTMLInputElement) : FormField<
 
 fun NodeScope.input(name : String, block: Input.() -> Unit = {}): Input {
     val el = create<HTMLInputElement>("input")
+    el.name = name
     val c = Input(name, el)
     c.block()
     registerField(name, c)
