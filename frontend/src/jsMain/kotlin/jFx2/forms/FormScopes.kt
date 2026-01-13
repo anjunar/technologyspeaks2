@@ -6,7 +6,6 @@ interface FormRegistryScope {
     fun register(qName: String, field: Any): Disposable
     fun resolveOrNull(qName: String): Any?
     fun unregister(name: String)
-    fun getOrNull(name: String): Any?
 }
 
 class RootFormRegistry : FormRegistryScope {
@@ -23,9 +22,6 @@ class RootFormRegistry : FormRegistryScope {
 
     override fun resolveOrNull(qName: String): Any? = fields[qName]
 
-    override fun getOrNull(name: String): Any? {
-        return fields[name]
-    }
 }
 
 class NamespacedFormRegistry(
@@ -46,6 +42,4 @@ class NamespacedFormRegistry(
         delegate.unregister(name)
     }
 
-    override fun getOrNull(name: String): Any? =
-        delegate.getOrNull(qn(name))
 }
