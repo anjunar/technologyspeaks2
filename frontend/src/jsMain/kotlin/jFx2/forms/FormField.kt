@@ -10,6 +10,8 @@ abstract class FormField<V, T : Node> : Component<T>() {
 
     val statusProperty = ListProperty<String>()
 
+    val errorsProperty = ListProperty<String>()
+
     abstract fun read(): V
     fun write(value: V) {}
 

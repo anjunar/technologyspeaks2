@@ -1,32 +1,28 @@
 package jFx2.controls
 
 import jFx2.core.Component
-import jFx2.core.capabilities.BuildScope
 import jFx2.core.capabilities.HasUi
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
-import jFx2.core.dsl.className
-import jFx2.core.dsl.classProperty
-import jFx2.core.dsl.render
-import jFx2.core.dsl.style
-import jFx2.core.dsl.text
-import jFx2.core.rendering.condition
+import jFx2.core.dsl.*
 import jFx2.core.runtime.component
 import jFx2.forms.FormField
 import jFx2.layout.hr
-import jFx2.state.subscribe
-import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
-import kotlin.random.Random
 
-class InputContainer(override val node: HTMLDivElement,
-                     override var ui : UiScope,
-                     val placeholder: String) : Component<HTMLDivElement>(), HasUi {
+class InputContainer(
+    override val node: HTMLDivElement,
+    override var ui: UiScope,
+    val placeholder: String
+) : Component<HTMLDivElement>(), HasUi {
 
-    private lateinit var field : FormField<*, *>
+    private lateinit var field: FormField<*, *>
+
+    private lateinit var errors : Span
 
     fun initialize() {
         (field as HasPlaceholder).placeholder = placeholder
+        field.errorsProperty.observe { errors.node.textContent = it.joinToString(" ") }
     }
 
     fun template() {
@@ -39,8 +35,7 @@ class InputContainer(override val node: HTMLDivElement,
                         display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
                         fontSize = "10px"
                     }
-                    val subscribe = field.statusProperty.subscribe(classProperty)
-                    dispose.register(subscribe)
+                    subscribe(field.statusProperty, classProperty)
                     text { placeholder }
                 }
             }
@@ -48,8 +43,12 @@ class InputContainer(override val node: HTMLDivElement,
             render(field)
 
             hr {
-                val subscribe = field.statusProperty.subscribe(classProperty)
-                dispose.register(subscribe)
+                subscribe(field.statusProperty, classProperty)
+            }
+
+            div {
+                className { "errors" }
+                errors = span {}
             }
 
         }
@@ -75,8 +74,8 @@ fun NodeScope.inputContainer(placeholder: String, block: InputContainer.() -> Un
     val c = InputContainer(el, ui, placeholder)
 
     build.afterBuild {
-        c.initialize()
         c.template()
+        c.initialize()
     }
 
     attach(c)

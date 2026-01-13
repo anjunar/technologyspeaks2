@@ -40,5 +40,12 @@
         color: var(--color-error);
     }
 
+    .errors {
+        margin-top: 2px;
+        color: var(--color-error);
+        font-size: 10px;
+        height: 12px;
+    }
+
 
 }

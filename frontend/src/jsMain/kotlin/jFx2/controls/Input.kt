@@ -38,7 +38,7 @@ class NotBlankValidator : Validator {
 class Input(val name: String, val ui: UiScope, override val node: HTMLInputElement) :
     FormField<String, HTMLInputElement>(), HasPlaceholder {
 
-    val validators = ListProperty<Validator>()
+    val validatorsProperty = ListProperty<Validator>()
 
     val valueProperty = Property(node.value)
 
@@ -79,7 +79,7 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
     }
 
     fun validate() {
-        val errors = validators.filter { !it.validate(node.value) }
+        val errors = validatorsProperty.filter { !it.validate(node.value) }
         if (errors.isNotEmpty()) {
             statusProperty.add(Status.invalid.name)
             statusProperty.remove(Status.valid.name)
@@ -87,6 +87,7 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
             statusProperty.remove(Status.invalid.name)
             statusProperty.add(Status.valid.name)
         }
+        errorsProperty.setAll(errors.map { it.message() }.toList())
     }
 
     override fun observeValue(listener: (String) -> Unit): Disposable {

@@ -5,6 +5,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.forms.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
+import jFx2.state.subscribe
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -87,6 +88,11 @@ val NodeScope.classProperty : ListProperty<String>
 
         return property
     }
+
+fun <T> NodeScope.subscribe(source: ListProperty<T>, target: ListProperty<T>) {
+    val d = source.subscribe(target)
+    dispose.register(d) // oder ui.dispose.register(d)
+}
 
 fun NodeScope.registerField(name: String, field: Any) {
     val fs = ui.formScope ?: error("registerField() used outside of a form scope")
