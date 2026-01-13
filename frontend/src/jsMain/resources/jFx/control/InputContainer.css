@@ -9,15 +9,15 @@
         }
     }
 
-    .label.focus {
+    .label .focus {
         color: var(--color-selected);
     }
 
-    .label.dirty {
+    .label .dirty {
         color: var(--color-warning);
     }
 
-    .label.invalid {
+    .label .invalid {
         color: var(--color-error);
     }
 

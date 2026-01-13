@@ -33,15 +33,14 @@ class InputContainer(override val node: HTMLDivElement,
         val componentMount = component(node, this) {
             div {
                 className { "label" }
-                dispose.register {
-                    field.statusProperty.subscribe(classProperty)
-                }
 
                 span {
                     style {
                         display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
+                        fontSize = "10px"
                     }
-                    className { "placeholder" }
+                    val subscribe = field.statusProperty.subscribe(classProperty)
+                    dispose.register(subscribe)
                     text { placeholder }
                 }
             }
@@ -49,9 +48,8 @@ class InputContainer(override val node: HTMLDivElement,
             render(field)
 
             hr {
-                dispose.register {
-                    field.statusProperty.subscribe(classProperty)
-                }
+                val subscribe = field.statusProperty.subscribe(classProperty)
+                dispose.register(subscribe)
             }
 
         }
