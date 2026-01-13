@@ -5,10 +5,11 @@ import jFx2.controls.div
 import jFx2.controls.form
 import jFx2.controls.input
 import jFx2.controls.inputContainer
+import jFx2.controls.subForm
 import jFx2.core.dsl.text
 import jFx2.core.rendering.condition
 import jFx2.core.runtime.component
-import jFx2.forms.FormRegistry
+import jFx2.forms.FormRegistryScope
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
@@ -21,25 +22,31 @@ fun main() {
 
     component(root) {
         div {
-            val formular = form {
+            form {
                 condition(showExtra) {
                     then {
                         div {
                             inputContainer {
-                                placeholder = "Extra input"
+                                placeholder = "Nick name"
                                 field {
-                                    input("firstName") {
-                                        placeholder = "Type..."
-                                    }
+                                    input("nickName") {}
                                 }
                             }
                         }
                     }
                     elseDo {
                         div {
-                            text {
-                                "Extra input hidden"
-                            }
+                            text {"count: ${count.get()}"}
+
+                        }
+                    }
+                }
+
+                subForm("userInfo") {
+                    inputContainer {
+                        placeholder = "First name"
+                        field {
+                            input("firstName") {}
                         }
                     }
                 }
@@ -52,8 +59,9 @@ fun main() {
             button("Toggle extra") {
                 onClick {
                     showExtra.set(!showExtra.get())
-                    val reg = formRegistry as? FormRegistry
-                    console.log(reg?.values("form"))
+                    val reg = formRegistry
+                    console.log(reg?.resolveOrNull("form.nickName"))
+                    console.log(reg?.resolveOrNull("form.userInfo.firstName"))
                 }
             }
 

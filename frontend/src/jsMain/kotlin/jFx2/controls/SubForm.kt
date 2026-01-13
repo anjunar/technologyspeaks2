@@ -9,7 +9,7 @@ import jFx2.forms.NamespacedFormRegistry
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
 
-class Form(
+class SubForm(
     override val node: HTMLFormElement,
     val formScope: FormScope,
     val registry: FormRegistryScope?
@@ -24,13 +24,13 @@ class Form(
     fun inputOrNull(name: String): Any? = inputsByName[name]
 }
 
-fun NodeScope.form(
+fun NodeScope.subForm(
     name: String = "form",
     registry: FormRegistryScope? = this.formRegistry,
     block: NodeScope.() -> Unit
-): Form {
+): SubForm {
 
-    val el = create<HTMLFormElement>("form")
+    val el = create<HTMLFormElement>("fieldset")
 
     val parentFormScope = ui.formScope
     val formScope = FormScope(name, parent = parentFormScope)
@@ -40,7 +40,7 @@ fun NodeScope.form(
         else -> NamespacedFormRegistry(basePath = formScope.path, delegate = registry)
     }
 
-    val form = Form(el, formScope, effectiveRegistry)
+    val form = SubForm(el, formScope, effectiveRegistry)
     attach(form)
 
     val childUi = UiScope(

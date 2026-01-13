@@ -1,27 +1,34 @@
 package jFx2.forms
 
-import jFx2.core.capabilities.DisposeScope
-import org.w3c.dom.Node
+typealias Disposable = () -> Unit
 
-class FormRegistry : FormRegistryScope {
-
-    private val forms: MutableMap<String, MutableMap<String, FormField<*, *>>> = linkedMapOf()
-
-    override fun <T> registerField(form: FormScope, name: String, field: FormField<T, *>) {
-        forms.getOrPut(form.name) { linkedMapOf() }[name] = field
-    }
-
-    override fun unregisterField(form: FormScope, name: String, field: FormField<*, *>) {
-        val map = forms[form.name] ?: return
-        val current = map[name]
-        if (current === field) map.remove(name)
-        if (map.isEmpty()) forms.remove(form.name)
-    }
-
-    fun values(formName: String): Map<String, Any?> {
-        val map = forms[formName] ?: return emptyMap()
-        return map.mapValues { (_, f) -> f.read() as Any? }
-    }
+interface FormRegistryScope {
+    fun register(qName: String, field: Any): Disposable
+    fun resolveOrNull(qName: String): Any?
 }
 
-data class FormScope(val name: String)
+class RootFormRegistry : FormRegistryScope {
+    private val fields = LinkedHashMap<String, Any>()
+
+    override fun register(qName: String, field: Any): Disposable {
+        fields[qName] = field
+        return { fields.remove(qName) }
+    }
+
+    override fun resolveOrNull(qName: String): Any? = fields[qName]
+}
+
+class NamespacedFormRegistry(
+    private val basePath: String,
+    private val delegate: FormRegistryScope
+) : FormRegistryScope {
+
+    private fun qn(name: String): String =
+        if (name.contains('.')) name else "$basePath.$name"
+
+    override fun register(qName: String, field: Any): Disposable =
+        delegate.register(qn(qName), field)
+
+    override fun resolveOrNull(qName: String): Any? =
+        delegate.resolveOrNull(qn(qName))
+}

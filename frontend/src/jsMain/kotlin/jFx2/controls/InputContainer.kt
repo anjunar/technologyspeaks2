@@ -33,13 +33,12 @@ class InputContainer(
     }
 
     private fun applyContainerDefaults(field: FormField<*, *>) {
-        if (placeholder.isNotBlank() && field is HasPlaceholder) {
+        if (field is HasPlaceholder) {
             field.placeholder = placeholder
         }
     }
 
     private fun applyPlaceholderToExisting() {
-        if (placeholder.isBlank()) return
         for (f in fields) {
             if (f is HasPlaceholder) f.placeholder = placeholder
         }

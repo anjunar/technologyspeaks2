@@ -17,10 +17,13 @@ fun NodeScope.text(value: () -> String) {
 
 }
 
-fun <T> NodeScope.registerField(name: String, field: FormField<T, *>) {
-    val fs = formScope ?: return
-    val reg = formRegistry ?: return
+fun NodeScope.registerField(name: String, field: Any) {
+    val fs = ui.formScope ?: error("registerField() used outside of a form scope")
 
-    reg.registerField(fs, name, field)
-    dispose.register { reg.unregisterField(fs, name, field) }
+    val qName = fs.qualify(name)
+
+    val unregister = ui.formRegistry?.register(qName, field)
+    if (unregister != null) {
+        ui.dispose.register(unregister)
+    }
 }
