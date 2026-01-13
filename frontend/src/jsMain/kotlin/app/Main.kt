@@ -11,6 +11,7 @@ import jFx2.controls.subForm
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.dsl.text
 import jFx2.core.rendering.condition
+import jFx2.core.rendering.forEach
 import jFx2.core.runtime.component
 import jFx2.state.Property
 import kotlinx.browser.document
@@ -24,7 +25,7 @@ fun main() {
     val count = Property(0)
     val showExtra = Property(true)
 
-    val user = Json.decodeFromString<User>(" { \"nickName\": \"Anjunar\", \"userInfo\": { \"firstName\": \"Patrick\", \"lastName\": \"Bittner\" } } ")
+    val user = Json.decodeFromString<User>(" { \"nickName\": \"Anjunar\", \"userInfo\": { \"firstName\": \"Patrick\", \"lastName\": \"Bittner\" }, \"emails\": [{ \"value\" : \"anjunar@gmx.de\" }] } ")
 
     component(root) {
         div {
@@ -65,6 +66,19 @@ fun main() {
                         }
                     }
 
+                }
+
+                subForm("emails") {
+                    forEach(user.emails, { it.value }) {
+                        inputContainer("Email") {
+                            field {
+                                input("value") {
+                                    validatorsProperty.add(SizeValidator(3, 12))
+                                    subscribeBidirectional(it.value, valueProperty)
+                                }
+                            }
+                        }
+                    }
                 }
 
             }

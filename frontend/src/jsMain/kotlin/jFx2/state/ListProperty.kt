@@ -1,6 +1,7 @@
 package jFx2.state
 
 import jFx2.core.capabilities.Disposable
+import kotlinx.serialization.Serializable
 
 interface ReadOnlyListProperty<T> : ReadOnlyProperty<List<T>> {
     fun size(): Int = get().size
@@ -15,6 +16,7 @@ sealed class ListChange<T> {
     data class SetAll<T>(val old: List<T>, val new: List<T>) : ListChange<T>()
 }
 
+@Serializable(with = ListPropertyAsListSerializer::class)
 class ListProperty<T>(
     initial: List<T> = emptyList()
 ) : ReadOnlyListProperty<T>, MutableList<T> {
