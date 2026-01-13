@@ -52,12 +52,9 @@ class ConditionBuilder internal constructor(
 
         fun select(v: Boolean) = if (v) toFactory(whenTrue) else toFactory(whenFalse)
 
-        var last = predicate.get()
-        current = render.replace(host, current, select(last))
+        current = render.replace(host, current, select(predicate.get()))
 
         val sub = predicate.observe { v ->
-            if (v == last) return@observe
-            last = v
             current = render.replace(host, current, select(v))
         }
 
