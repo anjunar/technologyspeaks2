@@ -5,6 +5,8 @@ typealias Disposable = () -> Unit
 interface FormRegistryScope {
     fun register(qName: String, field: Any): Disposable
     fun resolveOrNull(qName: String): Any?
+    fun unregister(name: String)
+    fun getOrNull(name: String): Any?
 }
 
 class RootFormRegistry : FormRegistryScope {
@@ -15,7 +17,15 @@ class RootFormRegistry : FormRegistryScope {
         return { fields.remove(qName) }
     }
 
+    override fun unregister(name: String) {
+        fields.remove(name)
+    }
+
     override fun resolveOrNull(qName: String): Any? = fields[qName]
+
+    override fun getOrNull(name: String): Any? {
+        return fields[name]
+    }
 }
 
 class NamespacedFormRegistry(
@@ -31,4 +41,11 @@ class NamespacedFormRegistry(
 
     override fun resolveOrNull(qName: String): Any? =
         delegate.resolveOrNull(qn(qName))
+
+    override fun unregister(name: String) {
+        delegate.unregister(name)
+    }
+
+    override fun getOrNull(name: String): Any? =
+        delegate.getOrNull(qn(name))
 }

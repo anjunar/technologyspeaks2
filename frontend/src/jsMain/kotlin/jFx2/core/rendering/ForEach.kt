@@ -2,6 +2,7 @@ package jFx2.core.rendering
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import jFx2.state.ListProperty
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -38,8 +39,22 @@ fun <T, K> NodeScope.forEach(
                 // reuse
                 existing
             } else {
+                val outer = this@forEach // funktioniert, weil forEach Extension-Funktion ist
                 ui.render.mount(host) {
-                    val childScope = NodeScope(ui, host)
+                    val innerUi = UiScope(
+                        dom = outer.ui.dom,
+                        build = outer.ui.build,
+                        render = outer.ui.render,
+                        dispose = this // <- DisposeScope des Mounts
+                    )
+
+                    val childScope = NodeScope(
+                        ui = innerUi,
+                        parent = host,
+                        owner = outer.owner,
+                        forms = outer.forms
+                    )
+
                     childScope.factory(item).node
                 }
             }
@@ -92,8 +107,22 @@ fun <T, K> NodeScope.forEach(
             val mount = if (existing != null) {
                 existing
             } else {
+                val outer = this@forEach // funktioniert, weil forEach Extension-Funktion ist
                 ui.render.mount(host) {
-                    val childScope = NodeScope(ui, host)
+                    val innerUi = UiScope(
+                        dom = outer.ui.dom,
+                        build = outer.ui.build,
+                        render = outer.ui.render,
+                        dispose = this // <- DisposeScope des Mounts
+                    )
+
+                    val childScope = NodeScope(
+                        ui = innerUi,
+                        parent = host,
+                        owner = outer.owner,
+                        forms = outer.forms
+                    )
+
                     childScope.factory(item).node
                 }
             }

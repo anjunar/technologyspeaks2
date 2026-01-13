@@ -2,6 +2,7 @@ package jFx2.core.capabilities
 
 import jFx2.core.Component
 import jFx2.core.JFxDsl
+import jFx2.forms.FormsContext
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
@@ -9,7 +10,8 @@ import org.w3c.dom.Node
 class NodeScope internal constructor(
     val ui: UiScope,
     val parent: Node,
-    val owner: Component<*>? = null
+    val owner: Component<*>?,
+    val forms: FormsContext?
 ) {
     fun attach(child: Component<*>): Component<*> {
         ui.dom.attach(parent, child.node)
@@ -27,6 +29,4 @@ class NodeScope internal constructor(
     val dispose get() = ui.dispose
     val render get() = ui.render
     val dom get() = ui.dom
-    val formScope get() = ui.formScope
-    val formRegistry get() = ui.formRegistry
 }

@@ -2,6 +2,7 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.forms.FormsContext
 import org.w3c.dom.HTMLDivElement
 
 class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>()
@@ -13,7 +14,12 @@ fun NodeScope.div(block: NodeScope.() -> Unit): Div {
 
     attach(div)
 
-    val childScope = NodeScope(ui, div.node, owner = div)
+    val childScope = NodeScope(
+        ui = ui,
+        parent = div.node,
+        owner = div,
+        forms = this.forms
+    )
     childScope.block()
 
     return div

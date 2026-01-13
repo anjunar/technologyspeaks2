@@ -36,14 +36,17 @@ class ConditionBuilder internal constructor(
                     dom = dom,
                     build = build,
                     render = render,
-                    dispose = this,
-                    formScope = scope.formScope,
-                    formRegistry = scope.formRegistry
+                    dispose = this
                 )
 
                 val container = dom.create<HTMLDivElement>("div")
 
-                val branchScope = NodeScope(innerUi, container)
+                val branchScope = NodeScope(
+                    ui = innerUi,
+                    parent = container,
+                    owner = scope.owner,
+                    forms = scope.forms
+                )
                 branchScope.block()
 
                 container

@@ -7,12 +7,15 @@ import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.*
 import jFx2.core.runtime.component
 import jFx2.forms.FormField
+import jFx2.forms.FormScope
+import jFx2.forms.FormsContext
 import jFx2.layout.hr
 import org.w3c.dom.HTMLDivElement
 
 class InputContainer(
     override val node: HTMLDivElement,
     override var ui: UiScope,
+    val forms: FormsContext?,
     val placeholder: String
 ) : Component<HTMLDivElement>(), HasUi {
 
@@ -57,21 +60,18 @@ class InputContainer(
     }
 
     fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
-        val scope = NodeScope(ui, node, this)
+        val scope = NodeScope(ui, node, owner = this, forms = forms)   // <- forms rein
         val f = scope.factory()
-
         field = f
-
         return f
     }
-
 }
 
 fun NodeScope.inputContainer(placeholder: String, block: InputContainer.() -> Unit): InputContainer {
     val el = create<HTMLDivElement>("div")
     el.classList.add("input-container")
 
-    val c = InputContainer(el, ui, placeholder)
+    val c = InputContainer(el, ui, forms, placeholder)
 
     build.afterBuild {
         c.template()

@@ -113,14 +113,9 @@ fun <T> NodeScope.subscribeBidirectional(source: Property<T>, target: Property<T
 
 
 fun NodeScope.registerField(name: String, field: Any) {
-    val fs = ui.formScope ?: error("registerField() used outside of a form scope")
-
-    val qName = fs.qualify(name)
-
-    val unregister = ui.formRegistry?.register(qName, field)
-    if (unregister != null) {
-        ui.dispose.register(unregister)
-    }
+    val fs = forms?.scope ?: error("registerField() used outside of a form scope")
+    val d = fs.register(name, field)
+    dispose.register(d)
 }
 
 fun NodeScope.render(child: Component<out Node>) {

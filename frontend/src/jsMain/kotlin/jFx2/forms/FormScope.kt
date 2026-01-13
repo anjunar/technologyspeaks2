@@ -10,13 +10,13 @@ class DisposeBag {
 
 interface FormScope {
     val path: String
-    val registry: FormRegistryScope
+    val rootRegistry: FormRegistryScope
 
     fun qualify(name: String): String
 
     fun child(name: String): FormScope
 
-    fun register(name: String, field: Any): Any
+    fun register(name: String, field: Any): Disposable
 
     fun resolveOrNull(name: String): Any?
 
@@ -28,7 +28,7 @@ interface FormScope {
 @Suppress("UNCHECKED_CAST")
 class FormScopeImpl(
     override val path: String,
-    override val registry: FormRegistryScope,
+    override val rootRegistry: FormRegistryScope,
     private val bag: DisposeBag = DisposeBag()
 ) : FormScope {
 
@@ -41,18 +41,18 @@ class FormScopeImpl(
 
     override fun child(name: String): FormScope {
         val childPath = qualify(name)
-        return FormScopeImpl(childPath, registry, bag)
+        return FormScopeImpl(childPath, rootRegistry, bag)
     }
 
-    override fun register(name: String, field: Any): Any {
+    override fun register(name: String, field: Any): Disposable {
         val qName = qualify(name)
-        val d = registry.register(qName, field)
-        bag.add(d)
-        return field
+        rootRegistry.register(qName, field)
+
+        return { rootRegistry.unregister(qName) }
     }
 
     override fun resolveOrNull(name: String): Any? =
-        registry.resolveOrNull(qualify(name))
+        rootRegistry.resolveOrNull(qualify(name))
 
     override fun <T : Any> resolveOrNull(name: String, type: kotlin.reflect.KClass<T>): T? {
         val v = resolveOrNull(name) ?: return null

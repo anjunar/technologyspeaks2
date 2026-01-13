@@ -6,6 +6,7 @@ import jFx2.core.capabilities.UiScope
 import jFx2.forms.FormRegistryScope
 import jFx2.forms.FormScope
 import jFx2.forms.FormScopeImpl
+import jFx2.forms.FormsContext
 import jFx2.forms.NamespacedFormRegistry
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
@@ -23,37 +24,29 @@ class Form(override val node: HTMLFormElement, val formScope: FormScope, val reg
 
 fun NodeScope.form(
     name: String = "form",
-    registry: FormRegistryScope? = this.formRegistry,
+    registry: FormRegistryScope? = forms?.effectiveRegistry,
     block: NodeScope.() -> Unit
 ): Form {
-
     val el = create<HTMLFormElement>("form")
 
-    val rootRegistry = ui.formRegistry
-        ?: error("form() requires UiScope.formRegistry (root) to be set")
+    val rootRegistry = forms?.rootRegistry
+        ?: error("form() requires a root FormRegistryScope in NodeScope.forms")
 
-    val parentScope: FormScope? = ui.formScope
+    val parentScope = forms.scope
+    val formScope =
+        parentScope?.child(name) ?: FormScopeImpl(path = name, rootRegistry)
 
-    val formScope: FormScope =
-        parentScope?.child(name) ?: FormScopeImpl(path = name, registry = rootRegistry)
-
-    val effectiveRegistry = when (registry) {
-        null -> null
-        else -> NamespacedFormRegistry(basePath = formScope.path, delegate = registry)
-    }
+    val effectiveRegistry = registry?.let { NamespacedFormRegistry(formScope.path, it) }
 
     val form = Form(el, formScope, effectiveRegistry)
     attach(form)
 
-    val childUi = UiScope(
-        dom = ui.dom,
-        build = ui.build,
-        render = ui.render,
-        dispose = ui.dispose,
-        formScope = formScope,
-        formRegistry = effectiveRegistry
+    val childForms = FormsContext(
+        rootRegistry = rootRegistry,
+        scope = formScope,
+        effectiveRegistry = effectiveRegistry
     )
 
-    NodeScope(childUi, el as Node, form).block()
+    NodeScope(ui, el as Node, form, childForms).block()
     return form
 }

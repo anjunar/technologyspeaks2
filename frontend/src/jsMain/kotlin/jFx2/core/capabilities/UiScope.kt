@@ -13,10 +13,7 @@ class UiScope internal constructor(
     val dom: DomScope,
     val build: BuildScope,
     val render: RenderScope,
-    val dispose: DisposeScope,
-
-    val formScope: FormScope? = null,
-    val formRegistry: FormRegistryScope? = null
+    val dispose: DisposeScope
 ) {
     fun attach(parent: Node, child: Component<*>) = dom.attach(parent, child.node)
     fun <E: Element> create(tag: String): E = dom.create(tag)

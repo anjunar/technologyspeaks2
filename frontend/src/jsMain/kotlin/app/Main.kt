@@ -93,8 +93,8 @@ fun main() {
                 onClick {
                     showExtra.set(!showExtra.get())
                     val reg = myForm.formScope
-                    console.log(reg?.child("nickName"))
-                    console.log(reg?.child("userInfo")?.child("firstName"))
+                    console.log(reg?.resolveOrNull("nickName"))
+                    console.log(reg?.child("userInfo")?.resolveOrNull("firstName"))
                 }
             }
 

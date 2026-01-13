@@ -13,7 +13,7 @@ fun NodeScope.span(block: NodeScope.() -> Unit): Span {
 
     attach(span)
 
-    val childScope = NodeScope(ui, span.node, span)
+    val childScope = NodeScope(ui, span.node, span, this.forms)
     childScope.block()
 
     return span

@@ -12,7 +12,7 @@ fun NodeScope.hr(block: NodeScope.() -> Unit): HorizontalLine {
 
     attach(horizontalLine)
 
-    val childScope = NodeScope(ui, horizontalLine.node, horizontalLine)
+    val childScope = NodeScope(ui, horizontalLine.node, horizontalLine, this.forms)
     childScope.block()
 
     return horizontalLine
