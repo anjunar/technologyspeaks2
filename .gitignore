@@ -3,6 +3,7 @@ package-lock.json
 
 .gradle
 build/
+kotlin-js-store
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
