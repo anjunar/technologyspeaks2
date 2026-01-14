@@ -9,10 +9,10 @@ import org.w3c.dom.Node
 
 private class NodeComponent<N : Node>(override val node: N) : Component<N>()
 
-fun <T, K> NodeScope.forEach(
+fun <T, K> NodeScope.foreach(
     items: List<T>,
     key: (T) -> K,
-    factory: NodeScope.(T) -> Component<*>
+    factory: NodeScope.(T, Int) -> Component<*>
 ) {
     val host = create<Element>("div")
     attach(NodeComponent(host))
@@ -31,7 +31,7 @@ fun <T, K> NodeScope.forEach(
             }
         }
 
-        for (item in newItems) {
+        newItems.forEachIndexed { index, item ->
             val k = key(item)
             val existing = mounts[k]
 
@@ -39,7 +39,7 @@ fun <T, K> NodeScope.forEach(
                 // reuse
                 existing
             } else {
-                val outer = this@forEach // funktioniert, weil forEach Extension-Funktion ist
+                val outer = this@foreach // funktioniert, weil forEach Extension-Funktion ist
                 ui.render.mount(host) {
                     val innerUi = UiScope(
                         dom = outer.ui.dom,
@@ -55,7 +55,7 @@ fun <T, K> NodeScope.forEach(
                         forms = outer.forms
                     )
 
-                    childScope.factory(item).node
+                    childScope.factory(item, index).node
                 }
             }
 
@@ -81,10 +81,10 @@ fun <T, K> NodeScope.forEach(
     rebuild(items)
 }
 
-fun <T, K> NodeScope.forEach(
+fun <T, K> NodeScope.foreach(
     items: ListProperty<T>,
     key: (T) -> K,
-    factory: NodeScope.(T) -> Component<*>
+    factory: NodeScope.(T, Int) -> Component<*>
 ) {
     val host = create<Element>("div")
     attach(NodeComponent(host))
@@ -100,14 +100,14 @@ fun <T, K> NodeScope.forEach(
             if (k !in newKeySet) ui.render.unmount(host, m)
         }
 
-        for (item in newItems) {
+        newItems.forEachIndexed { index, item ->
             val k = key(item)
             val existing = mounts[k]
 
             val mount = if (existing != null) {
                 existing
             } else {
-                val outer = this@forEach // funktioniert, weil forEach Extension-Funktion ist
+                val outer = this@foreach // funktioniert, weil forEach Extension-Funktion ist
                 ui.render.mount(host) {
                     val innerUi = UiScope(
                         dom = outer.ui.dom,
@@ -123,7 +123,7 @@ fun <T, K> NodeScope.forEach(
                         forms = outer.forms
                     )
 
-                    childScope.factory(item).node
+                    childScope.factory(item, index).node
                 }
             }
 

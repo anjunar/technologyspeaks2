@@ -11,12 +11,11 @@ import jFx2.controls.subForm
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.dsl.text
 import jFx2.core.rendering.condition
-import jFx2.core.rendering.forEach
+import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 fun main() {
@@ -69,12 +68,14 @@ fun main() {
                 }
 
                 subForm("emails") {
-                    forEach(user.emails, { it.value }) {
-                        inputContainer("Email") {
-                            field {
-                                input("value") {
-                                    validatorsProperty.add(SizeValidator(3, 12))
-                                    subscribeBidirectional(it.value, valueProperty)
+                    foreach(user.emails, { it.value }) { email, index ->
+                        subForm("[$index]") {
+                            inputContainer("Email") {
+                                field {
+                                    input("value") {
+                                        validatorsProperty.add(SizeValidator(3, 12))
+                                        subscribeBidirectional(email.value, valueProperty)
+                                    }
                                 }
                             }
                         }
