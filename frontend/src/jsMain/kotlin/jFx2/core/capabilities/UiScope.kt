@@ -3,8 +3,6 @@ package jFx2.core.capabilities
 import jFx2.core.Component
 import jFx2.core.JFxDsl
 import jFx2.core.rendering.RenderScope
-import jFx2.forms.FormRegistryScope
-import jFx2.forms.FormScope
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 

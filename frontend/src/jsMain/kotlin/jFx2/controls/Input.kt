@@ -1,9 +1,9 @@
 package jFx2.controls
 
+import jFx2.core.capabilities.Disposable
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.registerField
-import jFx2.forms.Disposable
 import jFx2.forms.FormField
 import jFx2.state.ListChange
 import jFx2.state.ListProperty

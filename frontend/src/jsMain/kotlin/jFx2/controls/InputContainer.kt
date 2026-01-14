@@ -7,7 +7,6 @@ import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.*
 import jFx2.core.runtime.component
 import jFx2.forms.FormField
-import jFx2.forms.FormScope
 import jFx2.forms.FormsContext
 import jFx2.layout.hr
 import org.w3c.dom.HTMLDivElement

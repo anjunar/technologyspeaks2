@@ -4,7 +4,6 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.forms.FormsContext
-import jFx2.forms.RootFormRegistry
 import org.w3c.dom.Element
 
 class ComponentMount<E : Element>(
@@ -24,7 +23,6 @@ fun <E : Element> component(root: E, owner: Component<*>? = null, body: NodeScop
     )
 
     val rootForms = FormsContext(
-        rootRegistry = RootFormRegistry(),
         null
     )
 
