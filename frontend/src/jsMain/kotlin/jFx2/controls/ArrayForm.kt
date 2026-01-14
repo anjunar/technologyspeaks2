@@ -3,7 +3,7 @@ package jFx2.controls
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.registerField
-import jFx2.forms.FormsContext
+import jFx2.forms.ArrayFormContext
 import jFx2.forms.Formular
 import org.w3c.dom.HTMLFieldSetElement
 import org.w3c.dom.Node
@@ -41,7 +41,7 @@ fun NodeScope.arrayForm(
     val form = ArrayForm(el)
     attach(form)
 
-    val childForms = FormsContext(
+    val childForms = ArrayFormContext(
         form
     )
 

@@ -2,8 +2,8 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.forms.FormsContext
 import jFx2.forms.Formular
+import jFx2.forms.NamedFormContext
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
 
@@ -40,9 +40,7 @@ fun NodeScope.form(
     val form = Form(el)
     attach(form)
 
-    val childForms = FormsContext(
-        form
-    )
+    val childForms = NamedFormContext(form)
 
     NodeScope(ui, el as Node, form, childForms).block()
     return form

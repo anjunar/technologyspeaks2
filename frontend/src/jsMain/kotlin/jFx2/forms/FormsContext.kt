@@ -1,5 +1,8 @@
 package jFx2.forms
 
-class FormsContext(
-    val currentForm: Any?
-)
+import jFx2.controls.ArrayForm
+
+sealed interface FormContext
+class NamedFormContext(val form: Formular) : FormContext
+class ArrayFormContext(val form: ArrayForm) : FormContext
+class RootContext() : FormContext

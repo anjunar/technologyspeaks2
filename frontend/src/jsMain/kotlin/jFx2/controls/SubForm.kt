@@ -3,8 +3,8 @@ package jFx2.controls
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.registerField
-import jFx2.forms.FormsContext
 import jFx2.forms.Formular
+import jFx2.forms.NamedFormContext
 import org.w3c.dom.HTMLFieldSetElement
 import org.w3c.dom.Node
 
@@ -42,9 +42,7 @@ fun NodeScope.subForm(
     val form = SubForm(el)
     attach(form)
 
-    val childForms = FormsContext(
-        form
-    )
+    val childForms = NamedFormContext(form)
 
     if (index >= 0) {
         registerField(index, form)

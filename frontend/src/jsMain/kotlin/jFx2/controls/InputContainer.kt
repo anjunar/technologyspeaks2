@@ -6,15 +6,15 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.*
 import jFx2.core.runtime.component
+import jFx2.forms.FormContext
 import jFx2.forms.FormField
-import jFx2.forms.FormsContext
 import jFx2.layout.hr
 import org.w3c.dom.HTMLDivElement
 
 class InputContainer(
     override val node: HTMLDivElement,
     override var ui: UiScope,
-    val forms: FormsContext?,
+    val forms: FormContext?,
     val placeholder: String
 ) : Component<HTMLDivElement>(), HasUi {
 

@@ -2,7 +2,6 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.forms.FormsContext
 import org.w3c.dom.HTMLDivElement
 
 class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>()

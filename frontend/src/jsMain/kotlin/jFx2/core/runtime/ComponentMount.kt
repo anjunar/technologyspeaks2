@@ -3,7 +3,8 @@ package jFx2.core.runtime
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
-import jFx2.forms.FormsContext
+import jFx2.forms.NamedFormContext
+import jFx2.forms.RootContext
 import org.w3c.dom.Element
 
 class ComponentMount<E : Element>(
@@ -22,9 +23,7 @@ fun <E : Element> component(root: E, owner: Component<*>? = null, body: NodeScop
         dispose = rt.dispose,
     )
 
-    val rootForms = FormsContext(
-        null
-    )
+    val rootForms = RootContext()
 
     NodeScope(ui, root, owner, rootForms).body()
     rt.build.flush()
