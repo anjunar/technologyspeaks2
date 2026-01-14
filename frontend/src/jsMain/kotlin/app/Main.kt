@@ -96,6 +96,7 @@ fun main() {
                     val reg = myForm.formScope
                     console.log(reg?.resolveOrNull("nickName"))
                     console.log(reg?.child("userInfo")?.resolveOrNull("firstName"))
+                    console.log(reg?.child("emails")?.child(0)?.resolveOrNull("value"))
                 }
             }
 

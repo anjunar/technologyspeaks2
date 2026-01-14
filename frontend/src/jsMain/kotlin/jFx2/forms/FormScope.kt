@@ -1,6 +1,7 @@
 package jFx2.forms
 
 import jFx2.core.capabilities.DisposeBag
+import kotlin.reflect.KClass
 
 class DisposeBag {
     private val items = ArrayDeque<Disposable>()
@@ -14,7 +15,11 @@ interface FormScope {
 
     fun qualify(name: String): String
 
+    fun qualify(index: Int): String
+
     fun child(name: String): FormScope
+
+    fun child(name: Int): FormScope
 
     fun register(name: String, field: Any): Disposable
 
@@ -33,13 +38,21 @@ class FormScopeImpl(
 ) : FormScope {
 
     override fun qualify(name: String): String {
-        // Wenn schon absolut (enthält '.'), unverändert lassen
         if (name.contains('.')) return name
         if (path.isBlank()) return name
         return "$path.$name"
     }
 
+    override fun qualify(index: Int): String {
+        return "$path.[$index]"
+    }
+
     override fun child(name: String): FormScope {
+        val childPath = qualify(name)
+        return FormScopeImpl(childPath, rootRegistry, bag)
+    }
+
+    override fun child(name: Int): FormScope {
         val childPath = qualify(name)
         return FormScopeImpl(childPath, rootRegistry, bag)
     }
@@ -54,7 +67,7 @@ class FormScopeImpl(
     override fun resolveOrNull(name: String): Any? =
         rootRegistry.resolveOrNull(qualify(name))
 
-    override fun <T : Any> resolveOrNull(name: String, type: kotlin.reflect.KClass<T>): T? {
+    override fun <T : Any> resolveOrNull(name: String, type: KClass<T>): T? {
         val v = resolveOrNull(name) ?: return null
         return (if (type.isInstance(v)) v else null) as T?
     }
