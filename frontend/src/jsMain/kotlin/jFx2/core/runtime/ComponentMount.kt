@@ -24,7 +24,8 @@ fun <E : Element> component(root: E, owner: Component<*>? = null, body: NodeScop
     )
 
     val rootForms = FormsContext(
-        rootRegistry = RootFormRegistry()
+        rootRegistry = RootFormRegistry(),
+        null
     )
 
     NodeScope(ui, root, owner, rootForms).body()

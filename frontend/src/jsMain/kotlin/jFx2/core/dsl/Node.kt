@@ -1,7 +1,10 @@
 package jFx2.core.dsl
 
+import jFx2.controls.ArrayForm
+import jFx2.controls.Form
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.forms.Formular
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
@@ -113,10 +116,21 @@ fun <T> NodeScope.subscribeBidirectional(source: Property<T>, target: Property<T
 
 
 fun NodeScope.registerField(name: String, field: Any) {
-    val fs = forms?.scope ?: error("registerField() used outside of a form scope")
-    val d = fs.register(name, field)
+    val f = forms?.currentForm
+        ?: error("registerField() used outside of a form/subForm context")
+
+    val d = (f as Formular).registerField(name, field)
     dispose.register(d)
 }
+
+fun NodeScope.registerField(index : Int, field: Any) {
+    val f = forms?.currentForm
+        ?: error("registerField() used outside of a form/subForm context")
+
+    val d = (f as ArrayForm).registerField(index, field)
+    dispose.register(d)
+}
+
 
 fun NodeScope.render(child: Component<out Node>) {
     ui.attach(parent, child)

@@ -2,6 +2,7 @@ package app
 
 import app.core.User
 import jFx2.controls.SizeValidator
+import jFx2.controls.arrayForm
 import jFx2.controls.button
 import jFx2.controls.div
 import jFx2.controls.form
@@ -67,9 +68,9 @@ fun main() {
 
                 }
 
-                subForm("emails") {
+                arrayForm("emails") {
                     foreach(user.emails, { it.value }) { email, index ->
-                        subForm("[$index]") {
+                        subForm(index = index) {
                             inputContainer("Email") {
                                 field {
                                     input("value") {

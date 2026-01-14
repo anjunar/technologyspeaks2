@@ -3,51 +3,46 @@ package jFx2.controls
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.dsl.registerField
 import jFx2.forms.FormRegistryScope
 import jFx2.forms.FormScope
 import jFx2.forms.FormScopeImpl
 import jFx2.forms.FormsContext
 import jFx2.forms.Formular
 import jFx2.forms.NamespacedFormRegistry
-import org.w3c.dom.HTMLFormElement
+import org.w3c.dom.HTMLFieldSetElement
 import org.w3c.dom.Node
 
-class Form(override val node: HTMLFormElement, val formScope: FormScope, val registry: FormRegistryScope?)
-    : Component<HTMLFormElement>(), Formular {
+class ArrayForm(override val node: HTMLFieldSetElement, val formScope: FormScope, val registry: FormRegistryScope?)
+    : Component<HTMLFieldSetElement>() {
 
-    private val inputsByName = LinkedHashMap<String, Any>()
+    private val subForms = ArrayList<Formular>()
 
-    override fun registerInput(name: String, input: Any) {
-        inputsByName[name] = input
+    fun registerInput(index : Int, input: Any) {
+        subForms.add(index, input as Formular)
     }
 
-    override fun unregisterInput(name: String) {
-        inputsByName.remove(name)
+    fun unregisterInput(index : Int) {
+        subForms.removeAt(index)
     }
 
-    override fun inputOrNull(name: String): Any? = inputsByName[name]
+    fun inputOrNull(index: Int): Any? = subForms.getOrNull(index)
 
-    override fun registerField(name: String, field: Any): () -> Unit {
+    fun registerField(name: Int, field: Any): () -> Unit {
         registerInput(name, field)
-
-        // IMPORTANT: keep this simple.
-        // - Namespacing is handled by the effective registry (NamespacedFormRegistry).
-        // - We rely on the returned Disposable for unregistration.
-        val d = registry?.register(name, field) ?: {}
 
         return {
             unregisterInput(name)
-            d()
         }
     }
 }
 
-fun NodeScope.form(
+fun NodeScope.arrayForm(
     name: String = "form",
     registry: FormRegistryScope? = forms?.effectiveRegistry,
     block: NodeScope.() -> Unit
-): Form {
-    val el = create<HTMLFormElement>("form")
+): ArrayForm {
+    val el = create<HTMLFieldSetElement>("fieldset")
 
     val rootRegistry = forms?.rootRegistry
         ?: error("form() requires a root FormRegistryScope in NodeScope.forms")
@@ -58,7 +53,7 @@ fun NodeScope.form(
 
     val effectiveRegistry = registry?.let { NamespacedFormRegistry(formScope.path, it) }
 
-    val form = Form(el, formScope, effectiveRegistry)
+    val form = ArrayForm(el, formScope, effectiveRegistry)
     attach(form)
 
     val childForms = FormsContext(
@@ -67,6 +62,8 @@ fun NodeScope.form(
         effectiveRegistry = effectiveRegistry,
         form
     )
+
+    registerField(formScope.path, form)
 
     NodeScope(ui, el as Node, form, childForms).block()
     return form

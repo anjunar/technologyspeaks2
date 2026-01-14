@@ -39,7 +39,7 @@ class NamespacedFormRegistry(
         delegate.resolveOrNull(qn(qName))
 
     override fun unregister(name: String) {
-        delegate.unregister(name)
+        delegate.unregister(qn(name))
     }
 
 }
