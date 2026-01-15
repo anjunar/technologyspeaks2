@@ -133,7 +133,7 @@ fun input(name: String, block: context(NodeScope) Input.() -> Unit = {}): Input 
 
     registerField(name, c)
 
-    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
     block(childScope, c)
 
     scope.attach(c)

@@ -10,10 +10,9 @@ context(scope: NodeScope)
 fun hr(block: context(NodeScope) Hr.() -> Unit = {}): Hr {
     val el = scope.create<HTMLHRElement>("hr")
     val c = Hr(el)
-    scope.ui.dom.attach(scope.parent, c.node)
+    scope.attach(c)
 
-    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
     block(childScope, c)
     return c
 }
-

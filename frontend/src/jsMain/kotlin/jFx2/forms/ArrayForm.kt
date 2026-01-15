@@ -2,19 +2,19 @@ package jFx2.forms
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.capabitities.FormOwnerKey
-import jFx2.core.dsl.registerSubForm
+import jFx2.core.capabitities.ArrayFormOwnerKey
+import jFx2.core.capabitities.FormContextKey
 import org.w3c.dom.HTMLFieldSetElement
 
 class ArrayForm(override val node: HTMLFieldSetElement) : Component<HTMLFieldSetElement>(), Formular {
 
-    val subForms: MutableList<Formular> = mutableListOf()
+    val subForms: MutableList<Form> = mutableListOf()
 
-    internal fun registerSubForm(index : Int, form: Formular) {
+    internal fun registerSubForm(index : Int, form: Form) {
         subForms.add(index, form)
     }
 
-    internal fun unregisterSubForm(form: Formular) {
+    internal fun unregisterSubForm(form: Form) {
         subForms.remove(form)
     }
 
@@ -30,19 +30,18 @@ fun arrayForm(
     val c = ArrayForm(el)
     scope.attach(c)
 
-    val childScope = NodeScope(
-        ui = scope.ui,
+    val formContextParent = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
+    val formContext = FormContext(formContextParent, namespace)
+    val childScope = scope.fork(
         parent = c.node,
         owner = c,
         ctx = scope.ctx.fork().also {
-            it.set(FormOwnerKey, c)
-        },
-        scope.dispose
+            it.set(FormContextKey, formContext)
+            it.set(ArrayFormOwnerKey, c)
+        }
     )
 
     block(childScope, c)
-
-    registerSubForm(namespace, c)
 
     return c
 }
