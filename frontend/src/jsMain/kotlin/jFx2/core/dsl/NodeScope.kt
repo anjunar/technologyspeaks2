@@ -13,7 +13,11 @@ fun renderField(field: Component<*>) {
     if (field.node.parentNode !== scope.parent) {
         scope.parent.appendChild(field.node)
     }
-    scope.ui.dispose.register { field.dispose() }}
+    scope.dispose.register {
+        runCatching { field.dispose() }
+        field.node.parentNode?.removeChild(field.node)
+    }
+}
 
 context(scope: NodeScope)
 fun className(value: () -> String) {
@@ -27,8 +31,7 @@ fun style(block: CSSStyleDeclaration.() -> Unit) {
 
 context(scope: NodeScope)
 fun mousedown(block: (MouseEvent) -> Unit) {
-    scope.parent.addEventListener("mousedown", block as (Event) -> Unit)
+    val listener = block as (Event) -> Unit
+    scope.parent.addEventListener("mousedown", listener)
+    scope.dispose.register { scope.parent.removeEventListener("mousedown", listener) }
 }
-
-
-

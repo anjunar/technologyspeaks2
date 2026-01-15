@@ -44,9 +44,11 @@ class NodeScope(
         ui.dom.attach(parent, child.node)
 
         dispose.register {
+            runCatching { child.dispose() }
+
             ui.dom.detach(child.node)
+
             owner.removeChild(child)
         }
-    }
-}
+    }}
 

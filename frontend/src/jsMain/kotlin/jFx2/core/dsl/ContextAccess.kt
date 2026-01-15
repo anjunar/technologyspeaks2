@@ -26,7 +26,7 @@ fun registerSubForm(name: String, form: Formular) {
     (formOwner as Form).registerSubForm(name, form)
 
     scope.dispose.register {
-        formOwner.unregisterField(name)
+        formOwner.unregisterSubForm(name)
     }
 
 }
