@@ -50,5 +50,21 @@ class NodeScope(
 
             owner.removeChild(child)
         }
-    }}
+    }
 
+    fun fork(
+        parent: Node = this.parent,
+        owner: Component<*> = this.owner,
+        ctx: Ctx = this.ctx
+    ): NodeScope {
+        val childDispose = DisposeScope()
+        dispose.register { childDispose.dispose() }
+        return NodeScope(
+            ui = ui,
+            parent = parent,
+            owner = owner,
+            ctx = ctx,
+            dispose = childDispose
+        )
+    }
+}

@@ -124,7 +124,7 @@ fun inputContainer(
     val c = InputContainer(el, placeholder)
     scope.attach(c)
 
-    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
     block(childScope, c)
 
     scope.ui.build.afterBuild {

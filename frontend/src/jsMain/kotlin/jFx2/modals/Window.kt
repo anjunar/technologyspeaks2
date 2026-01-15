@@ -385,7 +385,7 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     val c = Window(el, scope.ui)
     scope.attach(c)
 
-    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
 
     scope.ui.build.afterBuild {
         c.initialize()
