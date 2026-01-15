@@ -1,6 +1,7 @@
 package jFx2.controls
 
 import jFx2.core.Component
+import jFx2.core.Container
 import jFx2.core.capabilities.NodeScope
 import jFx2.forms.Formular
 import jFx2.forms.NamedFormContext
@@ -8,7 +9,7 @@ import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.Node
 
 class Form(override val node: HTMLFormElement)
-    : Component<HTMLFormElement>(), Formular {
+    : Container<HTMLFormElement>(node), Formular {
 
     private val inputsByName = LinkedHashMap<String, Any>()
 
@@ -32,7 +33,6 @@ class Form(override val node: HTMLFormElement)
 }
 
 fun NodeScope.form(
-    name: String = "form",
     block: NodeScope.() -> Unit
 ): Form {
     val el = create<HTMLFormElement>("form")

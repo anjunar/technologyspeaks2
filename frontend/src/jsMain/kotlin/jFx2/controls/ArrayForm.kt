@@ -1,6 +1,7 @@
 package jFx2.controls
 
 import jFx2.core.Component
+import jFx2.core.Container
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.registerField
 import jFx2.forms.ArrayFormContext
@@ -9,7 +10,7 @@ import org.w3c.dom.HTMLFieldSetElement
 import org.w3c.dom.Node
 
 class ArrayForm(override val node: HTMLFieldSetElement)
-    : Component<HTMLFieldSetElement>() {
+    : Container<HTMLFieldSetElement>(node) {
 
     private val subForms = ArrayList<Formular>()
 

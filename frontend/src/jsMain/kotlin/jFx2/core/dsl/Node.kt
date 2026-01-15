@@ -1,18 +1,10 @@
 package jFx2.core.dsl
 
-import jFx2.controls.ArrayForm
-import jFx2.controls.Form
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.forms.ArrayFormContext
-import jFx2.forms.Formular
 import jFx2.forms.NamedFormContext
-import jFx2.state.ListChange
-import jFx2.state.ListProperty
-import jFx2.state.Property
-import jFx2.state.ReadOnlyProperty
-import jFx2.state.subscribe
-import jFx2.state.subscribeBidirectional
+import jFx2.state.*
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -40,13 +32,13 @@ fun NodeScope.style(block: CSSStyleDeclaration.() -> Unit) {
 
 }
 
-fun NodeScope.className(callback : () -> String) {
+fun NodeScope.className(callback: () -> String) {
     build.dirty {
         (parent as HTMLElement).className = callback()
     }
 }
 
-val NodeScope.classProperty : ListProperty<String>
+val NodeScope.classProperty: ListProperty<String>
     get() {
         val component = owner<Component<*>>()
         val property = component.classProperty
@@ -123,7 +115,7 @@ fun NodeScope.registerField(name: String, field: Any) {
     dispose.register(d)
 }
 
-fun NodeScope.registerField(index : Int, field: Any) {
+fun NodeScope.registerField(index: Int, field: Any) {
     val f = (forms as ArrayFormContext).form
 
     val d = f.registerField(index, field)

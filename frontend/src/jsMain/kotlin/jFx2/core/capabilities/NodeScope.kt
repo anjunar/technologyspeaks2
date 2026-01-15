@@ -13,6 +13,7 @@ class NodeScope internal constructor(
     val owner: Component<*>?,
     val forms: FormContext?
 ) {
+
     fun attach(child: Component<*>): Component<*> {
         ui.dom.attach(parent, child.node)
 

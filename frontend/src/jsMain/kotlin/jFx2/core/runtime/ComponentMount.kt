@@ -26,7 +26,7 @@ fun <E : Element> component(root: E, owner: Component<*>? = null, body: NodeScop
     val rootForms = RootContext()
 
     NodeScope(ui, root, owner, rootForms).body()
-    rt.build.flush()
+    rt.build.flush()    
 
     return ComponentMount(
         root = root,
