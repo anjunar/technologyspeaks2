@@ -2,10 +2,11 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.Event
 
-class Button(override val node: HTMLButtonElement) : Component<HTMLButtonElement>() {
+class Button(override val node: HTMLButtonElement, override val ui : UiScope) : Component<HTMLButtonElement>() {
 
     var text: String
         get() = node.textContent ?: ""
@@ -35,7 +36,7 @@ fun NodeScope.button(
 ): Button {
 
     val el = create<HTMLButtonElement>("button")
-    val btn = Button(el)
+    val btn = Button(el, ui)
 
     btn.flush = { build.flush() }
     btn.registerDispose = { action -> dispose.register(action) }

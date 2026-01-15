@@ -14,6 +14,7 @@ import jFx2.core.dsl.text
 import jFx2.core.rendering.condition
 import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
+import jFx2.modals.window
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
@@ -28,6 +29,11 @@ fun main() {
     val user = Json.decodeFromString<User>(" { \"nickName\": \"Anjunar\", \"userInfo\": { \"firstName\": \"Patrick\", \"lastName\": \"Bittner\" }, \"emails\": [{ \"value\" : \"anjunar@gmx.de\" }] } ")
 
     component(root) {
+
+        window() {
+
+        }
+
         div {
             val myForm = form {
                 condition(showExtra) {

@@ -35,7 +35,7 @@ class NotBlankValidator : Validator {
     override fun message(): String = "must not be blank"
 }
 
-class Input(val name: String, val ui: UiScope, override val node: HTMLInputElement) :
+class Input(val name: String, override val ui: UiScope, override val node: HTMLInputElement) :
     FormField<String, HTMLInputElement>(), HasPlaceholder {
 
     val validatorsProperty = ListProperty<Validator>()

@@ -7,7 +7,7 @@ import jFx2.state.ListProperty
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-private class NodeComponent<N : Node>(override val node: N) : Component<N>()
+private class NodeComponent<N : Node>(override val node: N, override val ui : UiScope) : Component<N>()
 
 fun <T, K> NodeScope.foreach(
     items: List<T>,
@@ -15,7 +15,7 @@ fun <T, K> NodeScope.foreach(
     factory: NodeScope.(T, Int) -> Component<*>
 ) {
     val host = create<Element>("div")
-    attach(NodeComponent(host))
+    attach(NodeComponent(host, ui))
 
     val mounts = LinkedHashMap<K, Mount>()
 
@@ -87,7 +87,7 @@ fun <T, K> NodeScope.foreach(
     factory: NodeScope.(T, Int) -> Component<*>
 ) {
     val host = create<Element>("div")
-    attach(NodeComponent(host))
+    attach(NodeComponent(host, ui))
 
     val mounts = LinkedHashMap<K, Mount>()
 

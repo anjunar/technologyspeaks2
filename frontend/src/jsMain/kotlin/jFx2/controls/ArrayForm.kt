@@ -3,13 +3,14 @@ package jFx2.controls
 import jFx2.core.Component
 import jFx2.core.Container
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.registerField
 import jFx2.forms.ArrayFormContext
 import jFx2.forms.Formular
 import org.w3c.dom.HTMLFieldSetElement
 import org.w3c.dom.Node
 
-class ArrayForm(override val node: HTMLFieldSetElement)
+class ArrayForm(override val node: HTMLFieldSetElement, override val ui : UiScope)
     : Container<HTMLFieldSetElement>(node) {
 
     private val subForms = ArrayList<Formular>()
@@ -39,7 +40,7 @@ fun NodeScope.arrayForm(
 ): ArrayForm {
     val el = create<HTMLFieldSetElement>("fieldset")
 
-    val form = ArrayForm(el)
+    val form = ArrayForm(el, ui)
     attach(form)
 
     val childForms = ArrayFormContext(
