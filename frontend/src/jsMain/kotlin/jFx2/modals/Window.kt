@@ -10,6 +10,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
+import jFx2.core.dsl.renderField
 import jFx2.core.runtime.component
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
@@ -27,12 +28,13 @@ class Window(
     var draggable = true
     var resizeable = true
 
-    // ------------------------------------------------------------
-    // Drag
-    // ------------------------------------------------------------
+    lateinit var content : Component<*>
+
+    fun initialize() {
+        children.firstOrNull()?.let { content = it } ?: error("No content found in window")
+    }
 
     val dragElementMouseDown: (MouseEvent) -> Unit = { event ->
-        console.log("dragElementMouseDown")
         val element = node as HTMLElement
 
         var deltaX = 0
@@ -72,10 +74,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Resize N
-    // ------------------------------------------------------------
-
     val nResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
         var delta = element.offsetTop
@@ -104,10 +102,6 @@ class Window(
             document.addEventListener("mousemove", elementDrag)
         }
     }
-
-    // ------------------------------------------------------------
-    // Resize NW
-    // ------------------------------------------------------------
 
     val nwResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
@@ -146,10 +140,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Resize W
-    // ------------------------------------------------------------
-
     val wResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
         var delta = element.offsetLeft
@@ -178,10 +168,6 @@ class Window(
             document.addEventListener("mousemove", elementDrag)
         }
     }
-
-    // ------------------------------------------------------------
-    // Resize SW
-    // ------------------------------------------------------------
 
     val swResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
@@ -221,10 +207,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Resize NE
-    // ------------------------------------------------------------
-
     val neResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
         var deltaY = element.offsetTop
@@ -263,10 +245,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Resize E
-    // ------------------------------------------------------------
-
     val eResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
         var delta = element.offsetLeft
@@ -296,10 +274,6 @@ class Window(
             document.addEventListener("mousemove", elementDrag)
         }
     }
-
-    // ------------------------------------------------------------
-    // Resize SE
-    // ------------------------------------------------------------
 
     val seResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
@@ -340,10 +314,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Resize S
-    // ------------------------------------------------------------
-
     val sResizeMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
         var delta = element.offsetTop
@@ -374,10 +344,6 @@ class Window(
         }
     }
 
-    // ------------------------------------------------------------
-    // Template (dein jFx2-DOM)
-    // ------------------------------------------------------------
-
     context(scope: NodeScope)
     fun afterBuild() {
         div {
@@ -395,7 +361,10 @@ class Window(
         }
 
         // Content
-        div { className { "container" } }
+        div {
+            className { "container" }
+            renderField(content)
+        }
 
         // Resize handles
         div { className { "se" }; mousedown { e -> seResizeMouseDown(e) } }
@@ -419,6 +388,7 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
 
     scope.ui.build.afterBuild {
+        c.initialize()
         with(childScope) {
             c.afterBuild()
         }

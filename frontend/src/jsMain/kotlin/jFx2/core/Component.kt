@@ -10,7 +10,17 @@ abstract class Component<N : Node> {
 
     val disposeBag = CompositeDisposable()
 
+    val children = ArrayList<Component<*>>()
+
     fun onDispose(d: Disposable) = disposeBag.add(d)
+
+    fun addChild(child: Component<*>) {
+        children.add(child)
+    }
+
+    fun removeChild(child: Component<*>) {
+        children.remove(child)
+    }
 
     open fun dispose() {
         disposeBag.dispose()

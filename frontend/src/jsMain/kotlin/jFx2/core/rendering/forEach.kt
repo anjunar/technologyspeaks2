@@ -2,57 +2,162 @@ package jFx2.core.rendering
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.runtime.ComponentMount
+import jFx2.core.runtime.component
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
+import jFx2.state.Property
+import kotlinx.browser.document
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 
-private class ForEachMount(override val node: Element) : Component<Element>()
+private class ForEachHost(override val node: Element) : Component<Element>()
+
+private class ItemOwner(override val node: Element) : Component<Element>()
+
+private data class ItemMount(
+    val key: Any,
+    val owner: ItemOwner,
+    var mount: ComponentMount,
+    val index: Property<Int>
+)
 
 context(scope: NodeScope)
 fun <T> foreach(
     items: ListProperty<T>,
-    key: (T) -> Any = { it as Any },
-    block: context(NodeScope) (T, Int) -> Unit
+    key: (T) -> Any,
+    block: context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val host = scope.create<Element>("div")
-    scope.parent.appendChild(host)
+    val hostEl = scope.create<Element>("div")
+    scope.parent.appendChild(hostEl)
 
-    // Track mounts by key (stable diff)
-    val mounts = LinkedHashMap<Any, ForEachMount>()
+    val mounts = LinkedHashMap<Any, ItemMount>()
 
-    fun renderAll(newItems: List<T>) {
-        // dispose everything
-        for ((_, m) in mounts) m.dispose()
-        mounts.clear()
-        scope.ui.dom.clear(host)
+    fun renderItem(item: T, index: Int): ItemMount {
+        val k = key(item)
+        val itemEl = document.createElement("div").unsafeCast<Element>()
+        hostEl.appendChild(itemEl)
 
-        newItems.forEachIndexed { i, item ->
-            val k = key(item)
-            val el = scope.ui.dom.create<Element>("div")
-            host.appendChild(el)
-            val m = ForEachMount(el)
-            mounts[k] = m
+        val owner = ItemOwner(itemEl)
+        val indexProp = jFx2.state.Property(index)
 
-            val childScope = NodeScope(ui = scope.ui, parent = el, owner = m, ctx = scope.ctx.fork(), scope.dispose)
-            block(childScope, item, i)
-        }
-        scope.ui.build.flush()
+        val m = component(
+            root = itemEl,
+            owner = owner,
+            ui = scope.ui,
+            ctx = scope.ctx.fork(),
+            block = { block(item, indexProp) }
+        )
+
+        return ItemMount(k, owner, m, indexProp)
     }
 
-    renderAll(items.get())
+    fun insertBefore(node: Node, before: Node?) {
+        if (before == null) hostEl.appendChild(node) else hostEl.insertBefore(node, before)
+    }
+
+    fun disposeAndRemove(im: ItemMount) {
+        im.mount.dispose()
+        im.owner.node.parentNode?.removeChild(im.owner.node)
+    }
+
+    fun currentDomNodesInOrder(): List<Node> =
+        mounts.values.map { it.owner.node }
+
+    fun rebuildSetAll(newItems: List<T>) {
+        val newKeys = newItems.map { key(it) }
+
+        val newKeySet = newKeys.toHashSet()
+        val toRemove = mounts.keys.filter { it !in newKeySet }
+        for (k in toRemove) {
+            disposeAndRemove(mounts.getValue(k))
+            mounts.remove(k)
+        }
+
+        newItems.forEachIndexed { index, item ->
+            val k = key(item)
+            if (!mounts.containsKey(k)) {
+                val im = renderItem(item, index)
+                mounts[k] = im
+            }
+        }
+
+        var before: Node? = null
+        for (i in newKeys.indices.reversed()) {
+            val k = newKeys[i]
+            val node = mounts.getValue(k).owner.node
+            insertBefore(node, before)
+            before = node
+        }
+
+        newItems.forEachIndexed { idx, item ->
+            val k = key(item)
+            mounts[k]?.index?.set(idx)
+        }
+    }
+
+    rebuildSetAll(items.get())
 
     val d: Disposable = items.observeChanges { ch ->
-        // Minimal strategy (safe): full rerender.
-        // You can optimize later with incremental Add/Remove/Replace.
         when (ch) {
-            is ListChange.Add,
-            is ListChange.Remove,
-            is ListChange.Replace,
-            is ListChange.Clear,
-            is ListChange.SetAll -> renderAll(items.get())
+            is ListChange.Add -> {
+                val beforeNode = currentDomNodesInOrder().getOrNull(ch.fromIndex)
+
+                ch.items.forEachIndexed { local, item ->
+                    val k = key(item)
+                    if (!mounts.containsKey(k)) {
+                        val itemEl = document.createElement("div").unsafeCast<Element>()
+                        insertBefore(itemEl, beforeNode)
+
+                        val owner = ItemOwner(itemEl)
+                        val indexProp = jFx2.state.Property(ch.fromIndex + local)
+
+                        val m = component(
+                            root = itemEl,
+                            owner = owner,
+                            ui = scope.ui,
+                            ctx = scope.ctx.fork(),
+                            block = { block(item, indexProp) }
+                        )
+                        mounts[k] = ItemMount(k, owner, m, indexProp)
+                    }
+                }
+
+                rebuildSetAll(items.get())
+            }
+
+            is ListChange.Remove -> {
+                for (item in ch.items) {
+                    val k = key(item)
+                    val im = mounts.remove(k) ?: continue
+                    disposeAndRemove(im)
+                }
+                rebuildSetAll(items.get())
+            }
+
+            is ListChange.Replace -> {
+                for (item in ch.old) {
+                    val k = key(item)
+                    val im = mounts.remove(k) ?: continue
+                    disposeAndRemove(im)
+                }
+                rebuildSetAll(items.get())
+            }
+
+            is ListChange.Clear -> {
+                for ((_, im) in mounts) disposeAndRemove(im)
+                mounts.clear()
+            }
+
+            is ListChange.SetAll -> rebuildSetAll(ch.new)
         }
     }
 
-    scope.ui.dispose.register(d)
+    scope.dispose.register(d)
+    scope.dispose.register {
+        for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
+        mounts.clear()
+        hostEl.parentNode?.removeChild(hostEl)
+    }
 }

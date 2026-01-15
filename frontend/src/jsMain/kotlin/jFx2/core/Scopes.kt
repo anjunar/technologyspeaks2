@@ -39,6 +39,14 @@ class NodeScope(
     val dispose: DisposeScope
 ) {
     fun <E : Element> create(tag: String): E = ui.dom.create(tag)
-    fun attach(child: Component<*>) = ui.dom.attach(parent, child.node)
+    fun attach(child: Component<*>) {
+        owner.addChild(child)
+        ui.dom.attach(parent, child.node)
+
+        dispose.register {
+            ui.dom.detach(child.node)
+            owner.removeChild(child)
+        }
+    }
 }
 

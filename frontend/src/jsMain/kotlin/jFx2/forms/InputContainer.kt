@@ -24,12 +24,8 @@ class InputContainer(
     private lateinit var field: FormField<*, *>
     private lateinit var errorsSpan: Span
 
-    fun setField(f: FormField<*, *>) {
-        check(!::field.isInitialized) { "InputContainer.field { ... } may only be set once." }
-        field = f
-    }
-
     fun initialize() {
+        children.firstOrNull()?.let { field = it as FormField<*, *> } ?: error("No field found in container")
         (field as? HasPlaceholder)?.placeholder = placeholder
 
         onDispose(field.errorsProperty.observeChanges { syncErrors() })
@@ -132,18 +128,11 @@ fun inputContainer(
     block(childScope, c)
 
     scope.ui.build.afterBuild {
+        c.initialize()
         with(childScope) {
             c.template()
         }
-        c.initialize()
     }
 
     return c
-}
-
-context(scope: NodeScope)
-fun InputContainer.field(factory: context(NodeScope) () -> FormField<*, *>): FormField<*, *> {
-    val f = factory(scope)
-    setField(f)
-    return f
 }

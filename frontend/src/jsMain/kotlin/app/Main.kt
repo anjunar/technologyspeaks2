@@ -5,7 +5,6 @@ import jFx2.forms.SizeValidator
 import jFx2.controls.button
 import jFx2.controls.div
 import jFx2.controls.text
-import jFx2.forms.field
 import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
@@ -32,78 +31,74 @@ fun main() {
     component(root) {
         div {
 
-            window { }
-
-            val myForm = form {
-                condition(showExtra) {
-                    then {
-                        inputContainer("Nick name") {
-                            field {
-                                input("nickName") {
-                                    validatorsProperty.add(SizeValidator(3, 12))
-                                    subscribeBidirectional(user.nickName, valueProperty)
+            window {
+                div {
+                    val myForm = form {
+                        condition(showExtra) {
+                            then {
+                                inputContainer("Nick name") {
+                                    input("nickName") {
+                                        validatorsProperty.add(SizeValidator(3, 12))
+                                        subscribeBidirectional(user.nickName, valueProperty)
+                                    }
+                                }
+                            }
+                            elseDo {
+                                div {
+                                    text {"count: ${count.get()}"}
                                 }
                             }
                         }
-                    }
-                    elseDo {
-                        div {
-                            text {"count: ${count.get()}"}
-                        }
-                    }
-                }
 
-                subForm("userInfo") {
-                    inputContainer("First name") {
-                        field {
-                            input("firstName") {
-                                validatorsProperty.add(SizeValidator(3, 12))
-                                subscribeBidirectional(user.userInfo.firstName, valueProperty)
+                        subForm("userInfo") {
+                            inputContainer("First name") {
+                                input("firstName") {
+                                    validatorsProperty.add(SizeValidator(3, 12))
+                                    subscribeBidirectional(user.userInfo.firstName, valueProperty)
+                                }
                             }
-                        }
-                    }
-                    inputContainer("Last name") {
-                        field {
-                            input("lastName") {
-                                validatorsProperty.add(SizeValidator(3, 12))
-                                subscribeBidirectional(user.userInfo.lastName, valueProperty)
+                            inputContainer("Last name") {
+                                input("lastName") {
+                                    validatorsProperty.add(SizeValidator(3, 12))
+                                    subscribeBidirectional(user.userInfo.lastName, valueProperty)
+                                }
                             }
+
                         }
-                    }
 
-                }
-
-                arrayForm("emails") {
-                    foreach(user.emails, { it.value }) { email, index ->
-                        subForm(index = index) {
-                            inputContainer("Email") {
-                                field {
-                                    input("value") {
-                                        validatorsProperty.add(SizeValidator(3, 12))
-                                        subscribeBidirectional(email.value, valueProperty)
+                        arrayForm("emails") {
+                            foreach(user.emails, { it.value }) { email, index ->
+                                subForm(index = index.get()) {
+                                    inputContainer("Email") {
+                                        input("value") {
+                                            validatorsProperty.add(SizeValidator(3, 12))
+                                            subscribeBidirectional(email.value, valueProperty)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
+                    button {
+                        text { "Set" }
+                        onClick {
+                            user.userInfo.firstName.set("Patrick")
+                            console.log(user.toString())
+                        }
+                    }
+                    button {
+                        text { "Toggle" }
+                        onClick {
+                            showExtra.set(!showExtra.get())
+                            console.log(myForm.fields.keys.joinToString(", ") { it })
+                            console.log(myForm.subForms.keys.joinToString(", ") { it })
+                        }
+                    }
                 }
+
             }
 
-            button {
-                text { "Set" }
-                onClick {
-                    user.userInfo.firstName.set("Patrick")
-                    console.log(user.toString())
-                }
-            }
-            button {
-                text { "Toggle" }
-                onClick {
-                    showExtra.set(!showExtra.get())
-                    console.log(myForm.fields.keys.joinToString(", ") { it })
-                    console.log(myForm.subForms.keys.joinToString(", ") { it })
-                }
-            }
 
         }
     }
