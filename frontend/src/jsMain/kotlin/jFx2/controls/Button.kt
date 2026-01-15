@@ -2,19 +2,21 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import jFx2.state.Disposable
 import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.MouseEvent
 
-class Button(
-    override val node: HTMLButtonElement
-) : Component<HTMLButtonElement>() {
+class Button(override val node: HTMLButtonElement, val ui : UiScope) : Component<HTMLButtonElement>() {
 
     fun onClick(handler: (MouseEvent) -> Unit) {
-        val h: (dynamic) -> Unit = { e -> handler(e.unsafeCast<MouseEvent>()) }
+        val h: (dynamic) -> Unit = { e ->
+            handler(e.unsafeCast<MouseEvent>())
+            ui.build.flush()
+        }
         node.addEventListener("click", h)
-        onDispose(Disposable { node.removeEventListener("click", h) })
+        onDispose { node.removeEventListener("click", h) }
     }
 
     fun disabled(value: Boolean) {
@@ -42,11 +44,12 @@ class Button(
 
 context(scope: NodeScope)
 fun button(
-    name : String? = null,
+    name : String,
     block: context(NodeScope) Button.() -> Unit = {}
 ): Button {
     val el = scope.create<HTMLButtonElement>("button")
-    val c = Button(el)
+    el.textContent = name
+    val c = Button(el, scope.ui)
 
     scope.attach(c)
 

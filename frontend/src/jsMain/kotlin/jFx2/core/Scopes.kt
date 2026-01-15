@@ -16,12 +16,19 @@ class DomScope {
 
 class BuildScope {
     private val after = ArrayList<() -> Unit>()
+    private val dirty = ArrayList<() -> Unit>()
+
     fun afterBuild(fn: () -> Unit) { after.add(fn) }
+
+    fun dirty(fn: () -> Unit) { dirty.add(fn) }
+
     fun flush() {
         if (after.isEmpty()) return
         val copy = after.toList()
         after.clear()
         for (f in copy) f()
+
+        dirty.forEach { it() }
     }
 }
 

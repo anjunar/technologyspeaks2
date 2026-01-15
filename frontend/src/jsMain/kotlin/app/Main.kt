@@ -80,15 +80,13 @@ fun main() {
                         }
                     }
 
-                    button {
-                        text { "Set" }
+                    button("Set") {
                         onClick {
                             user.userInfo.firstName.set("Patrick")
                             console.log(user.toString())
                         }
                     }
-                    button {
-                        text { "Toggle" }
+                    button("Toggle") {
                         onClick {
                             showExtra.set(!showExtra.get())
                             console.log(myForm.fields.keys.joinToString(", ") { it })

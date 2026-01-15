@@ -26,7 +26,9 @@ fun className(value: () -> String) {
 
 context(scope: NodeScope)
 fun style(block: CSSStyleDeclaration.() -> Unit) {
-    (scope.parent as HTMLElement).style.unsafeCast<CSSStyleDeclaration>().block()
+    scope.ui.build.dirty{
+        (scope.parent as HTMLElement).style.unsafeCast<CSSStyleDeclaration>().block()
+    }
 }
 
 context(scope: NodeScope)
