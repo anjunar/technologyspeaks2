@@ -1,13 +1,14 @@
-package jFx2.controls
+package jFx2.forms
 
+import jFx2.controls.Span
+import jFx2.controls.div
+import jFx2.controls.span
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.className
 import jFx2.core.dsl.renderField
 import jFx2.core.dsl.style
-import jFx2.forms.FormField
-import jFx2.forms.HasPlaceholder
-import jFx2.forms.Status
 import jFx2.layout.hr
 import jFx2.state.Disposable
 import jFx2.state.ListChange

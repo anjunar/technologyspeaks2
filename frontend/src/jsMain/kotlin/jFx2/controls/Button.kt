@@ -42,6 +42,7 @@ class Button(
 
 context(scope: NodeScope)
 fun button(
+    name : String? = null,
     block: context(NodeScope) Button.() -> Unit = {}
 ): Button {
     val el = scope.create<HTMLButtonElement>("button")

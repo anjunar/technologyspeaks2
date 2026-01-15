@@ -4,17 +4,18 @@ import app.core.User
 import jFx2.forms.SizeValidator
 import jFx2.controls.button
 import jFx2.controls.div
-import jFx2.controls.field
+import jFx2.controls.text
+import jFx2.forms.field
 import jFx2.forms.form
 import jFx2.forms.input
-import jFx2.controls.inputContainer
+import jFx2.forms.inputContainer
 import jFx2.forms.subForm
-import jFx2.controls.text
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
 import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
 import jFx2.forms.arrayForm
+import jFx2.modals.window
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
@@ -30,6 +31,9 @@ fun main() {
 
     component(root) {
         div {
+
+            window { }
+
             val myForm = form {
                 condition(showExtra) {
                     then {
@@ -83,7 +87,6 @@ fun main() {
                         }
                     }
                 }
-
             }
 
             button {
