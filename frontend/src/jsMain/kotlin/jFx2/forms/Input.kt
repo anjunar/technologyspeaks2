@@ -1,19 +1,16 @@
-package jFx2.controls
+package jFx2.forms
 
-import jFx2.core.capabilities.Disposable
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.registerField
-import jFx2.forms.FormField
+import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
 
-enum class Status {
-    valid, invalid, dirty, empty, focus
-}
+enum class Status { valid, invalid, dirty, empty, focus }
 
 interface Validator {
     fun validate(value: String): Boolean
@@ -35,38 +32,30 @@ class NotBlankValidator : Validator {
     override fun message(): String = "must not be blank"
 }
 
-class Input(val name: String, val ui: UiScope, override val node: HTMLInputElement) :
-    FormField<String, HTMLInputElement>(), HasPlaceholder {
+class Input(
+    val name: String,
+    val ui: UiScope,
+    override val node: HTMLInputElement
+) : FormField<String, HTMLInputElement>(), HasPlaceholder {
 
     val validatorsProperty = ListProperty<Validator>()
-
     val valueProperty = Property(node.value)
 
-    fun initialize() {
+    override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
+    fun initialize() {
         val defaultValue = valueProperty.get()
 
-        valueProperty.observe {
-            node.value = it
-        }
+        valueProperty.observe { node.value = it }
 
         node.addEventListener("input", {
-            if (node.value.isBlank()) {
-                statusProperty.add(Status.empty.name)
-            } else {
-                statusProperty.remove(Status.empty.name)
-            }
+            val v = node.value
 
-            if (node.value != defaultValue) {
-                statusProperty.add(Status.dirty.name)
-            } else {
-                statusProperty.remove(Status.dirty.name)
-            }
+            if (v.isBlank()) statusProperty.add(Status.empty.name) else statusProperty.remove(Status.empty.name)
+            if (v != defaultValue) statusProperty.add(Status.dirty.name) else statusProperty.remove(Status.dirty.name)
 
-            valueProperty.set(node.value)
-
+            valueProperty.set(v)
             validate()
-
             ui.build.flush()
         })
 
@@ -79,11 +68,11 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
             ui.build.flush()
         })
 
-        bindStatusClasses(node, statusProperty)
+        onDispose(bindStatusClasses(node, statusProperty))
     }
 
     fun validate() {
-        val errors = validatorsProperty.filter { !it.validate(node.value) }
+        val errors = validatorsProperty.get().filter { !it.validate(node.value) }
         if (errors.isNotEmpty()) {
             statusProperty.add(Status.invalid.name)
             statusProperty.remove(Status.valid.name)
@@ -91,18 +80,10 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
             statusProperty.remove(Status.invalid.name)
             statusProperty.add(Status.valid.name)
         }
-        errorsProperty.setAll(errors.map { it.message() }.toList())
+        errorsProperty.setAll(errors.map { it.message() })
     }
 
-    override fun observeValue(listener: (String) -> Unit): Disposable {
-        return valueProperty.observe(listener)
-    }
-
-    fun bindStatusClasses(
-        node: Element,
-        status: ListProperty<String>
-    ): Disposable {
-
+    private fun bindStatusClasses(node: Element, status: ListProperty<String>): Disposable {
         val owned = LinkedHashSet<String>()
 
         fun add(cls: String) {
@@ -129,17 +110,8 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
             when (change) {
                 is ListChange.Add -> change.items.forEach(::add)
                 is ListChange.Remove -> change.items.forEach(::remove)
-
-                is ListChange.Replace -> {
-                    change.old.forEach(::remove)
-                    change.new.forEach(::add)
-                }
-
-                is ListChange.Clear -> {
-                    for (c in owned) node.classList.remove(c)
-                    owned.clear()
-                }
-
+                is ListChange.Replace -> { change.old.forEach(::remove); change.new.forEach(::add) }
+                is ListChange.Clear -> { for (c in owned) node.classList.remove(c); owned.clear() }
                 is ListChange.SetAll -> resync(change.new)
             }
         }
@@ -147,31 +119,23 @@ class Input(val name: String, val ui: UiScope, override val node: HTMLInputEleme
 
     override var placeholder: String
         get() = node.placeholder
-        set(v) {
-            node.placeholder = v
-        }
+        set(v) { node.placeholder = v }
 
-    fun value(): String = node.value
-    fun setValue(v: String) {
-        node.value = v
-    }
-
-    override fun read(): String {
-        return node.value
-    }
+    override fun read(): String = node.value
 }
 
-fun NodeScope.input(name: String, block: Input.() -> Unit = {}): Input {
-    val el = create<HTMLInputElement>("input")
-    el.name = name
-    val c = Input(name, ui, el)
+context(scope : NodeScope)
+fun input(name: String, block: context(NodeScope) Input.() -> Unit = {}): Input {
+    val el = scope.create<HTMLInputElement>("input").also { it.name = name }
+    val c = Input(name, scope.ui, el)
 
-    build.afterBuild {
-        c.initialize()
-    }
+    scope.ui.build.afterBuild { c.initialize() }
 
-    c.block()
     registerField(name, c)
-    attach(c)
+
+    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    block(childScope, c)
+
+    scope.attach(c)
     return c
 }

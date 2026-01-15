@@ -1,19 +1,20 @@
 package app
 
 import app.core.User
-import jFx2.controls.SizeValidator
-import jFx2.controls.arrayForm
+import jFx2.forms.SizeValidator
 import jFx2.controls.button
 import jFx2.controls.div
-import jFx2.controls.form
-import jFx2.controls.input
+import jFx2.controls.field
+import jFx2.forms.form
+import jFx2.forms.input
 import jFx2.controls.inputContainer
-import jFx2.controls.subForm
+import jFx2.forms.subForm
+import jFx2.controls.text
 import jFx2.core.dsl.subscribeBidirectional
-import jFx2.core.dsl.text
 import jFx2.core.rendering.condition
 import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
+import jFx2.forms.arrayForm
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
@@ -85,17 +86,19 @@ fun main() {
 
             }
 
-            button("Console") {
+            button {
+                text { "Set" }
                 onClick {
                     user.userInfo.firstName.set("Patrick")
                     console.log(user.toString())
                 }
             }
-            button("Toggle extra") {
+            button {
+                text { "Toggle" }
                 onClick {
                     showExtra.set(!showExtra.get())
-                    console.log(myForm.inputOrNull("nickName"))
-                    console.log(myForm.inputOrNull("userInfo"))
+                    console.log(myForm.fields.keys.joinToString(", ") { it })
+                    console.log(myForm.subForms.keys.joinToString(", ") { it })
                 }
             }
 

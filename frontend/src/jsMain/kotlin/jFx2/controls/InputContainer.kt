@@ -1,84 +1,148 @@
 package jFx2.controls
 
 import jFx2.core.Component
-import jFx2.core.capabilities.HasUi
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.capabilities.UiScope
-import jFx2.core.dsl.*
-import jFx2.core.runtime.component
-import jFx2.forms.FormContext
+import jFx2.core.dsl.className
+import jFx2.core.dsl.renderField
+import jFx2.core.dsl.style
 import jFx2.forms.FormField
+import jFx2.forms.HasPlaceholder
+import jFx2.forms.Status
 import jFx2.layout.hr
+import jFx2.state.Disposable
+import jFx2.state.ListChange
+import jFx2.state.ListProperty
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
 
 class InputContainer(
     override val node: HTMLDivElement,
-    override var ui: UiScope,
-    val forms: FormContext?,
     val placeholder: String
-) : Component<HTMLDivElement>(), HasUi {
+) : Component<HTMLDivElement>() {
 
     private lateinit var field: FormField<*, *>
+    private lateinit var errorsSpan: Span
 
-    private lateinit var errors : Span
+    fun setField(f: FormField<*, *>) {
+        check(!::field.isInitialized) { "InputContainer.field { ... } may only be set once." }
+        field = f
+    }
 
     fun initialize() {
-        (field as HasPlaceholder).placeholder = placeholder
-        field.errorsProperty.observe { errors.node.textContent = it.joinToString(" ") }
+        (field as? HasPlaceholder)?.placeholder = placeholder
+
+        onDispose(field.errorsProperty.observeChanges { syncErrors() })
+        syncErrors()
     }
 
+    context(scope: NodeScope)
     fun template() {
-        val componentMount = component(node, this) {
-            div {
-                className { "label" }
+        div {
+            className { "label" }
 
-                span {
-                    style {
-                        display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
-                        fontSize = "10px"
-                    }
-                    subscribe(field.statusProperty, classProperty)
-                    text { placeholder }
+            span {
+                style {
+                    display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
+                    fontSize = "10px"
                 }
+
+                onDispose(bindStatusClasses(node, field.statusProperty))
+
+                text { placeholder }
             }
-
-            render(field)
-
-            hr {
-                subscribe(field.statusProperty, classProperty)
-            }
-
-            div {
-                className { "errors" }
-                errors = span {}
-            }
-
         }
 
-        field.observeValue { componentMount.ui.build.flush() }
+        div {
+            renderField(field)
+        }
+
+        hr {
+            onDispose(bindStatusClasses(node, field.statusProperty))
+        }
+
+        div {
+            className {
+                "errors"
+            }
+            errorsSpan = span {}
+        }
+
+        onDispose(field.observeValue { scope.ui.build.flush() })
     }
 
-    fun <F> field(factory: NodeScope.() -> F): F where F : FormField<*, *> {
-        val scope = NodeScope(ui, node, owner = this, forms = forms)   // <- forms rein
-        val f = scope.factory()
-        field = f
-        return f
+    private fun syncErrors() {
+        if (!::errorsSpan.isInitialized) return
+        errorsSpan.node.textContent = field.errorsProperty.get().joinToString(" ")
+    }
+
+    private fun bindStatusClasses(node: Element, status: ListProperty<String>): Disposable {
+        val owned = LinkedHashSet<String>()
+
+        fun add(cls: String) {
+            val c = cls.trim()
+            if (c.isEmpty()) return
+            if (owned.add(c)) node.classList.add(c)
+        }
+
+        fun remove(cls: String) {
+            val c = cls.trim()
+            if (c.isEmpty()) return
+            if (owned.remove(c)) node.classList.remove(c)
+        }
+
+        fun resync(items: List<String>) {
+            for (c in owned) node.classList.remove(c)
+            owned.clear()
+            for (c in items) add(c)
+        }
+
+        resync(status.get())
+
+        return status.observeChanges { change ->
+            when (change) {
+                is ListChange.Add -> change.items.forEach(::add)
+                is ListChange.Remove -> change.items.forEach(::remove)
+                is ListChange.Replace -> {
+                    change.old.forEach(::remove)
+                    change.new.forEach(::add)
+                }
+                is ListChange.Clear -> {
+                    for (c in owned) node.classList.remove(c)
+                    owned.clear()
+                }
+                is ListChange.SetAll -> resync(change.new)
+            }
+        }
     }
 }
 
-fun NodeScope.inputContainer(placeholder: String, block: InputContainer.() -> Unit): InputContainer {
-    val el = create<HTMLDivElement>("div")
+context(scope: NodeScope)
+fun inputContainer(
+    placeholder: String,
+    block: context(NodeScope) InputContainer.() -> Unit
+): InputContainer {
+    val el = scope.create<HTMLDivElement>("div")
     el.classList.add("input-container")
 
-    val c = InputContainer(el, ui, forms, placeholder)
+    val c = InputContainer(el, placeholder)
+    scope.attach(c)
 
-    build.afterBuild {
-        c.template()
+    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    block(childScope, c)
+
+    scope.ui.build.afterBuild {
+        with(childScope) {
+            c.template()
+        }
         c.initialize()
     }
 
-    attach(c)
-    c.block()
-
     return c
+}
+
+context(scope: NodeScope)
+fun InputContainer.field(factory: context(NodeScope) () -> FormField<*, *>): FormField<*, *> {
+    val f = factory(scope)
+    setField(f)
+    return f
 }

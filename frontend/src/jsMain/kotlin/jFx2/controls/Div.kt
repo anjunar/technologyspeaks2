@@ -1,26 +1,21 @@
 package jFx2.controls
 
-import jFx2.core.Container
+import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabilities.UiScope
 import org.w3c.dom.HTMLDivElement
 
-class Div(override val node: HTMLDivElement) : Container<HTMLDivElement>(node)
+class Div(override val node: HTMLDivElement, val ui: UiScope) : Component<HTMLDivElement>()
 
-fun NodeScope.div(block: NodeScope.() -> Unit): Div {
-    val el = create<HTMLDivElement>("div")
-    val div = Div(el)
+context(scope: NodeScope)
+fun div(block: context(NodeScope) Div.() -> Unit = {}): Div {
+    val el = scope.create<HTMLDivElement>("div")
+    val c = Div(el, scope.ui)
+    scope.attach(c)
 
-    ui.attach(parent, div)
+    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
 
-    div.bindChildren()
+    block(childScope, c)
 
-    val childScope = NodeScope(
-        ui = ui,
-        parent = div.node,
-        owner = div,
-        forms = this.forms
-    )
-    childScope.block()
-
-    return div
+    return c
 }

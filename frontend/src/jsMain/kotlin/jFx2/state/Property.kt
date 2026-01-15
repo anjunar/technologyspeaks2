@@ -1,6 +1,5 @@
 package jFx2.state
 
-import jFx2.core.capabilities.Disposable
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -42,7 +41,7 @@ fun <T> Property<T>.subscribeBidirectional(
     val d2 = other.observe { v -> guarded { this.set(v) } }
 
     return {
-        d1()
-        d2()
+        d1.dispose()
+        d2.dispose()
     }
 }

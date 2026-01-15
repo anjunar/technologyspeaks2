@@ -1,20 +1,21 @@
 package jFx2.forms
 
-import jFx2.controls.Status
 import jFx2.core.Component
-import jFx2.core.capabilities.Disposable
+import jFx2.state.Disposable
 import jFx2.state.ListProperty
-import org.w3c.dom.Node
+import org.w3c.dom.Element
 
-abstract class FormField<V, T : Node> : Component<T>() {
+abstract class FormField<V, N : Element> : Component<N>() {
+    // This abstract trick avoids forcing node in base; we override in concrete field
+    abstract override val node: N
 
     val statusProperty = ListProperty<String>()
-
     val errorsProperty = ListProperty<String>()
 
     abstract fun read(): V
-    fun write(value: V) {}
-
     abstract fun observeValue(listener: (V) -> Unit): Disposable
+}
 
+interface HasPlaceholder {
+    var placeholder: String
 }

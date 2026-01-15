@@ -2,49 +2,55 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.state.Disposable
+import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.events.Event
+import org.w3c.dom.events.MouseEvent
 
-class Button(override val node: HTMLButtonElement) : Component<HTMLButtonElement>() {
+class Button(
+    override val node: HTMLButtonElement
+) : Component<HTMLButtonElement>() {
 
-    var text: String
-        get() = node.textContent ?: ""
-        set(v) { node.textContent = v }
+    fun onClick(handler: (MouseEvent) -> Unit) {
+        val h: (dynamic) -> Unit = { e -> handler(e.unsafeCast<MouseEvent>()) }
+        node.addEventListener("click", h)
+        onDispose(Disposable { node.removeEventListener("click", h) })
+    }
 
-    internal var flush: (() -> Unit)? = null
+    fun disabled(value: Boolean) {
+        node.disabled = value
+    }
 
-    internal var registerDispose: (((() -> Unit)) -> Unit)? = null
+    fun disabled(flag: Property<Boolean>) {
+        onDispose(flag.observe { node.disabled = it })
+    }
 
-    fun onClick(handler: (Event) -> Unit) {
-        val listener: (Event) -> Unit = { e ->
-            handler(e)
-            flush?.invoke()
-        }
+    fun type(value: String) {
+        node.type = value // "button" | "submit" | "reset"
+    }
 
-        node.addEventListener("click", listener)
+    fun text(value: String) {
+        node.textContent = value
+    }
 
-        registerDispose?.invoke {
-            node.removeEventListener("click", listener)
-        }
+    fun text(value: () -> String) {
+        // minimal: set once, and refresh on build flush triggers elsewhere.
+        // If you want true reactive text binding, we can add a small TextBinding helper.
+        node.textContent = value()
     }
 }
 
-fun NodeScope.button(
-    text: String? = null,
-    block: Button.() -> Unit = {}
+context(scope: NodeScope)
+fun button(
+    block: context(NodeScope) Button.() -> Unit = {}
 ): Button {
+    val el = scope.create<HTMLButtonElement>("button")
+    val c = Button(el)
 
-    val el = create<HTMLButtonElement>("button")
-    val btn = Button(el)
+    scope.attach(c)
 
-    btn.flush = { build.flush() }
-    btn.registerDispose = { action -> dispose.register(action) }
+    val childScope = NodeScope(ui = scope.ui, parent = c.node, owner = c, ctx = scope.ctx, scope.dispose)
+    block(childScope, c)
 
-    if (text != null) btn.text = text
-
-    btn.block()
-
-    attach(btn)
-
-    return btn
+    return c
 }

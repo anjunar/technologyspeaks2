@@ -1,6 +1,5 @@
 package jFx2.state
 
-import jFx2.core.capabilities.Disposable
 import kotlinx.serialization.Serializable
 
 interface ReadOnlyListProperty<T> : ReadOnlyProperty<List<T>> {
@@ -317,7 +316,7 @@ fun <T> ListProperty<T>.subscribeBidirectional(
     }
 
     return {
-        d1()
-        d2()
+        d1.dispose()
+        d2.dispose()
     }
 }
