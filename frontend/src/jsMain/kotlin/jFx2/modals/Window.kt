@@ -21,7 +21,7 @@ import kotlin.js.unsafeCast
 
 class Window(
     override val node: HTMLDivElement,
-    val ui: UiScope
+    val ui: NodeScope
 ) : Component<HTMLDivElement>() {
 
     var maximizable = false
@@ -357,6 +357,10 @@ class Window(
 
             button("close") {
                 className { "material-icons" }
+                onClick {
+                    this@Window.ui.owner.removeChild(this@Window)
+                    this@Window.ui.ui.dom.detach(this@Window.node)
+                }
             }
         }
 
@@ -382,7 +386,7 @@ context(scope: NodeScope)
 fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("window")
-    val c = Window(el, scope.ui)
+    val c = Window(el, scope)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
