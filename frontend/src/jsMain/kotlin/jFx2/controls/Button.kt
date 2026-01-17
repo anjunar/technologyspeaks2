@@ -28,7 +28,7 @@ class Button(override val node: HTMLButtonElement, val ui : UiScope) : Component
     }
 
     fun type(value: String) {
-        node.type = value // "button" | "submit" | "reset"
+        node.type = value
     }
 
     fun text(value: String) {
@@ -36,8 +36,6 @@ class Button(override val node: HTMLButtonElement, val ui : UiScope) : Component
     }
 
     fun text(value: () -> String) {
-        // minimal: set once, and refresh on build flush triggers elsewhere.
-        // If you want true reactive text binding, we can add a small TextBinding helper.
         node.textContent = value()
     }
 }

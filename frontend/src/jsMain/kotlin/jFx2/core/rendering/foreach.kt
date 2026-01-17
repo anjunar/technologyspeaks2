@@ -1,6 +1,5 @@
 package jFx2.core.rendering
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.component
@@ -12,16 +11,20 @@ import kotlinx.browser.document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-private class ForEachHost(override val node: Element) : Component<Element>()
-
-private class ItemOwner(override val node: Element) : Component<Element>()
-
-private data class ItemMount(
+private data class SimpleItemMount(
     val key: Any,
     val owner: ItemOwner,
     var mount: ComponentMount,
     val index: Property<Int>
 )
+
+suspend fun <T> NodeScope.foreachAsync(
+    list: List<T>,
+    key: (T) -> String,
+    block: suspend (T, Int) -> Unit
+) {
+    for ((i, item) in list.withIndex()) block(item, i)
+}
 
 context(scope: NodeScope)
 fun <T> foreach(
@@ -30,11 +33,12 @@ fun <T> foreach(
     block: context(NodeScope) (T, Property<Int>) -> Unit
 ) {
     val hostEl = scope.create<Element>("div")
+    hostEl.classList.add("foreach-host")
     scope.parent.appendChild(hostEl)
 
-    val mounts = LinkedHashMap<Any, ItemMount>()
+    val mounts = LinkedHashMap<Any, SimpleItemMount>()
 
-    fun renderItem(item: T, index: Int): ItemMount {
+    fun renderItem(item: T, index: Int): SimpleItemMount {
         val k = key(item)
         val itemEl = document.createElement("div").unsafeCast<Element>()
         hostEl.appendChild(itemEl)
@@ -50,14 +54,14 @@ fun <T> foreach(
             block = { block(item, indexProp) }
         )
 
-        return ItemMount(k, owner, m, indexProp)
+        return SimpleItemMount(k, owner, m, indexProp)
     }
 
     fun insertBefore(node: Node, before: Node?) {
         if (before == null) hostEl.appendChild(node) else hostEl.insertBefore(node, before)
     }
 
-    fun disposeAndRemove(im: ItemMount) {
+    fun disposeAndRemove(im: SimpleItemMount) {
         im.mount.dispose()
         im.owner.node.parentNode?.removeChild(im.owner.node)
     }
@@ -120,7 +124,7 @@ fun <T> foreach(
                             ctx = scope.ctx.fork(),
                             block = { block(item, indexProp) }
                         )
-                        mounts[k] = ItemMount(k, owner, m, indexProp)
+                        mounts[k] = SimpleItemMount(k, owner, m, indexProp)
                     }
                 }
 

@@ -26,6 +26,7 @@ fun arrayForm(
     block: context(NodeScope) ArrayForm.() -> Unit
 ): ArrayForm {
     val el = scope.create<HTMLFieldSetElement>("fieldset")
+    el.classList.add("array-form")
 
     val c = ArrayForm(el)
     scope.attach(c)

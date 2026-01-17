@@ -1,4 +1,8 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package jFx2.router
+
+import kotlin.uuid.ExperimentalUuidApi
 
 private fun normalize(path: String): String {
     if (path.isBlank()) return "/"

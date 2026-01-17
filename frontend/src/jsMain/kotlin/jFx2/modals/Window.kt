@@ -11,7 +11,10 @@ import jFx2.core.capabilities.UiScope
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
 import jFx2.core.dsl.renderField
+import jFx2.core.dsl.renderFields
+import jFx2.core.rendering.condition
 import jFx2.core.runtime.component
+import jFx2.core.template
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -28,11 +31,9 @@ class Window(
     var draggable = true
     var resizeable = true
 
-    lateinit var content : Component<*>
+    private var onClose: (() -> Unit)? = null
 
-    fun initialize() {
-        children.firstOrNull()?.let { content = it } ?: error("No content found in window")
-    }
+    fun onClose(block: () -> Unit) { onClose = block }
 
     val dragElementMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
@@ -346,39 +347,45 @@ class Window(
 
     context(scope: NodeScope)
     fun afterBuild() {
-        div {
-            className { "header" }
-            mousedown { e -> dragElementMouseDown(e) }
+        template {
+            div {
+                className { "header" }
+                mousedown { e -> dragElementMouseDown(e) }
 
-            span {
-                className { "title" }
-                text { "Header name" }
-            }
-
-            button("close") {
-                className { "material-icons" }
-                onClick {
-                    this@Window.ui.owner.removeChild(this@Window)
-                    this@Window.ui.ui.dom.detach(this@Window.node)
+                span {
+                    className { "title" }
+                    text { "Header name" }
                 }
+
+                condition({this@Window.onClose != null}) {
+                    then {
+                        button("close") {
+                            className { "material-icons" }
+                            onClick {
+                                this@Window.ui.owner.removeChild(this@Window)
+                                this@Window.ui.ui.dom.detach(this@Window.node)
+                            }
+                        }
+                    }
+                }
+
             }
-        }
 
-        // Content
-        div {
-            className { "container" }
-            renderField(content)
-        }
+            div {
+                className { "container" }
+                val components = this@Window.children.toTypedArray()
+                renderFields(*components)
+            }
 
-        // Resize handles
-        div { className { "se" }; mousedown { e -> seResizeMouseDown(e) } }
-        div { className { "sw" }; mousedown { e -> swResizeMouseDown(e) } }
-        div { className { "nw" }; mousedown { e -> nwResizeMouseDown(e) } }
-        div { className { "ne" }; mousedown { e -> neResizeMouseDown(e) } }
-        div { className { "n"  }; mousedown { e -> nResizeMouseDown(e)  } }
-        div { className { "s"  }; mousedown { e -> sResizeMouseDown(e)  } }
-        div { className { "w"  }; mousedown { e -> wResizeMouseDown(e)  } }
-        div { className { "e"  }; mousedown { e -> eResizeMouseDown(e)  } }
+            div { className { "se" }; mousedown { e -> seResizeMouseDown(e) } }
+            div { className { "sw" }; mousedown { e -> swResizeMouseDown(e) } }
+            div { className { "nw" }; mousedown { e -> nwResizeMouseDown(e) } }
+            div { className { "ne" }; mousedown { e -> neResizeMouseDown(e) } }
+            div { className { "n"  }; mousedown { e -> nResizeMouseDown(e)  } }
+            div { className { "s"  }; mousedown { e -> sResizeMouseDown(e)  } }
+            div { className { "w"  }; mousedown { e -> wResizeMouseDown(e)  } }
+            div { className { "e"  }; mousedown { e -> eResizeMouseDown(e)  } }
+        }
     }
 }
 
@@ -392,7 +399,6 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
 
     scope.ui.build.afterBuild {
-        c.initialize()
         with(childScope) {
             c.afterBuild()
         }

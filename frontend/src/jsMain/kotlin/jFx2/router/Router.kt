@@ -1,7 +1,5 @@
 package jFx2.router
 
-import app.pages.Home
-import jFx2.controls.Div
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
@@ -9,15 +7,12 @@ import jFx2.core.rendering.dynamicOutlet
 import jFx2.state.Property
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.promise
 import org.w3c.dom.HTMLDivElement
-import kotlin.js.Promise
-import kotlin.reflect.createInstance
 
-class Router(override val node: HTMLDivElement, val ui : UiScope, val routes : List<Route<*>>) : Component<HTMLDivElement>() {
+class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route<*>>) :
+    Component<HTMLDivElement>() {
 
     val content = Property<Component<*>?>(null)
 
@@ -50,8 +45,9 @@ class Router(override val node: HTMLDivElement, val ui : UiScope, val routes : L
 }
 
 context(scope: NodeScope)
-fun router(routes : List<Route<*>>, block: context(NodeScope) Router.() -> Unit = {}): Router {
+fun router(routes: List<Route<*>>, block: context(NodeScope) Router.() -> Unit = {}): Router {
     val el = scope.create<HTMLDivElement>("div")
+    el.classList.add("router")
     val c = Router(el, scope.ui, routes)
     scope.attach(c)
 

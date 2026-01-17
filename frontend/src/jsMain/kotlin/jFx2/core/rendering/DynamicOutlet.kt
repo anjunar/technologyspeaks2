@@ -11,6 +11,7 @@ private class OutletOwner(override val node: Element) : Component<Element>()
 context(scope: NodeScope)
 fun dynamicOutlet(content: Property<Component<*>?>) {
     val host = scope.create<Element>("div")
+    host.classList.add("dynamic-outlet")
     scope.parent.appendChild(host)
 
     val owner = OutletOwner(host)

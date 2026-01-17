@@ -15,6 +15,7 @@ class Logout(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 context(scope: NodeScope)
 fun logoutPage(block: context(NodeScope) Logout.() -> Unit = {}): Logout {
     val el = scope.create<HTMLDivElement>("div")
+    el.classList.add("logout-page")
     val c = Logout(el)
     scope.attach(c)
 

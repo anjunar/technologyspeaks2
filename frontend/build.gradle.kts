@@ -18,7 +18,7 @@ kotlin {
                 cssSupport { enabled.set(true) }
                 devServer?.apply {
                     port = 4200
-
+                    open = true
                     proxy = mutableListOf(
                         KotlinWebpackConfig.DevServer.Proxy(
                             context = mutableListOf("/service"),
@@ -27,7 +27,8 @@ kotlin {
                             secure = false
                         )
                     )
-                }            }
+                }
+            }
         }
         compilerOptions {
             target = "es2015"

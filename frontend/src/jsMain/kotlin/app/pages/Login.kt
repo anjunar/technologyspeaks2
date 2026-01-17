@@ -15,6 +15,7 @@ class Login(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 context(scope: NodeScope)
 fun loginPage(block: context(NodeScope) Login.() -> Unit = {}): Login {
     val el = scope.create<HTMLDivElement>("div")
+    el.classList.add("login-page")
     val c = Login(el)
     scope.attach(c)
 

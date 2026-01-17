@@ -9,6 +9,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.className
 import jFx2.core.dsl.renderField
 import jFx2.core.dsl.style
+import jFx2.core.template
 import jFx2.layout.hr
 import jFx2.state.Disposable
 import jFx2.state.ListChange
@@ -33,38 +34,40 @@ class InputContainer(
     }
 
     context(scope: NodeScope)
-    fun template() {
-        div {
-            className { "label" }
+    fun afterBuild() {
+        template {
+            div {
+                className { "label" }
 
-            span {
-                style {
-                    display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
-                    fontSize = "10px"
+                span {
+                    style {
+                        display = if (field.statusProperty.contains(Status.empty.name)) "none" else "inline"
+                        fontSize = "10px"
+                    }
+
+                    onDispose(bindStatusClasses(node, field.statusProperty))
+
+                    text { placeholder }
                 }
+            }
 
+            div {
+                renderField(field)
+            }
+
+            hr {
                 onDispose(bindStatusClasses(node, field.statusProperty))
-
-                text { placeholder }
             }
-        }
 
-        div {
-            renderField(field)
-        }
-
-        hr {
-            onDispose(bindStatusClasses(node, field.statusProperty))
-        }
-
-        div {
-            className {
-                "errors"
+            div {
+                className {
+                    "errors"
+                }
+                errorsSpan = span {}
             }
-            errorsSpan = span {}
-        }
 
-        onDispose(field.observeValue { scope.ui.build.flush() })
+            onDispose(field.observeValue { scope.ui.build.flush() })
+        }
     }
 
     private fun syncErrors() {
@@ -130,7 +133,7 @@ fun inputContainer(
     scope.ui.build.afterBuild {
         c.initialize()
         with(childScope) {
-            c.template()
+            c.afterBuild()
         }
     }
 

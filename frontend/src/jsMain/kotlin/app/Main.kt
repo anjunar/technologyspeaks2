@@ -4,6 +4,7 @@ import jFx2.controls.link
 import jFx2.controls.text
 import jFx2.core.runtime.component
 import jFx2.router.router
+import jFx2.router.windowRouter
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
 
@@ -23,7 +24,7 @@ fun main() {
             text("Logout")
         }
 
-        router(Routes.routes) {
+        windowRouter(Routes.routes) {
 
         }
     }

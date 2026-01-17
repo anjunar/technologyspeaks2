@@ -20,6 +20,12 @@ fun renderField(field: Component<*>) {
 }
 
 context(scope: NodeScope)
+fun renderFields(vararg field: Component<*>) {
+    for (f in field) renderField(f)
+}
+
+
+context(scope: NodeScope)
 fun className(value: () -> String) {
     (scope.parent as HTMLElement).className = value()
 }
