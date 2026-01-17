@@ -1,7 +1,6 @@
 package jFx2.core.rendering
 
 import jFx2.core.Component
-import org.w3c.dom.Element
+import org.w3c.dom.Node
 
-class ItemOwner(override val node: Element) : Component<Element>()
-
+class ItemOwner(override val node: Node) : Component<Node>()

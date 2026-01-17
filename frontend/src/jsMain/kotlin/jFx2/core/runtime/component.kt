@@ -20,6 +20,8 @@ fun component(
     owner: Component<*>? = null,
     ui: UiScope = UiScope(),
     ctx: Ctx = Ctx(),
+    parent: Node = root,
+    anchor: Node? = null,
     block: context(NodeScope) () -> Unit
 ): ComponentMount {
     val rootOwner = owner ?: RootComponent(root)
@@ -27,7 +29,8 @@ fun component(
     val dispose = DisposeScope()
     val scope = NodeScope(
         ui = ui,
-        parent = root,
+        parent = parent,
+        anchor = anchor,
         owner = rootOwner,
         ctx = ctx,
         dispose = dispose

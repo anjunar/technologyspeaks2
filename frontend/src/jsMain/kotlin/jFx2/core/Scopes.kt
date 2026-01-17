@@ -44,6 +44,7 @@ class UiScope(
 class NodeScope(
     val ui: UiScope,
     val parent: Node,
+    val anchor: Node? = null,
     val owner: Component<*>,
     val ctx: Ctx,
     val dispose: DisposeScope
@@ -51,7 +52,11 @@ class NodeScope(
     fun <E : Element> create(tag: String): E = ui.dom.create(tag)
     fun attach(child: Component<*>) {
         owner.addChild(child)
-        ui.dom.attach(parent, child.node)
+        if (anchor == null) {
+            ui.dom.attach(parent, child.node)
+        } else {
+            parent.insertBefore(child.node, anchor)
+        }
 
         dispose.register {
             runCatching { child.dispose() }
@@ -64,6 +69,7 @@ class NodeScope(
 
     fun fork(
         parent: Node = this.parent,
+        anchor: Node? = this.anchor,
         owner: Component<*> = this.owner,
         ctx: Ctx = this.ctx
     ): NodeScope {
@@ -72,6 +78,7 @@ class NodeScope(
         return NodeScope(
             ui = ui,
             parent = parent,
+            anchor = anchor,
             owner = owner,
             ctx = ctx,
             dispose = childDispose

@@ -9,12 +9,13 @@ import jFx2.state.ListProperty
 import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.coroutines.*
-import org.w3c.dom.Element
 import org.w3c.dom.Node
 
 private data class JobItemMount(
     val key: Any,
     val owner: ItemOwner,
+    val start: Node,
+    val end: Node,
     var mount: ComponentMount,
     val index: Property<Int>,
     var job: Job? = null
@@ -27,9 +28,11 @@ fun <T> foreachAsync(
     // suspend + context(NodeScope) wie du willst:
     block: suspend context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val hostEl = scope.create<Element>("div")
-    hostEl.classList.add("foreach-host")
-    scope.parent.appendChild(hostEl)
+    val hostParent = scope.parent
+    val hostStart = document.createComment("foreach-host")
+    val hostEnd = document.createComment("/foreach-host")
+    hostParent.appendChild(hostStart)
+    hostParent.appendChild(hostEnd)
 
     val mounts = LinkedHashMap<Any, JobItemMount>()
 
@@ -37,19 +40,35 @@ fun <T> foreachAsync(
     val foreachJob = SupervisorJob()
     val foreachScope = CoroutineScope(foreachJob + Dispatchers.Default)
 
-    fun insertBefore(node: Node, before: Node?) {
-        if (before == null) hostEl.appendChild(node) else hostEl.insertBefore(node, before)
+    fun moveRangeBefore(start: Node, end: Node, before: Node?) {
+        val parent = start.parentNode ?: return
+        val fragment = document.createDocumentFragment()
+        var current: Node? = start
+        while (current != null) {
+            val next = current.nextSibling
+            fragment.appendChild(current)
+            if (current == end) break
+            current = next
+        }
+        parent.insertBefore(fragment, before)
     }
 
     fun disposeAndRemove(im: JobItemMount) {
         im.job?.cancel()
         im.job = null
         im.mount.dispose()
-        im.owner.node.parentNode?.removeChild(im.owner.node)
+        val parent = im.start.parentNode ?: return
+        var current: Node? = im.start
+        while (current != null) {
+            val next = current.nextSibling
+            parent.removeChild(current)
+            if (current == im.end) break
+            current = next
+        }
     }
 
     fun currentDomNodesInOrder(): List<Node> =
-        mounts.values.map { it.owner.node }
+        mounts.values.map { it.start }
 
     fun startAsyncBlock(im: JobItemMount, item: T) {
         // alte job abbrechen (z.B. bei rebuild/reuse)
@@ -58,7 +77,8 @@ fun <T> foreachAsync(
         // childScope pro item – sauberer ctx.fork + owner/parent binden
         val childScope = NodeScope(
             ui = scope.ui,
-            parent = im.owner.node,
+            parent = hostParent,
+            anchor = im.end,
             owner = im.owner,
             ctx = scope.ctx.fork(),
             dispose = scope.dispose // falls du pro item eigenes dispose willst: hier anpassen
@@ -83,24 +103,28 @@ fun <T> foreachAsync(
 
     fun renderItem(item: T, index: Int): JobItemMount {
         val k = key(item)
-        val itemEl = document.createElement("div").unsafeCast<Element>()
-        hostEl.appendChild(itemEl)
+        val itemStart = document.createComment("foreach-item")
+        val itemEnd = document.createComment("/foreach-item")
+        hostParent.insertBefore(itemStart, hostEnd)
+        hostParent.insertBefore(itemEnd, hostEnd)
 
-        val owner = ItemOwner(itemEl)
+        val owner = ItemOwner(itemStart)
         val indexProp = Property(index)
 
         // sync mount: leerer container (oder placeholder)
         val m = component(
-            root = itemEl,
+            root = itemStart,
             owner = owner,
             ui = scope.ui,
-            ctx = scope.ctx.fork()
+            ctx = scope.ctx.fork(),
+            parent = hostParent,
+            anchor = itemEnd
         ) {
             // optional placeholder
             // text { "Loading..." }
         }
 
-        val im = JobItemMount(k, owner, m, indexProp)
+        val im = JobItemMount(k, owner, itemStart, itemEnd, m, indexProp)
         startAsyncBlock(im, item)
         return im
     }
@@ -125,12 +149,12 @@ fun <T> foreachAsync(
         }
 
         // reorder DOM
-        var before: Node? = null
+        var before: Node? = hostEnd
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
-            val node = mounts.getValue(k).owner.node
-            insertBefore(node, before)
-            before = node
+            val im = mounts.getValue(k)
+            moveRangeBefore(im.start, im.end, before)
+            before = im.start
         }
 
         // update indices
@@ -150,22 +174,26 @@ fun <T> foreachAsync(
                 ch.items.forEachIndexed { local, item ->
                     val k = key(item)
                     if (!mounts.containsKey(k)) {
-                        val itemEl = document.createElement("div").unsafeCast<Element>()
-                        insertBefore(itemEl, beforeNode)
+                        val itemStart = document.createComment("foreach-item")
+                        val itemEnd = document.createComment("/foreach-item")
+                        hostParent.insertBefore(itemStart, beforeNode ?: hostEnd)
+                        hostParent.insertBefore(itemEnd, beforeNode ?: hostEnd)
 
-                        val owner = ItemOwner(itemEl)
+                        val owner = ItemOwner(itemStart)
                         val indexProp = Property(ch.fromIndex + local)
 
                         val m = component(
-                            root = itemEl,
+                            root = itemStart,
                             owner = owner,
                             ui = scope.ui,
-                            ctx = scope.ctx.fork()
+                            ctx = scope.ctx.fork(),
+                            parent = hostParent,
+                            anchor = itemEnd
                         ) {
                             // placeholder möglich
                         }
 
-                        val im = JobItemMount(k, owner, m, indexProp)
+                        val im = JobItemMount(k, owner, itemStart, itemEnd, m, indexProp)
                         mounts[k] = im
                         startAsyncBlock(im, item)
                     }
@@ -207,6 +235,7 @@ fun <T> foreachAsync(
         foreachJob.cancel()
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        hostEl.parentNode?.removeChild(hostEl)
+        hostStart.parentNode?.removeChild(hostStart)
+        hostEnd.parentNode?.removeChild(hostEnd)
     }
 }
