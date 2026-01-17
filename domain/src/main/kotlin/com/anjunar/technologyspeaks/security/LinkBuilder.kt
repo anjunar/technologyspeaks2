@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmErasure
 
-class LinkBuilder(val href : String?, var rel : String?, val method : String = "GET") {
+class LinkBuilder(val href : String?, var rel : String?, val method : String?, val function: KFunction<*>?) {
 
     val variables = mutableMapOf<String, Any>()
-
-    var property : String = ""
 
     fun withVariable(name : String, value : Any) : LinkBuilder {
         variables[name] = value
@@ -23,11 +23,6 @@ class LinkBuilder(val href : String?, var rel : String?, val method : String = "
 
     fun withRel(rel : String) : LinkBuilder {
         this.rel = rel
-        return this
-    }
-
-    fun withProperty(property : String) : LinkBuilder {
-        this.property = property
         return this
     }
 
@@ -41,7 +36,7 @@ class LinkBuilder(val href : String?, var rel : String?, val method : String = "
             .buildAndExpand(variables)
             .toUriString()
 
-        return Link(rel!!, uriString, method, property)
+        return Link(rel!!, uriString, method!!, function?.javaMethod?.declaringClass?.simpleName?.lowercase()?.replace("controller", "") + "-" + function?.name)
     }
 
     companion object {
@@ -64,14 +59,14 @@ class LinkBuilder(val href : String?, var rel : String?, val method : String = "
 
         private fun generateLinkBuilder(function: KFunction<*>?): LinkBuilder {
             if (function == null) {
-                return LinkBuilder(null, null)
+                return LinkBuilder(null, null, null, function)
             }
 
             for (annotation in function.annotations) {
                 when (annotation) {
-                    is GetMapping -> return LinkBuilder(annotation.value.first(), function.name)
-                    is PostMapping -> return LinkBuilder(annotation.value.first(), function.name, "POST")
-                    is PutMapping -> return LinkBuilder(annotation.value.first(), function.name, "PUT")
+                    is GetMapping -> return LinkBuilder(annotation.value.first(), function.name, "GET", function)
+                    is PostMapping -> return LinkBuilder(annotation.value.first(), function.name, "POST", function)
+                    is PutMapping -> return LinkBuilder(annotation.value.first(), function.name, "PUT", function)
                     else -> null
                 }
             }

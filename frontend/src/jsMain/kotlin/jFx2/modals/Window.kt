@@ -1,20 +1,16 @@
 package jFx2.modals
 
-import jFx2.controls.Div
 import jFx2.controls.button
-import jFx2.controls.div
+import jFx2.layout.div
 import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
-import jFx2.core.dsl.renderField
 import jFx2.core.dsl.renderFields
 import jFx2.core.rendering.condition
-import jFx2.core.runtime.component
 import jFx2.core.template
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement

@@ -1,7 +1,7 @@
 package jFx2.forms
 
 import jFx2.controls.Span
-import jFx2.controls.div
+import jFx2.layout.div
 import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component

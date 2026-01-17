@@ -1,8 +1,8 @@
 package app.pages
 
-import app.core.User
+import app.domain.core.User
 import jFx2.controls.button
-import jFx2.controls.div
+import jFx2.layout.div
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -10,14 +10,12 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
 import jFx2.core.rendering.foreach
-import jFx2.core.runtime.component
 import jFx2.forms.SizeValidator
 import jFx2.forms.arrayForm
 import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.forms.subForm
-import jFx2.modals.window
 import jFx2.state.Property
 import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLDivElement

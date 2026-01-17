@@ -1,12 +1,11 @@
 package jFx2.router
 
-import jFx2.controls.div
+import jFx2.layout.div
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.renderField
-import jFx2.core.rendering.foreach
 import jFx2.core.rendering.foreachAsync
 import jFx2.modals.window
 import jFx2.state.ListProperty
