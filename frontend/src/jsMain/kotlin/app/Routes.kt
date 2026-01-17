@@ -2,29 +2,26 @@ package app
 
 import app.pages.Home
 import app.pages.Login
+import app.pages.Logout
+import app.pages.homePage
+import app.pages.loginPage
+import app.pages.logoutPage
 import jFx2.router.Route
-import kotlinx.browser.window
-import kotlinx.coroutines.await
 
 object Routes {
 
     val routes = listOf<Route<*>>(
-        Route(
-            path = "/desktop",
-            component = Home::class,
-            resolve =  { home ->
-                val response = window.fetch("service").await()
-                val result = response.json().await()
-                home
-            },
+        Route<Home>(
+            path = "/",
+            factory = { homePage {} },
             children = listOf(
-                Route(
+                Route<Login>(
                     path = "/login",
-                    component = Login::class
+                    factory = { loginPage {} }
                 ),
-                Route(
+                Route<Logout>(
                     path = "/logout",
-                    component = Login::class
+                    factory = { logoutPage {} }
                 )
             )
         )

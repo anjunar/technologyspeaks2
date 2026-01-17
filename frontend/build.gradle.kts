@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "2.3.0"
@@ -14,7 +16,18 @@ kotlin {
         browser {
             commonWebpackConfig {
                 cssSupport { enabled.set(true) }
-            }
+                devServer?.apply {
+                    port = 4200
+
+                    proxy = mutableListOf(
+                        KotlinWebpackConfig.DevServer.Proxy(
+                            context = mutableListOf("/service"),
+                            target = "http://localhost:8080",
+                            changeOrigin = true,
+                            secure = false
+                        )
+                    )
+                }            }
         }
         compilerOptions {
             target = "es2015"

@@ -1,102 +1,29 @@
 package app
 
-import app.core.User
-import jFx2.forms.SizeValidator
-import jFx2.controls.button
-import jFx2.controls.div
+import jFx2.controls.link
 import jFx2.controls.text
-import jFx2.forms.form
-import jFx2.forms.input
-import jFx2.forms.inputContainer
-import jFx2.forms.subForm
-import jFx2.core.dsl.subscribeBidirectional
-import jFx2.core.rendering.condition
-import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
-import jFx2.forms.arrayForm
-import jFx2.modals.window
-import jFx2.state.Property
+import jFx2.router.router
 import kotlinx.browser.document
 import org.w3c.dom.HTMLDivElement
-import kotlinx.serialization.json.Json
 
 fun main() {
     val root = document.createElement("div") as HTMLDivElement
 
-    val count = Property(0)
-    val showExtra = Property(true)
-
-    val user = Json.decodeFromString<User>(" { \"nickName\": \"Anjunar\", \"userInfo\": { \"firstName\": \"Patrick\", \"lastName\": \"Bittner\" }, \"emails\": [{ \"value\" : \"anjunar@gmx.de\" }] } ")
 
     component(root) {
-        div {
 
-            window {
-                div {
-                    val myForm = form {
-                        condition(showExtra) {
-                            then {
-                                inputContainer("Nick name") {
-                                    input("nickName") {
-                                        validatorsProperty.add(SizeValidator(3, 12))
-                                        subscribeBidirectional(user.nickName, valueProperty)
-                                    }
-                                }
-                            }
-                            elseDo {
-                                div {
-                                    text {"count: ${count.get()}"}
-                                }
-                            }
-                        }
+        link("/") {
+            text("Home")
+        }
+        link("/login") {
+            text("Login")
+        }
+        link("/logout") {
+            text("Logout")
+        }
 
-                        subForm("userInfo") {
-                            inputContainer("First name") {
-                                input("firstName") {
-                                    validatorsProperty.add(SizeValidator(3, 12))
-                                    subscribeBidirectional(user.userInfo.firstName, valueProperty)
-                                }
-                            }
-                            inputContainer("Last name") {
-                                input("lastName") {
-                                    validatorsProperty.add(SizeValidator(3, 12))
-                                    subscribeBidirectional(user.userInfo.lastName, valueProperty)
-                                }
-                            }
-
-                        }
-
-                        arrayForm("emails") {
-                            foreach(user.emails, { it.value }) { email, index ->
-                                subForm(index = index.get()) {
-                                    inputContainer("Email") {
-                                        input("value") {
-                                            validatorsProperty.add(SizeValidator(3, 12))
-                                            subscribeBidirectional(email.value, valueProperty)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    button("Set") {
-                        onClick {
-                            user.userInfo.firstName.set("Patrick")
-                            console.log(user.toString())
-                        }
-                    }
-                    button("Toggle") {
-                        onClick {
-                            showExtra.set(!showExtra.get())
-                            console.log(myForm.fields.keys.joinToString(", ") { it })
-                            console.log(myForm.subForms.keys.joinToString(", ") { it })
-                        }
-                    }
-                }
-
-            }
-
+        router(Routes.routes) {
 
         }
     }

@@ -58,10 +58,10 @@ private fun matchPattern(pattern: String, actual: String): Map<String, String>? 
 /**
  * Returns the best (deepest) match-chain for `path`, or empty if none.
  */
-fun resolveRoutes(routes: List<Route>, path: String): RouterState {
+fun resolveRoutes(routes: List<Route<*>>, path: String): RouterState {
     val target = normalize(path)
 
-    fun dfs(parentFull: String, route: Route): List<RouteMatch>? {
+    fun dfs(parentFull: String, route: Route<*>): List<RouteMatch>? {
         val full = join(parentFull, route.path)
 
         // For nested routing we want prefix matching for intermediate routes:
