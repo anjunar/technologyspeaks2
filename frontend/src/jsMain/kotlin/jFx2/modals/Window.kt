@@ -363,8 +363,7 @@ class Window(
                         button("close") {
                             className { "material-icons" }
                             onClick {
-                                this@Window.ui.owner.removeChild(this@Window)
-                                this@Window.ui.ui.dom.detach(this@Window.node)
+                                onClose?.invoke()
                             }
                         }
                     }
