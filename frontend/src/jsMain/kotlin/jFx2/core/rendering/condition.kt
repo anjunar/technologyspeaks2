@@ -131,9 +131,14 @@ fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
 
     fun scheduleCheck() {
         if (disposed) return
+
         scope.ui.build.dirty {
             if (disposed) return@dirty
             rebuild(flag())
+        }
+
+        scope.ui.build.afterBuild {
+            scheduleCheck()
         }
     }
 

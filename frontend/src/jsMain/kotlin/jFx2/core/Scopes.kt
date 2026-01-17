@@ -23,7 +23,10 @@ class BuildScope {
     fun dirty(fn: () -> Unit) { dirty.add(fn) }
 
     fun flush() {
-        dirty.forEach { it() }
+        while (dirty.isNotEmpty()) {
+            val fn = dirty.removeAt(0)
+            fn()
+        }
 
         if (after.isEmpty()) return
         val copy = after.toList()

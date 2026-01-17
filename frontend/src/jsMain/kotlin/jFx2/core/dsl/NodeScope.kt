@@ -32,9 +32,21 @@ fun className(value: () -> String) {
 
 context(scope: NodeScope)
 fun style(block: CSSStyleDeclaration.() -> Unit) {
-    scope.ui.build.dirty{
-        (scope.parent as HTMLElement).style.unsafeCast<CSSStyleDeclaration>().block()
+    var disposed = false
+
+    fun scheduleNextFlush() {
+        if (disposed) return
+        scope.ui.build.dirty {
+            if (disposed) return@dirty
+            (scope.parent as HTMLElement).style.unsafeCast<CSSStyleDeclaration>().block()
+        }
+        scope.ui.build.afterBuild {
+            scheduleNextFlush()
+        }
     }
+
+    scheduleNextFlush()
+    scope.dispose.register { disposed = true }
 }
 
 context(scope: NodeScope)
