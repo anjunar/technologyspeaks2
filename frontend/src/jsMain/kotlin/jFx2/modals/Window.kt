@@ -8,6 +8,7 @@ import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
 import jFx2.core.dsl.renderField
@@ -396,7 +397,12 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     val c = Window(el, scope)
     scope.attach(c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(
+        parent = c.node,
+        owner = c,
+        ctx = scope.ctx,
+        insertPoint = ElementInsertPoint(c.node)
+    )
 
     scope.ui.build.afterBuild {
         with(childScope) {

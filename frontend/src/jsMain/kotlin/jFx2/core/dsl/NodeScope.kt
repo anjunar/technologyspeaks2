@@ -10,8 +10,8 @@ import org.w3c.dom.events.MouseEvent
 
 context(scope: NodeScope)
 fun renderField(field: Component<*>) {
-    if (field.node.parentNode !== scope.parent) {
-        scope.parent.appendChild(field.node)
+    if (field.node.parentNode !== scope.insertPoint.parent) {
+        scope.insertPoint.insert(field.node)
     }
     scope.dispose.register {
         runCatching { field.dispose() }

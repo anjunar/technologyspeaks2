@@ -3,6 +3,7 @@ package jFx2.router
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.rendering.dynamicOutlet
 import jFx2.state.Property
 import kotlinx.browser.window
@@ -51,7 +52,7 @@ fun router(routes: List<Route<*>>, block: context(NodeScope) Router.() -> Unit =
     val c = Router(el, scope.ui, routes)
     scope.attach(c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
 
     scope.ui.build.afterBuild {
         with(childScope) {

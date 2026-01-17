@@ -2,6 +2,8 @@ package jFx2.core.capabilities
 
 import jFx2.core.Component
 import jFx2.core.Ctx
+import jFx2.core.dom.DomInsertPoint
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.state.Disposable
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -46,18 +48,20 @@ class NodeScope(
     val parent: Node,
     val owner: Component<*>,
     val ctx: Ctx,
-    val dispose: DisposeScope
+    val dispose: DisposeScope,
+    val insertPoint: DomInsertPoint = ElementInsertPoint(parent)
 ) {
     fun <E : Element> create(tag: String): E = ui.dom.create(tag)
+
     fun attach(child: Component<*>) {
         owner.addChild(child)
-        ui.dom.attach(parent, child.node)
+
+        // IMPORTANT: insertion is no longer coupled to "parent"
+        insertPoint.insert(child.node)
 
         dispose.register {
             runCatching { child.dispose() }
-
             ui.dom.detach(child.node)
-
             owner.removeChild(child)
         }
     }
@@ -65,16 +69,19 @@ class NodeScope(
     fun fork(
         parent: Node = this.parent,
         owner: Component<*> = this.owner,
-        ctx: Ctx = this.ctx
+        ctx: Ctx = this.ctx,
+        insertPoint: DomInsertPoint = this.insertPoint
     ): NodeScope {
         val childDispose = DisposeScope()
         dispose.register { childDispose.dispose() }
+
         return NodeScope(
             ui = ui,
             parent = parent,
             owner = owner,
             ctx = ctx,
-            dispose = childDispose
+            dispose = childDispose,
+            insertPoint = insertPoint
         )
     }
 }

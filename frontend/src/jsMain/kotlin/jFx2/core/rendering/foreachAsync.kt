@@ -1,107 +1,119 @@
 package jFx2.core.rendering
 
+import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.dom.RangeInsertPoint
+import jFx2.core.dom.moveRangeInclusive
 import jFx2.core.runtime.ComponentMount
-import jFx2.core.runtime.component
+import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.coroutines.*
-import org.w3c.dom.Element
+import org.w3c.dom.Comment
 import org.w3c.dom.Node
 
-private data class JobItemMount(
+private data class JobRangeItemMount(
     val key: Any,
-    val owner: ItemOwner,
+    val start: Comment,
+    val end: Comment,
+    val range: RangeInsertPoint,
+    val owner: Component<*>,
+    val scope: NodeScope,              // IMPORTANT: stable per-item scope (insertPoint = itemRange)
     var mount: ComponentMount,
     val index: Property<Int>,
-    var job: Job? = null
+    var job: Job? = null,
+    var disposed: Boolean = false
 )
 
 context(scope: NodeScope)
 fun <T> foreachAsync(
     items: ListProperty<T>,
     key: (T) -> Any,
-    // suspend + context(NodeScope) wie du willst:
     block: suspend context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val hostEl = scope.create<Element>("div")
-    hostEl.classList.add("foreach-host")
-    scope.parent.appendChild(hostEl)
+    val hostStart = document.createComment("jFx2:foreach")
+    val hostEnd = document.createComment("jFx2:/foreach")
+    scope.insertPoint.insert(hostStart)
+    scope.insertPoint.insert(hostEnd)
+    val hostRange = RangeInsertPoint(hostStart, hostEnd)
 
-    val mounts = LinkedHashMap<Any, JobItemMount>()
+    val mounts = LinkedHashMap<Any, JobRangeItemMount>()
 
-    // CoroutineScope fürs foreach selbst (cancelt alles bei dispose)
     val foreachJob = SupervisorJob()
     val foreachScope = CoroutineScope(foreachJob + Dispatchers.Default)
 
-    fun insertBefore(node: Node, before: Node?) {
-        if (before == null) hostEl.appendChild(node) else hostEl.insertBefore(node, before)
-    }
+    fun disposeAndRemove(im: JobRangeItemMount) {
+        im.disposed = true
 
-    fun disposeAndRemove(im: JobItemMount) {
-        im.job?.cancel()
+        runCatching { im.job?.cancel() }
         im.job = null
-        im.mount.dispose()
-        im.owner.node.parentNode?.removeChild(im.owner.node)
+
+        // Ensure markers are always removed even if dispose throws.
+        runCatching { im.mount.dispose() }
+        runCatching { im.range.dispose() }
     }
 
-    fun currentDomNodesInOrder(): List<Node> =
-        mounts.values.map { it.owner.node }
-
-    fun startAsyncBlock(im: JobItemMount, item: T) {
-        // alte job abbrechen (z.B. bei rebuild/reuse)
+    fun startAsync(im: JobRangeItemMount, item: T) {
         im.job?.cancel()
 
-        // childScope pro item – sauberer ctx.fork + owner/parent binden
-        val childScope = NodeScope(
-            ui = scope.ui,
-            parent = im.owner.node,
-            owner = im.owner,
-            ctx = scope.ctx.fork(),
-            dispose = scope.dispose // falls du pro item eigenes dispose willst: hier anpassen
-        )
-
-        // Job startet suspend block
+        // IMPORTANT: run in the existing stable item scope (no additional fork here!)
         im.job = foreachScope.launch {
-            // Wenn dein UI nur auf einem "UI Thread" mutieren darf:
-            // dann musst du hier in deine UI-Queue wechseln.
-            // Ich nehme an, dein UI hat sowas wie build.enqueue / ui.dispatch / etc.
-            // Falls nicht, lass es so und stell sicher, dass block keine illegalen DOM ops macht.
-            with(childScope) {
-                block(item, im.index)
+            try {
+                with(im.scope) {
+                    block(item, im.index)
+                }
+                // Flush once after async render
+                im.scope.ui.build.flush()
+            } catch (_: CancellationException) {
+                // ignore
+            } catch (_: Throwable) {
+                // if your app wants logging, do it here
             }
-            // optional: flush nach completion (wenn du das willst)
-            // scope.ui.build.flush()
         }
 
-        // Job beim Unmount killen
+        // Safety: cancel on parent dispose
         scope.dispose.register { im.job?.cancel() }
     }
 
-    fun renderItem(item: T, index: Int): JobItemMount {
+    fun mountItem(item: T, idx: Int): JobRangeItemMount {
         val k = key(item)
-        val itemEl = document.createElement("div").unsafeCast<Element>()
-        hostEl.appendChild(itemEl)
 
-        val owner = ItemOwner(itemEl)
-        val indexProp = Property(index)
+        val itemStart = document.createComment("jFx2:item")
+        val itemEnd = document.createComment("jFx2:/item")
+        hostRange.insert(itemStart)
+        hostRange.insert(itemEnd)
 
-        // sync mount: leerer container (oder placeholder)
-        val m = component(
-            root = itemEl,
+        val itemRange = RangeInsertPoint(itemStart, itemEnd)
+        val owner: Component<*> = RangeOwner(itemStart)
+        val indexProp = Property(idx)
+
+        val itemScope = scope.fork(
+            parent = itemRange.parent,
             owner = owner,
-            ui = scope.ui,
-            ctx = scope.ctx.fork()
-        ) {
+            ctx = scope.ctx.fork(),
+            insertPoint = itemRange
+        )
+
+        // Initial mount (empty placeholder is fine)
+        val m = componentWithScope(itemScope) {
             // optional placeholder
-            // text { "Loading..." }
         }
 
-        val im = JobItemMount(k, owner, m, indexProp)
-        startAsyncBlock(im, item)
+        val im = JobRangeItemMount(
+            key = k,
+            start = itemStart,
+            end = itemEnd,
+            range = itemRange,
+            owner = owner,
+            scope = itemScope,
+            mount = m,
+            index = indexProp
+        )
+
+        startAsync(im, item)
         return im
     }
 
@@ -109,96 +121,52 @@ fun <T> foreachAsync(
         val newKeys = newItems.map { key(it) }
         val newKeySet = newKeys.toHashSet()
 
-        // remove
+        // Remove missing
         val toRemove = mounts.keys.filter { it !in newKeySet }
         for (k in toRemove) {
             disposeAndRemove(mounts.getValue(k))
             mounts.remove(k)
         }
 
-        // add missing
-        newItems.forEachIndexed { index, item ->
+        // Add missing
+        newItems.forEachIndexed { idx, item ->
             val k = key(item)
             if (!mounts.containsKey(k)) {
-                mounts[k] = renderItem(item, index)
+                mounts[k] = mountItem(item, idx)
             }
         }
 
-        // reorder DOM
-        var before: Node? = null
+        // Reorder marker blocks
+        val parent: Node = hostStart.parentNode ?: return
+        var before: Node? = hostEnd
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
-            val node = mounts.getValue(k).owner.node
-            insertBefore(node, before)
-            before = node
+            val im = mounts.getValue(k)
+            moveRangeInclusive(parent, im.start, im.end, before)
+            before = im.start
         }
 
-        // update indices
+        // Update indices
         newItems.forEachIndexed { idx, item ->
             mounts[key(item)]?.index?.set(idx)
         }
     }
 
-    // initial
+    // Initial
     rebuildSetAll(items.get())
 
     val d: Disposable = items.observeChanges { ch ->
         when (ch) {
-            is ListChange.Add -> {
-                val beforeNode = currentDomNodesInOrder().getOrNull(ch.fromIndex)
-
-                ch.items.forEachIndexed { local, item ->
-                    val k = key(item)
-                    if (!mounts.containsKey(k)) {
-                        val itemEl = document.createElement("div").unsafeCast<Element>()
-                        insertBefore(itemEl, beforeNode)
-
-                        val owner = ItemOwner(itemEl)
-                        val indexProp = Property(ch.fromIndex + local)
-
-                        val m = component(
-                            root = itemEl,
-                            owner = owner,
-                            ui = scope.ui,
-                            ctx = scope.ctx.fork()
-                        ) {
-                            // placeholder möglich
-                        }
-
-                        val im = JobItemMount(k, owner, m, indexProp)
-                        mounts[k] = im
-                        startAsyncBlock(im, item)
-                    }
-                }
-
-                rebuildSetAll(items.get())
-            }
-
-            is ListChange.Remove -> {
-                for (item in ch.items) {
-                    val k = key(item)
-                    val im = mounts.remove(k) ?: continue
-                    disposeAndRemove(im)
-                }
-                rebuildSetAll(items.get())
-            }
-
-            is ListChange.Replace -> {
-                for (item in ch.old) {
-                    val k = key(item)
-                    val im = mounts.remove(k) ?: continue
-                    disposeAndRemove(im)
-                }
-                // new items will be in items.get() anyway
-                rebuildSetAll(items.get())
-            }
+            is ListChange.Add,
+            is ListChange.Remove,
+            is ListChange.Replace,
+            is ListChange.SetAll -> rebuildSetAll(items.get())
 
             is ListChange.Clear -> {
                 for ((_, im) in mounts) disposeAndRemove(im)
                 mounts.clear()
+                hostRange.clear()
             }
-
-            is ListChange.SetAll -> rebuildSetAll(ch.new)
         }
     }
 
@@ -207,6 +175,6 @@ fun <T> foreachAsync(
         foreachJob.cancel()
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        hostEl.parentNode?.removeChild(hostEl)
+        runCatching { hostRange.dispose() }
     }
 }

@@ -1,30 +1,29 @@
 package jFx2.core.rendering
 
+import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.dom.RangeInsertPoint
+import jFx2.core.dom.moveRangeInclusive
 import jFx2.core.runtime.ComponentMount
-import jFx2.core.runtime.component
+import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import kotlinx.browser.document
+import org.w3c.dom.Comment
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-private data class SimpleItemMount(
+private data class RangeItemMount(
     val key: Any,
-    val owner: ItemOwner,
+    val start: Comment,
+    val end: Comment,
+    val range: RangeInsertPoint,
+    val owner: Component<*>,
     var mount: ComponentMount,
     val index: Property<Int>
 )
-
-suspend fun <T> NodeScope.foreachAsync(
-    list: List<T>,
-    key: (T) -> String,
-    block: suspend (T, Int) -> Unit
-) {
-    for ((i, item) in list.withIndex()) block(item, i)
-}
 
 context(scope: NodeScope)
 fun <T> foreach(
@@ -32,129 +31,96 @@ fun <T> foreach(
     key: (T) -> Any,
     block: context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val hostEl = scope.create<Element>("div")
-    hostEl.classList.add("foreach-host")
-    scope.parent.appendChild(hostEl)
+    val hostStart = document.createComment("jFx2:foreach")
+    val hostEnd = document.createComment("jFx2:/foreach")
+    scope.insertPoint.insert(hostStart)
+    scope.insertPoint.insert(hostEnd)
+    val hostRange = RangeInsertPoint(hostStart, hostEnd)
 
-    val mounts = LinkedHashMap<Any, SimpleItemMount>()
+    val mounts = LinkedHashMap<Any, RangeItemMount>()
 
-    fun renderItem(item: T, index: Int): SimpleItemMount {
+    fun disposeAndRemove(im: RangeItemMount) {
+        // Ensure markers are always removed even if dispose throws.
+        runCatching { im.mount.dispose() }
+        runCatching { im.range.dispose() }
+    }
+
+    fun mountItem(item: T, idx: Int): RangeItemMount {
         val k = key(item)
-        val itemEl = document.createElement("div").unsafeCast<Element>()
-        hostEl.appendChild(itemEl)
 
-        val owner = ItemOwner(itemEl)
-        val indexProp = jFx2.state.Property(index)
+        val itemStart = document.createComment("jFx2:item")
+        val itemEnd = document.createComment("jFx2:/item")
+        hostRange.insert(itemStart)
+        hostRange.insert(itemEnd)
 
-        val m = component(
-            root = itemEl,
+        val itemRange = RangeInsertPoint(itemStart, itemEnd)
+        val owner: Component<*> = RangeOwner(itemStart)
+        val indexProp = Property(idx)
+
+        val childScope = scope.fork(
+            parent = itemRange.parent,
             owner = owner,
-            ui = scope.ui,
             ctx = scope.ctx.fork(),
-            block = { block(item, indexProp) }
+            insertPoint = itemRange
         )
 
-        return SimpleItemMount(k, owner, m, indexProp)
-    }
+        val m = componentWithScope(childScope) {
+            block(item, indexProp)
+        }
 
-    fun insertBefore(node: Node, before: Node?) {
-        if (before == null) hostEl.appendChild(node) else hostEl.insertBefore(node, before)
+        return RangeItemMount(k, itemStart, itemEnd, itemRange, owner, m, indexProp)
     }
-
-    fun disposeAndRemove(im: SimpleItemMount) {
-        im.mount.dispose()
-        im.owner.node.parentNode?.removeChild(im.owner.node)
-    }
-
-    fun currentDomNodesInOrder(): List<Node> =
-        mounts.values.map { it.owner.node }
 
     fun rebuildSetAll(newItems: List<T>) {
         val newKeys = newItems.map { key(it) }
-
         val newKeySet = newKeys.toHashSet()
+
+        // Remove missing
         val toRemove = mounts.keys.filter { it !in newKeySet }
         for (k in toRemove) {
             disposeAndRemove(mounts.getValue(k))
             mounts.remove(k)
         }
 
-        newItems.forEachIndexed { index, item ->
+        // Add missing
+        newItems.forEachIndexed { idx, item ->
             val k = key(item)
             if (!mounts.containsKey(k)) {
-                val im = renderItem(item, index)
-                mounts[k] = im
+                mounts[k] = mountItem(item, idx)
             }
         }
 
-        var before: Node? = null
+        // Reorder marker blocks (stable, wrapper-free)
+        val parent: Node = hostStart.parentNode ?: return
+        var before: Node? = hostEnd
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
-            val node = mounts.getValue(k).owner.node
-            insertBefore(node, before)
-            before = node
+            val im = mounts.getValue(k)
+            moveRangeInclusive(parent, im.start, im.end, before)
+            before = im.start
         }
 
+        // Update indices
         newItems.forEachIndexed { idx, item ->
-            val k = key(item)
-            mounts[k]?.index?.set(idx)
+            mounts[key(item)]?.index?.set(idx)
         }
     }
 
+    // Initial
     rebuildSetAll(items.get())
 
     val d: Disposable = items.observeChanges { ch ->
         when (ch) {
-            is ListChange.Add -> {
-                val beforeNode = currentDomNodesInOrder().getOrNull(ch.fromIndex)
-
-                ch.items.forEachIndexed { local, item ->
-                    val k = key(item)
-                    if (!mounts.containsKey(k)) {
-                        val itemEl = document.createElement("div").unsafeCast<Element>()
-                        insertBefore(itemEl, beforeNode)
-
-                        val owner = ItemOwner(itemEl)
-                        val indexProp = jFx2.state.Property(ch.fromIndex + local)
-
-                        val m = component(
-                            root = itemEl,
-                            owner = owner,
-                            ui = scope.ui,
-                            ctx = scope.ctx.fork(),
-                            block = { block(item, indexProp) }
-                        )
-                        mounts[k] = SimpleItemMount(k, owner, m, indexProp)
-                    }
-                }
-
-                rebuildSetAll(items.get())
-            }
-
-            is ListChange.Remove -> {
-                for (item in ch.items) {
-                    val k = key(item)
-                    val im = mounts.remove(k) ?: continue
-                    disposeAndRemove(im)
-                }
-                rebuildSetAll(items.get())
-            }
-
-            is ListChange.Replace -> {
-                for (item in ch.old) {
-                    val k = key(item)
-                    val im = mounts.remove(k) ?: continue
-                    disposeAndRemove(im)
-                }
-                rebuildSetAll(items.get())
-            }
+            is ListChange.Add,
+            is ListChange.Remove,
+            is ListChange.Replace,
+            is ListChange.SetAll -> rebuildSetAll(items.get())
 
             is ListChange.Clear -> {
                 for ((_, im) in mounts) disposeAndRemove(im)
                 mounts.clear()
+                hostRange.clear() // leaves foreach markers, clears content between them
             }
-
-            is ListChange.SetAll -> rebuildSetAll(ch.new)
         }
     }
 
@@ -162,6 +128,6 @@ fun <T> foreach(
     scope.dispose.register {
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        hostEl.parentNode?.removeChild(hostEl)
+        runCatching { hostRange.dispose() } // removes foreach markers too
     }
 }

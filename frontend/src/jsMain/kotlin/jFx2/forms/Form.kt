@@ -4,6 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabitities.FormContextKey
 import jFx2.core.capabitities.FormOwnerKey
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerSubForm
 import org.w3c.dom.HTMLFormElement
 
@@ -43,7 +44,8 @@ fun form(
         ctx = scope.ctx.fork().also {
             it.set(FormContextKey, formContext)
             it.set(FormOwnerKey, c)
-        }
+        },
+        ElementInsertPoint(c.node)
     )
 
     block(childScope, c)
@@ -69,7 +71,8 @@ fun subForm(
         ctx = scope.ctx.fork().also {
             it.set(FormContextKey, formContext)
             it.set(FormOwnerKey, c)
-        }
+        },
+        ElementInsertPoint(c.node)
     )
 
     block(childScope, c)

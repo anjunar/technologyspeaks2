@@ -2,6 +2,7 @@ package jFx2.forms
 
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
 import jFx2.state.Disposable
 import jFx2.state.ListChange
@@ -133,7 +134,7 @@ fun input(name: String, block: context(NodeScope) Input.() -> Unit = {}): Input 
 
     registerField(name, c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
     block(childScope, c)
 
     scope.attach(c)

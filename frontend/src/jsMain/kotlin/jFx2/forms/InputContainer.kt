@@ -6,6 +6,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.renderField
 import jFx2.core.dsl.style
@@ -127,7 +128,7 @@ fun inputContainer(
     val c = InputContainer(el, placeholder)
     scope.attach(c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
     block(childScope, c)
 
     scope.ui.build.afterBuild {

@@ -4,6 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabitities.ArrayFormOwnerKey
 import jFx2.core.capabitities.FormContextKey
+import jFx2.core.dom.ElementInsertPoint
 import org.w3c.dom.HTMLFieldSetElement
 
 class ArrayForm(override val node: HTMLFieldSetElement) : Component<HTMLFieldSetElement>(), Formular {
@@ -39,7 +40,8 @@ fun arrayForm(
         ctx = scope.ctx.fork().also {
             it.set(FormContextKey, formContext)
             it.set(ArrayFormOwnerKey, c)
-        }
+        },
+        ElementInsertPoint(c.node)
     )
 
     block(childScope, c)

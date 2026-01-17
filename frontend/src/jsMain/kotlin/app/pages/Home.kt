@@ -6,6 +6,7 @@ import jFx2.controls.div
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
 import jFx2.core.rendering.foreach
@@ -105,7 +106,7 @@ fun homePage(block: context(NodeScope) Home.() -> Unit = {}): Home {
     val c = Home(el)
     scope.attach(c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
 
     scope.ui.build.afterBuild {
         with(childScope) {

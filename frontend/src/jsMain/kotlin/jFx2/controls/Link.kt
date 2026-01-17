@@ -2,6 +2,7 @@ package jFx2.controls
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.dom.ElementInsertPoint
 import kotlinx.browser.window
 import org.w3c.dom.CustomEvent
 import org.w3c.dom.HTMLAnchorElement
@@ -20,7 +21,7 @@ fun link(href : String, block: context(NodeScope) Link.() -> Unit = {}): Link {
     val c = Link(el)
     scope.attach(c)
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx)
+    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
 
     block(childScope, c)
 
