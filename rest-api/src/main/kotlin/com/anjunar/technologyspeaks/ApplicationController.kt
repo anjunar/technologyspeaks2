@@ -3,8 +3,8 @@ package com.anjunar.technologyspeaks
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.core.UsersController
 import com.anjunar.technologyspeaks.security.IdentityHolder
-import com.anjunar.technologyspeaks.security.LoginController
-import com.anjunar.technologyspeaks.security.RegisterController
+import com.anjunar.technologyspeaks.security.WebAuthnLoginController
+import com.anjunar.technologyspeaks.security.WebAuthnRegisterController
 import jakarta.annotation.security.RolesAllowed
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -19,10 +19,10 @@ class ApplicationController(val identityHolder: IdentityHolder) {
         val application = Application(identityHolder.user)
 
         application.addLinks(
-            LinkBuilder.create(LoginController::options)
+            LinkBuilder.create(WebAuthnLoginController::options)
                 .withRel("login")
                 .build(),
-            LinkBuilder.create(RegisterController::options)
+            LinkBuilder.create(WebAuthnRegisterController::options)
                 .withRel("register")
                 .build(),
             LinkBuilder.create(UsersController::list)

@@ -22,12 +22,12 @@ import java.security.SecureRandom
 
 @Suppress("UNCHECKED_CAST")
 @RestController
-class LoginController(val store: CredentialStore, val entityManager: EntityManager, val identityHolder: SessionHolder) {
+class WebAuthnLoginController(val store: CredentialStore, val entityManager: EntityManager, val identityHolder: SessionHolder) {
 
-    @PostMapping("/security/login", produces = ["application/json"], consumes = ["application/json"])
+    @PostMapping("/security/login/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
     fun options(@RequestBody request: JsonObject): JsonObject {
-        val username = request.getString("username")
+        val username = request.getString("email")
 
         val challengeBytes = ByteArray(32)
         SecureRandom().nextBytes(challengeBytes)
@@ -45,12 +45,11 @@ class LoginController(val store: CredentialStore, val entityManager: EntityManag
             .toList()
 
         return JsonObject()
-            .put("publicKey", JsonObject()
-                .put("challenge", Base64UrlUtil.encodeToString(challengeBytes))
-                .put("rpId", RP_ID)
-                .put("allowCredentials", JsonArray(ArrayList(allowCredentials)))
-                .put("userVerification", "discouraged")
-                .put("timeout", 60000))
+            .put("challenge", Base64UrlUtil.encodeToString(challengeBytes))
+            .put("rpId", RP_ID)
+            .put("allowCredentials", JsonArray(ArrayList(allowCredentials)))
+            .put("userVerification", "discouraged")
+            .put("timeout", 60000)
     }
 
     @PostMapping("/security/login/finish", produces = ["application/json"], consumes = ["application/json"])

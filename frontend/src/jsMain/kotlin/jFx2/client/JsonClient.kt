@@ -1,8 +1,8 @@
 package jFx2.client
 
 import app.domain.core.Link
-import app.domain.security.LoginLink
-import app.domain.security.RegisterLink
+import app.domain.security.WebAuthnLoginLink
+import app.domain.security.WebAuthnRegisterLink
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
@@ -18,8 +18,8 @@ object JsonClient {
 
         val module = SerializersModule {
             polymorphic(Link::class) {
-                subclass(LoginLink::class)
-                subclass(RegisterLink::class)
+                subclass(WebAuthnLoginLink::class)
+                subclass(WebAuthnRegisterLink::class)
             }
         }
 

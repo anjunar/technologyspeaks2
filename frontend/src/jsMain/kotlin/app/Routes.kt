@@ -1,11 +1,11 @@
 package app
 
 import app.pages.Home
-import app.pages.Login
-import app.pages.Logout
+import app.pages.security.LoginPage
+import app.pages.security.RegisterPage
 import app.pages.homePage
-import app.pages.loginPage
-import app.pages.logoutPage
+import app.pages.security.loginPage
+import app.pages.security.registerPage
 import jFx2.router.Route
 
 object Routes {
@@ -15,13 +15,13 @@ object Routes {
             path = "/",
             factory = { homePage {} },
             children = listOf(
-                Route<Login>(
-                    path = "/login",
+                Route<LoginPage>(
+                    path = "/security/login/options",
                     factory = { loginPage {} }
                 ),
-                Route<Logout>(
-                    path = "/logout",
-                    factory = { logoutPage {} }
+                Route<RegisterPage>(
+                    path = "/security/register/options",
+                    factory = { registerPage {} }
                 )
             )
         )

@@ -13,6 +13,14 @@ class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), F
     val fields: MutableMap<String, FormField<*, *>> = LinkedHashMap()
     val subForms: MutableMap<String, Form> = LinkedHashMap()
 
+    var submitHandler: (() -> Unit)? = null
+
+    fun onSubmit(handler: () -> Unit) { submitHandler = handler }
+
+    fun initialize() {
+        node.addEventListener("submit", { event -> event.preventDefault(); submitHandler?.invoke() })
+    }
+
     internal fun registerField(name: String, field: FormField<*, *>) {
         fields[name] = field
     }
@@ -47,6 +55,8 @@ fun form(
         },
         ElementInsertPoint(c.node)
     )
+
+    scope.ui.build.afterBuild { c.initialize() }
 
     block(childScope, c)
     return c

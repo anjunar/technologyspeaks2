@@ -33,8 +33,14 @@ class NotBlankValidator : Validator {
     override fun message(): String = "must not be blank"
 }
 
+class EmailValidator : Validator {
+    override fun validate(value: String): Boolean = value.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))
+    override fun message(): String = "must be a valid email address"
+}
+
 class Input(
     val name: String,
+    val type: String,
     val ui: UiScope,
     override val node: HTMLInputElement
 ) : FormField<String, HTMLInputElement>(), HasPlaceholder {
@@ -45,6 +51,8 @@ class Input(
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
     fun initialize() {
+        node.type = type
+        node.name = name
         val defaultValue = valueProperty.get()
 
         valueProperty.observe { node.value = it }
@@ -126,9 +134,9 @@ class Input(
 }
 
 context(scope : NodeScope)
-fun input(name: String, block: context(NodeScope) Input.() -> Unit = {}): Input {
+fun input(name: String, type : String = "text", block: context(NodeScope) Input.() -> Unit = {}): Input {
     val el = scope.create<HTMLInputElement>("input").also { it.name = name }
-    val c = Input(name, scope.ui, el)
+    val c = Input(name, type, scope.ui, el)
 
     scope.ui.build.afterBuild { c.initialize() }
 

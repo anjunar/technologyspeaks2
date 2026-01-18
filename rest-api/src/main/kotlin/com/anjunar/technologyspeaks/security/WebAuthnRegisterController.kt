@@ -1,7 +1,6 @@
 package com.anjunar.technologyspeaks.security
 
 import com.anjunar.json.mapper.intermediate.model.JsonArray
-import com.anjunar.json.mapper.intermediate.model.JsonNode
 import com.anjunar.json.mapper.intermediate.model.JsonObject
 import com.anjunar.technologyspeaks.security.WebAuthnManagerProvider.ORIGIN
 import com.anjunar.technologyspeaks.security.WebAuthnManagerProvider.RP_ID
@@ -26,12 +25,12 @@ import java.util.*
 
 @Suppress("UNCHECKED_CAST")
 @RestController
-class RegisterController(val store: CredentialStore, val registerService: RegisterService) {
+class WebAuthnRegisterController(val store: CredentialStore, val registerService: RegisterService) {
 
-    @PostMapping("/security/register", produces = ["application/json"], consumes = ["application/json"])
+    @PostMapping("/security/register/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
     fun options(@RequestBody body: JsonObject): JsonObject {
-        val username = body.getString("username")
+        val username = body.getString("email")
 
         val challengeBytes = ByteArray(32)
         SecureRandom().nextBytes(challengeBytes)
@@ -49,42 +48,39 @@ class RegisterController(val store: CredentialStore, val registerService: Regist
             .toList()
 
         return JsonObject()
+            .put("challenge", Base64UrlUtil.encodeToString(challengeBytes))
             .put(
-                "publicKey", JsonObject()
-                    .put("challenge", Base64UrlUtil.encodeToString(challengeBytes))
-                    .put(
-                        "rp", JsonObject()
-                            .put("name", RP_NAME)
-                            .put("id", RP_ID)
-                    )
-                    .put(
-                        "user", JsonObject()
-                            .put("id", Base64UrlUtil.encodeToString(username.toByteArray()))
-                            .put("name", username)
-                            .put("displayName", username)
-                    )
-                    .put(
-                        "pubKeyCredParams", JsonArray()
-                            .add(JsonObject().put("type", "public-key").put("alg", -7))
-                            .add(JsonObject().put("type", "public-key").put("alg", -257))
-                    )
-                    .put(
-                        "authenticatorSelection", JsonObject()
-                            .put("userVerification", "discouraged")
-                            .put("requireResidentKey", false)
-                    )
-                    .put("attestation", "none")
-                    .put("timeout", 60000)
-                    .put("excludeCredentials", JsonArray(ArrayList(excludeCredentials)))
+                "rp", JsonObject()
+                    .put("name", RP_NAME)
+                    .put("id", RP_ID)
             )
+            .put(
+                "user", JsonObject()
+                    .put("id", Base64UrlUtil.encodeToString(username.toByteArray()))
+                    .put("name", username)
+                    .put("displayName", username)
+            )
+            .put(
+                "pubKeyCredParams", JsonArray()
+                    .add(JsonObject().put("type", "public-key").put("alg", -7))
+                    .add(JsonObject().put("type", "public-key").put("alg", -257))
+            )
+            .put(
+                "authenticatorSelection", JsonObject()
+                    .put("userVerification", "discouraged")
+                    .put("requireResidentKey", false)
+            )
+            .put("attestation", "none")
+            .put("timeout", 60000)
+            .put("excludeCredentials", JsonArray(ArrayList(excludeCredentials)))
     }
 
     @PostMapping("/security/register/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
     fun finish(@RequestBody body: JsonObject): JsonObject {
-        val publicKeyCredential = body.getJsonObject("publicKeyCredential")
+        val publicKeyCredential = body.getJsonObject("optionsJSON")
         val credentialId = publicKeyCredential.getString("id")
-        val username = body.getString("username")
+        val username = body.getString("email")
         val nickName = body.getString("nickName")
 
         val registrationData = webAuthnManager.parseRegistrationResponseJSON(publicKeyCredential.encode())

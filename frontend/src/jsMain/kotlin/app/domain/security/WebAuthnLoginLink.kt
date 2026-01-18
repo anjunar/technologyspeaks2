@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("login-options")
-class LoginLink(override val rel: String, override val url: String, override val method : String = "GET") : Link() {
+class WebAuthnLoginLink(override val rel: String, override val url: String, override val method : String = "GET") : Link() {
 
     override val name : String = "Login"
 

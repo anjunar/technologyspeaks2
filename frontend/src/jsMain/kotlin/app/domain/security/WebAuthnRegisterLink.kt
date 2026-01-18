@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("register-options")
-class RegisterLink(override val rel: String, override val url: String, override val method : String = "GET") : Link() {
+class WebAuthnRegisterLink(override val rel: String, override val url: String, override val method : String = "GET") : Link() {
 
     override val name : String = "Register"
 
