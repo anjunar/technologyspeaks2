@@ -2,7 +2,7 @@
     display: block;
     position: absolute;
     overflow: hidden;
-    max-height: 800px;
+    max-height: 1024px;
 
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);

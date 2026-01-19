@@ -1,0 +1,3 @@
+.jfx-table-row.selected { background: rgba(0,0,0,0.06); }
+.jfx-table-cell-host { border-right: 1px solid rgba(0,0,0,0.06); }
+.jfx-table-header-cell { border-right: 1px solid rgba(0,0,0,0.06); }

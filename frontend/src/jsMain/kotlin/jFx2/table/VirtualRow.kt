@@ -1,5 +1,6 @@
 package jFx2.table
 
+import jFx2.state.CompositeDisposable
 import jFx2.state.Property
 import jFx2.state.Disposable
 import org.w3c.dom.HTMLElement
@@ -16,16 +17,71 @@ internal class VirtualTableFlow<R>(
     private val overscan: Int,
     private val columns: List<Column<R, *>>,
     private val model: LazyTableModel<R>,
-    private val selectedIndex: Property<Int?>,
-    private val focusedIndex: Property<Int?>
+    private val selection: SelectionModel,
+    private val focus: FocusModel
 ) : Disposable {
 
-    data class CellHolder<R, V>(
+    class CellHolder<R, V>(
         val col: Column<R, V>,
         val cell: TableCell<R, V>,
         val host: HTMLElement
     ) : Disposable {
-        override fun dispose() = cell.dispose()
+
+        private val bindings = CompositeDisposable()
+
+        private var boundIndex: Int = Int.MIN_VALUE
+        private var boundItem: Any? = null
+        private var currentValue: V? = null
+        private var isEmpty: Boolean = true
+
+        fun bindAndUpdate(
+            rowItem: R?,
+            rowIndex: Int,
+            empty: Boolean,
+            selected: Boolean,
+            focused: Boolean
+        ) {
+            // If nothing structural changed, only re-run update (selection/focus changed)
+            if (boundIndex == rowIndex && boundItem === rowItem && isEmpty == empty) {
+                cell.update(rowItem, rowIndex, currentValue, empty, selected, focused)
+                return
+            }
+
+            // structural change => drop old observers
+            bindings.dispose()
+
+            boundIndex = rowIndex
+            boundItem = rowItem
+            isEmpty = empty
+            currentValue = null
+
+            if (empty || rowItem == null) {
+                cell.update(null, rowIndex, null, true, selected, focused)
+                return
+            }
+
+            val vp = col.valueProperty
+            if (vp != null) {
+                val prop = vp(rowItem)
+                // observe() calls immediately -> perfect for initial paint
+                val d = prop.observe { v ->
+                    currentValue = v
+                    cell.update(rowItem, rowIndex, v, false, selected, focused)
+                }
+                bindings.add(d)
+            } else {
+                @Suppress("UNCHECKED_CAST")
+                val vf = col.value as (R) -> V
+                val v = vf(rowItem)
+                currentValue = v
+                cell.update(rowItem, rowIndex, v, false, selected, focused)
+            }
+        }
+
+        override fun dispose() {
+            bindings.dispose()
+            cell.dispose()
+        }
     }
 
     class VirtualRow<R>(
@@ -43,13 +99,26 @@ internal class VirtualTableFlow<R>(
 
     private val dInvalidate = model.invalidateTick.observe { render() }
     private val dCount = model.totalCount.observe { updateContentHeight(); render() }
-    private val dSel = selectedIndex.observe { render() }
-    private val dFocus = focusedIndex.observe { render() }
+    private val dSel = selection.selected.observe { render() }
+    private val dFocus = focus.focusedIndex.observe { render() }
 
     init {
         viewport.addEventListener("scroll", scrollListener)
         updateContentHeight()
-        render()
+    }
+
+    fun scrollIntoView(index: Int) {
+        if (index < 0) return
+        val top : Double = index.toDouble() * rowHeightPx
+        val bottom = top + rowHeightPx
+
+        val viewTop = viewport.scrollTop
+        val viewBottom = viewTop + viewport.clientHeight
+
+        when {
+            top < viewTop -> viewport.scrollTop = top
+            bottom > viewBottom -> viewport.scrollTop = bottom - viewport.clientHeight
+        }
     }
 
     override fun dispose() {
@@ -62,58 +131,20 @@ internal class VirtualTableFlow<R>(
         rows.clear()
     }
 
-    private fun updateContentHeight() {
-        val total = model.totalCount.get()
-        if (total != null) {
-            content.style.height = "${total * rowHeightPx}px"
-        } else {
-            // unknown size: start with a baseline; we grow when needed
-            content.style.height = "${1000 * rowHeightPx}px"
-        }
-    }
-
-    private fun ensureRowPoolSize(needed: Int) {
-        while (rows.size < needed) {
-            val rowEl = (content.ownerDocument!!.createElement("div") as HTMLElement).apply {
-                className = "jfx-table-row"
-                style.position = "absolute"
-                style.left = "0px"
-                style.right = "0px"
-                style.height = "${rowHeightPx}px"
-                style.display = "flex"
-            }
-
-            val holders = columns.map { col ->
-                val host = (content.ownerDocument!!.createElement("div") as HTMLElement).apply {
-                    className = "jfx-table-cell-host"
-                    style.flex = "0 0 ${col.prefWidthPx}px"
-                    style.overflowX = "hidden"
-                    style.overflowY = "hidden"
-                    style.whiteSpace = "nowrap"
-                    style.textOverflow = "ellipsis"
-                    style.padding = "0 8px"
-                    style.display = "flex"
-                    style.alignItems = "center"
-                }
-                rowEl.appendChild(host)
-
-                error("ensureRowPoolSize must be called from TableView where cells are created with NodeScope")
-            }
-
-            // unreachable due to error() above
-        }
-    }
-
-    /**
-     * Called by TableView after it created the row pool with real cells.
-     */
     fun setRows(pool: List<VirtualRow<R>>) {
         rows.clear()
         rows.addAll(pool)
         render()
     }
 
+    private fun updateContentHeight() {
+        val total = model.totalCount.get()
+        content.style.height = if (total != null) "${total * rowHeightPx}px" else "${1000 * rowHeightPx}px"
+    }
+
     fun render() {
+        if (rows.isEmpty()) return
+
         val viewportH = viewport.clientHeight
         val scrollTop = viewport.scrollTop.toDouble()
 
@@ -130,8 +161,6 @@ internal class VirtualTableFlow<R>(
         } else {
             start = first
             endExclusive = lastExclusive
-
-            // grow content if needed
             val requiredHeight = endExclusive * rowHeightPx
             if (requiredHeight > content.offsetHeight) {
                 content.style.height = "${requiredHeight + (rowHeightPx * 500)}px"
@@ -139,7 +168,7 @@ internal class VirtualTableFlow<R>(
         }
 
         val count = max(0, endExclusive - start)
-        if (count == 0 || rows.isEmpty()) return
+        if (count == 0) return
 
         val used = min(count, rows.size)
 
@@ -152,26 +181,17 @@ internal class VirtualTableFlow<R>(
             val item = model.get(index)
             val empty = item == null
 
-            val selected = selectedIndex.get() == index
-            val focused = focusedIndex.get() == index
+            val selected = selection.isSelected(index)
+            val focused = focus.focusedIndex.get() == index
 
             row.node.classList.toggle("selected", selected)
+            row.node.style.display = "flex"
 
             row.cells.forEach { holderAny ->
                 @Suppress("UNCHECKED_CAST")
                 val holder = holderAny as CellHolder<R, Any?>
-                val v = if (!empty) holder.col.value(item as R) else null
-                holder.cell.update(
-                    rowItem = item,
-                    rowIndex = index,
-                    value = v,
-                    empty = empty,
-                    selected = selected,
-                    focused = focused
-                )
+                holder.bindAndUpdate(item, index, empty, selected, focused)
             }
-
-            row.node.style.display = "flex"
         }
 
         for (i in used until rows.size) {
@@ -181,10 +201,10 @@ internal class VirtualTableFlow<R>(
     }
 
     companion object {
-        fun <R, V> cellHolder(col: Column<R, V>, cell: TableCell<R, V>, host: HTMLElement) =
+        internal fun <R, V> cellHolder(col: Column<R, V>, cell: TableCell<R, V>, host: HTMLElement) =
             CellHolder(col, cell, host)
 
-        fun <R> virtualRow(node: HTMLElement, cells: List<CellHolder<R, *>>) =
+        internal fun <R> virtualRow(node: HTMLElement, cells: List<CellHolder<R, *>>) =
             VirtualRow(node, cells)
     }
 }

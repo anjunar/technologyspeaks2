@@ -7,9 +7,11 @@ import kotlin.math.floor
 interface DataProvider<T> {
     /** null => unknown/infinite */
     val totalCount: Property<Int?>
+    val sortState: Property<SortState?>  // NEW
     suspend fun loadRange(offset: Int, limit: Int): List<T>
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LazyTableModel<T>(
     private val scope: CoroutineScope,
     private val provider: DataProvider<T>,
@@ -27,6 +29,10 @@ class LazyTableModel<T>(
     fun clearCache() {
         cache.clear()
         invalidateTick.set(invalidateTick.get() + 1)
+    }
+
+    private val dSort = provider.sortState.observe {
+        clearCache()
     }
 
     fun get(index: Int): T? {

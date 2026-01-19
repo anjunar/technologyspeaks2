@@ -1,6 +1,5 @@
 package app.pages.core
 
-import app.pages.security.PasswordLoginPage
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -10,27 +9,29 @@ import jFx2.layout.div
 import jFx2.state.Property
 import jFx2.table.DataProvider
 import jFx2.table.LazyTableModel
+import jFx2.table.SortState
+import jFx2.table.cells.ComponentCell
 import jFx2.table.cells.TextCell
 import jFx2.table.dsl.tableView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 
-data class UserRow(val id: Long, val nick: String, val email: String)
+data class UserRow(val id: Property<Long>, val nick: Property<String>, val email: Property<String>)
 
 class UsersProvider : DataProvider<UserRow> {
     override val totalCount = Property<Int?>(100_000)
+    override val sortState: Property<SortState?> = Property(null)
 
     override suspend fun loadRange(offset: Int, limit: Int): List<UserRow> {
         // TODO: call backend. For now dummy:
         return (offset until (offset + limit)).map {
-            UserRow(it.toLong(), "User$it", "user$it@example.com")
+            UserRow(Property(it.toLong()), Property("User$it"), Property("user$it@example.com"))
         }
     }
 }
 
-class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -46,33 +47,39 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
             }
 
             tableView(model, rowHeightPx = 28) {
-                column(
+                columnProperty(
+                    id = "id",
                     header = "ID",
                     prefWidthPx = 100,
-                    value = { it.id },
+                    valueProperty = { it.id },
                     cellFactory = {
                         val host = scope.create<HTMLDivElement>("div")
                         TextCell<UserRow, Long>(host)
                     }
                 )
-                column(
+                columnProperty(
+                    id = "nick",
                     header = "Nick",
                     prefWidthPx = 200,
-                    value = { it.nick },
+                    valueProperty = { it.nick },
                     cellFactory = {
                         val host = scope.create<HTMLDivElement>("div")
                         TextCell<UserRow, String>(host)
                     }
                 )
-                column(
-                    header = "Email",
-                    prefWidthPx = 320,
-                    value = { it.email },
-                    cellFactory = {
-                        val host = scope.create<HTMLDivElement>("div")
-                        TextCell<UserRow, String>(host)
-                    }
-                )
+                columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
+                    ComponentCell(
+                        scope = scope,
+                        node = scope.create("div"),
+                        componentFactory = { row, idx, v ->
+                            div {
+                                text {
+                                    v.toString()
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
 
@@ -81,10 +88,10 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
 }
 
 context(scope: NodeScope)
-fun usersPage(block: context(NodeScope) UserPage.() -> Unit = {}): UserPage {
+fun usersPage(block: context(NodeScope) UsersPage.() -> Unit = {}): UsersPage {
     val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("login-page")
-    val c = UserPage(el)
+    el.classList.add("users-page")
+    val c = UsersPage(el)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
