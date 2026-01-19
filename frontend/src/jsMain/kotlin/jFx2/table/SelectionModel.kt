@@ -12,14 +12,11 @@ class SelectionModel(
 ) {
     val mode = Property(mode)
 
-    /** anchor for shift-range selection */
     private var anchor: Int? = null
 
-    /** selected indices (sorted, unique) */
     private val _selected = Property(setOf<Int>())
     val selected: ReadOnlyProperty<Set<Int>> get() = _selected
 
-    /** common convenience */
     val selectedIndex = Property<Int?>(null)
 
     fun isSelected(index: Int): Boolean = _selected.get().contains(index)
@@ -30,11 +27,6 @@ class SelectionModel(
         anchor = null
     }
 
-    /**
-     * @param index target index
-     * @param additive Ctrl/Cmd behavior (toggle/add without clearing)
-     * @param range Shift behavior (select anchor..index)
-     */
     fun select(index: Int, additive: Boolean = false, range: Boolean = false) {
         if (index < 0) return
 
@@ -47,7 +39,6 @@ class SelectionModel(
             return
         }
 
-        // MULTIPLE
         val current = _selected.get()
 
         if (range) {
@@ -74,14 +65,12 @@ class SelectionModel(
             return
         }
 
-        // plain click => replace selection
         _selected.set(setOf(index))
         selectedIndex.set(index)
         anchor = index
     }
 }
 
-/** Separate FocusModel (JavaFX does that too) */
 class FocusModel {
     val focusedIndex = Property<Int?>(null)
     fun focus(index: Int?) = focusedIndex.set(index)

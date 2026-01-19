@@ -3,6 +3,7 @@ package jFx2.table
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.on
+import jFx2.state.Disposable
 import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -55,7 +56,6 @@ class TableView<R>(
             model.clearCache()
         })
 
-        // collect column header nodes and width bindings
         columns.forEach { col ->
             val headerCell = scope.create<HTMLDivElement>("div").apply {
                 className = "jfx-table-header-cell"
@@ -75,7 +75,6 @@ class TableView<R>(
                 className = "jfx-table-sort-indicator"
             }
 
-            // update indicator on sort changes
             onDispose(sortState.observe { s ->
                 sortIndicator.textContent =
                     if (s?.columnId == col.id) (if (s.direction == SortDirection.ASC) "▲" else "▼")
@@ -86,15 +85,12 @@ class TableView<R>(
             headerCell.appendChild(title)
             headerCell.appendChild(sortIndicator)
 
-            // width binding
             onDispose(col.width.observe { w ->
                 headerCell.style.width = "${w}px"
             })
 
-            // SORT click
             if (col.sortable) {
                 headerCell.addEventListener("click", { ev ->
-                    // avoid click when resizing (handled by stopPropagation in handle)
                     val current = sortState.get()
                     val next =
                         if (current?.columnId != col.id) {
@@ -111,7 +107,6 @@ class TableView<R>(
                 })
             }
 
-            // RESIZE handle
             val handle = scope.create<HTMLDivElement>("div").apply {
                 className = "jfx-table-resize-handle"
             }
@@ -124,9 +119,8 @@ class TableView<R>(
                 val startX = me.clientX
                 val startW = col.width.get()
 
-                // global listeners
-                lateinit var moveD: jFx2.state.Disposable
-                lateinit var upD: jFx2.state.Disposable
+                lateinit var moveD: Disposable
+                lateinit var upD: Disposable
 
                 moveD = window.on("mousemove") { ev ->
                     val mm = ev.unsafeCast<MouseEvent>()
@@ -144,12 +138,10 @@ class TableView<R>(
             header.appendChild(headerCell)
         }
 
-        // viewport
         viewport = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-viewport"
         }
 
-        // content
         content = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-content"
         }
@@ -158,7 +150,6 @@ class TableView<R>(
         node.appendChild(header)
         node.appendChild(viewport)
 
-        // create row pool NOW (with real NodeScope available)
         val poolSize = computeInitialPoolSize(viewport, rowHeightPx, overscan)
         val pool = buildRowPool(poolSize)
 
@@ -179,7 +170,7 @@ class TableView<R>(
         val listener: (Event) -> Unit = { e ->
             val ke = e.unsafeCast<KeyboardEvent>()
 
-            val total = model.totalCount.get() // Int? (kann null sein)
+            val total = model.totalCount.get()
             val page = kotlin.math.max(1, viewport.clientHeight / rowHeightPx)
 
             fun clamp(i: Int): Int {
@@ -188,7 +179,6 @@ class TableView<R>(
                 return i // unknown => allow forward
             }
 
-            // current base index
             val current =
                 focusModel.focusedIndex.get()
                     ?: selectionModel.selectedIndex.get()
@@ -221,7 +211,6 @@ class TableView<R>(
                     }
                 }
                 " " /* Space */ , "Enter" -> {
-                    // JavaFX-like: Space/Enter bestätigt Selection auf Focus
                     moveTo(current)
                 }
                 else -> Unit
@@ -277,7 +266,6 @@ class TableView<R>(
                 @Suppress("UNCHECKED_CAST")
                 val typedCol = col as Column<R, Any?>
 
-                // Build cell with real NodeScope (important!)
                 val cell = typedCol.cellFactory(scope)
 
                 host.appendChild(cell.node)

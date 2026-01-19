@@ -41,13 +41,11 @@ internal class VirtualTableFlow<R>(
             selected: Boolean,
             focused: Boolean
         ) {
-            // If nothing structural changed, only re-run update (selection/focus changed)
             if (boundIndex == rowIndex && boundItem === rowItem && isEmpty == empty) {
                 cell.update(rowItem, rowIndex, currentValue, empty, selected, focused)
                 return
             }
 
-            // structural change => drop old observers
             bindings.dispose()
 
             boundIndex = rowIndex
@@ -63,7 +61,6 @@ internal class VirtualTableFlow<R>(
             val vp = col.valueProperty
             if (vp != null) {
                 val prop = vp(rowItem)
-                // observe() calls immediately -> perfect for initial paint
                 val d = prop.observe { v ->
                     currentValue = v
                     cell.update(rowItem, rowIndex, v, false, selected, focused)

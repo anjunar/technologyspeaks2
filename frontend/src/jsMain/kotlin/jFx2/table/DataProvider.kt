@@ -20,7 +20,6 @@ class LazyTableModel<T>(
 ) {
     val totalCount: Property<Int?> get() = provider.totalCount
 
-    /** bump => UI should re-render visible rows */
     val invalidateTick = Property(0L)
 
     private val cache = HashMap<Int, List<T>>()                  // pageIndex -> items
@@ -42,7 +41,6 @@ class LazyTableModel<T>(
             return if (local in page.indices) page[local] else null
         }
 
-        // load target page and neighbors
         requestPage(pageIndex)
         for (i in 1..prefetchPages) {
             requestPage(pageIndex - i)

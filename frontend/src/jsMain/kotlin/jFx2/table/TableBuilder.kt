@@ -1,11 +1,7 @@
-package jFx2.table.dsl
+package jFx2.table
 
 import jFx2.core.capabilities.NodeScope
 import jFx2.state.ReadOnlyProperty
-import jFx2.table.Column
-import jFx2.table.LazyTableModel
-import jFx2.table.TableCell
-import jFx2.table.TableView
 
 class TableBuilder<R> {
     internal val cols = ArrayList<Column<R, *>>()

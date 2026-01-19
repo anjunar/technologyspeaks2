@@ -1,11 +1,9 @@
-package jFx2.table.cells
+package jFx2.table
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.state.CompositeDisposable
 import jFx2.state.Disposable
-import jFx2.table.TableCell
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 
