@@ -47,7 +47,7 @@ fun main() {
                             height = "unset"
                         }
 
-                        foreach(ApplicationService.app.links, { key -> key.rel }) { link, index ->
+                        foreach(ApplicationService.app.links, { key -> key.id }) { link, index ->
                             link(link.url) {
                                 text { link.name }
                             }

@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 @JsonClassDiscriminator("id")
 @Serializable
 abstract class Link() {
+    abstract val id : String
     abstract val name : String
     abstract val rel : String
     abstract val url : String

@@ -4,6 +4,7 @@ import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.provider.OwnerProvider
 import com.anjunar.json.mapper.schema.EntitySchema
 import com.anjunar.json.mapper.schema.SchemaProvider
+import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.CascadeType
@@ -17,7 +18,8 @@ import jakarta.validation.constraints.NotBlank
 
 @Entity
 @Table(name = "Core#Email")
-class EMail(@JsonbProperty @Email @NotBlank @Column(unique = true) var value: String) : AbstractEntity(), OwnerProvider {
+class EMail(@JsonbProperty @Email @NotBlank @Column(unique = true) var value: String)
+    : AbstractEntity(), OwnerProvider, EntityContext<EMail> {
 
     @ManyToOne(optional = false)
     lateinit var user: User

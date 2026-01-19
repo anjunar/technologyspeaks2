@@ -17,11 +17,14 @@ private fun join(parent: String, child: String): String {
     val p = normalize(parent)
     val c = child.trim()
     if (c.isBlank() || c == "/") return p
-    val nc = normalize(c)
-    // if child is absolute, treat as absolute from root
-    if (child.startsWith("/")) return nc
-    // relative join
-    return normalize(p + "/" + c.trimStart('/'))
+
+    // IMPORTANT: treat child as relative when we are already inside a parent route
+    val effectiveChild = if (p != "/" && c.startsWith("/")) c.drop(1) else c
+
+    return normalize(
+        if (p == "/") "/$effectiveChild".replace("//", "/")
+        else "$p/$effectiveChild"
+    )
 }
 
 private fun splitSegments(path: String): List<String> =
@@ -62,10 +65,10 @@ private fun matchPattern(pattern: String, actual: String): Map<String, String>? 
 /**
  * Returns the best (deepest) match-chain for `path`, or empty if none.
  */
-fun resolveRoutes(routes: List<Route<*>>, path: String): RouterState {
+fun resolveRoutes(routes: List<Route>, path: String): RouterState {
     val target = normalize(path)
 
-    fun dfs(parentFull: String, route: Route<*>): List<RouteMatch>? {
+    fun dfs(parentFull: String, route: Route): List<RouteMatch>? {
         val full = join(parentFull, route.path)
 
         // For nested routing we want prefix matching for intermediate routes:

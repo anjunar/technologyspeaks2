@@ -3,8 +3,8 @@ package jFx2.router
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 
-data class Route<C : Component<*>>(
+data class Route (
     val path: String,
-    val factory: suspend context(NodeScope) () -> Component<*>,
-    val children: List<Route<*>> = emptyList()
+    val factory: (suspend context(NodeScope) () -> Component<*>)? = null,
+    val children: List<Route> = emptyList()
 )

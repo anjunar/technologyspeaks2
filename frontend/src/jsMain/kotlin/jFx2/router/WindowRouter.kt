@@ -17,7 +17,7 @@ import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
-class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val routes: List<Route<*>>) : Component<HTMLDivElement>() {
+class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val routes: List<Route>) : Component<HTMLDivElement>() {
 
     val windows = ListProperty<RouteMatch>()
 
@@ -27,7 +27,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
         val scope = CoroutineScope(SupervisorJob())
         scope.launch {
             foreachAsync(windows, {key -> key.id.toString()}) { state, index ->
-                val field = state.route.factory()
+                val field = state.route.factory!!()
 
                 window {
 
@@ -64,7 +64,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
 }
 
 context(scope: NodeScope)
-fun windowRouter(routes: List<Route<*>>, block: context(NodeScope) WindowRouter.() -> Unit = {}): WindowRouter {
+fun windowRouter(routes: List<Route>, block: context(NodeScope) WindowRouter.() -> Unit = {}): WindowRouter {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("router")
     val c = WindowRouter(el, scope.ui, routes)

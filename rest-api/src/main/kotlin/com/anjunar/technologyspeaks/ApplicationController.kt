@@ -3,6 +3,8 @@ package com.anjunar.technologyspeaks
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.core.UsersController
 import com.anjunar.technologyspeaks.security.IdentityHolder
+import com.anjunar.technologyspeaks.security.PasswordLoginController
+import com.anjunar.technologyspeaks.security.PasswordRegisterController
 import com.anjunar.technologyspeaks.security.WebAuthnLoginController
 import com.anjunar.technologyspeaks.security.WebAuthnRegisterController
 import jakarta.annotation.security.RolesAllowed
@@ -23,6 +25,12 @@ class ApplicationController(val identityHolder: IdentityHolder) {
                 .withRel("login")
                 .build(),
             LinkBuilder.create(WebAuthnRegisterController::options)
+                .withRel("register")
+                .build(),
+            LinkBuilder.create(PasswordLoginController::login)
+                .withRel("login")
+                .build(),
+            LinkBuilder.create(PasswordRegisterController::register)
                 .withRel("register")
                 .build(),
             LinkBuilder.create(UsersController::list)

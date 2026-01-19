@@ -12,7 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 
-class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route<*>>) :
+class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route>) :
     Component<HTMLDivElement>() {
 
     val content = Property<Component<*>?>(null)
@@ -29,7 +29,7 @@ class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: Lis
             val scope = CoroutineScope(SupervisorJob())
 
             scope.launch {
-                content.set(routeMatch.route.factory())
+                content.set(routeMatch.route.factory!!())
                 ui.build.flush()
             }
         }
@@ -46,7 +46,7 @@ class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: Lis
 }
 
 context(scope: NodeScope)
-fun router(routes: List<Route<*>>, block: context(NodeScope) Router.() -> Unit = {}): Router {
+fun router(routes: List<Route>, block: context(NodeScope) Router.() -> Unit = {}): Router {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("router")
     val c = Router(el, scope.ui, routes)

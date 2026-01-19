@@ -1,7 +1,10 @@
 package app.pages.security
 
+import app.domain.security.PasswordRegister
 import app.domain.security.WebAuthnRegister
 import app.services.WebAuthnRegistrationClient
+import jFx2.client.JsonClient
+import jFx2.client.JsonResponse
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -17,28 +20,31 @@ import jFx2.layout.div
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
+import org.w3c.fetch.RequestInit
 
-class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val registerForm = WebAuthnRegister()
+        val registerForm = PasswordRegister()
 
         form {
 
             onSubmit {
 
-                val email = registerForm.email.get()
-                val nickname = registerForm.nickName.get()
-
                 MainScope().launch {
-                    try {
-                        val resp = WebAuthnRegistrationClient.register(email, nickname)
-                        console.log("Registration OK:", resp)
-                    } catch (t: Throwable) {
-                        console.error("WebAuthn registration failed", t)
-                    }
+                    val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
+                    println(post)
+                }
+
+            }
+
+            inputContainer("Nickname") {
+
+                input("nickname") {
+                    validatorsProperty.add(SizeValidator(3, 20))
+                    subscribeBidirectional(registerForm.nickName, valueProperty)
                 }
 
             }
@@ -52,11 +58,11 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
             }
 
-            inputContainer("Nickname") {
+            inputContainer("Password") {
 
-                input("nickname") {
-                    validatorsProperty.add(SizeValidator(3, 20))
-                    subscribeBidirectional(registerForm.nickName, valueProperty)
+                input("password", "password") {
+                    validatorsProperty.add(SizeValidator(5, 30))
+                    subscribeBidirectional(registerForm.password, valueProperty)
                 }
 
             }
@@ -74,10 +80,10 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 }
 
 context(scope: NodeScope)
-fun webAuthnRegisterPage(block: context(NodeScope) WebAuthnRegisterPage.() -> Unit = {}): WebAuthnRegisterPage {
+fun passwordRegisterPage(block: context(NodeScope) PasswordRegisterPage.() -> Unit = {}): PasswordRegisterPage {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("logout-page")
-    val c = WebAuthnRegisterPage(el)
+    val c = PasswordRegisterPage(el)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))

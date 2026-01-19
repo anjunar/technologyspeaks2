@@ -2,6 +2,7 @@ package com.anjunar.technologyspeaks.security
 
 import com.anjunar.json.mapper.schema.Link
 import com.anjunar.technologyspeaks.SpringContext
+import com.anjunar.technologyspeaks.toKebabCase
 import jakarta.annotation.security.RolesAllowed
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -36,7 +37,7 @@ class LinkBuilder(val href : String?, var rel : String?, val method : String?, v
             .buildAndExpand(variables)
             .toUriString()
 
-        return Link(rel!!, uriString, method!!, function?.javaMethod?.declaringClass?.simpleName?.lowercase()?.replace("controller", "") + "-" + function?.name)
+        return Link(rel!!, uriString, method!!, function?.javaMethod?.declaringClass?.simpleName?.toKebabCase()?.replace("-controller", "") + "-" + function?.name)
     }
 
     companion object {

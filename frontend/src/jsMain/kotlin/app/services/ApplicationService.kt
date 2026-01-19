@@ -11,7 +11,7 @@ object ApplicationService {
     fun invoke(): Job {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         return scope.launch {
-            app = JsonClient.invoke("service")
+            app = JsonClient.invoke("/service")
         }
     }
 
