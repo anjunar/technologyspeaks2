@@ -2,6 +2,7 @@ package jFx2.client
 
 import app.domain.core.Link
 import app.domain.core.UsersLink
+import app.domain.security.LogoutLink
 import app.domain.security.PasswordLoginLink
 import app.domain.security.PasswordRegisterLink
 import app.domain.security.WebAuthnLoginLink
@@ -27,6 +28,7 @@ object JsonClient {
                 subclass(PasswordLoginLink::class)
                 subclass(PasswordRegisterLink::class)
                 subclass(UsersLink::class)
+                subclass(LogoutLink::class)
             }
         }
 

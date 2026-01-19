@@ -9,8 +9,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class Application(
-    val user: User,
+    val user: User = User(),
     @SerialName($$"$links")
     @Serializable(with = ListPropertySerializer::class)
-    val links: ListProperty<Link>
+    val links: ListProperty<Link> = ListProperty()
 )

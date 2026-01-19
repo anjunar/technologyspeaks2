@@ -18,54 +18,34 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
+import org.w3c.fetch.RequestInit
 
-class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
-
-        val loginForm = PasswordLogin()
 
         form {
 
             onSubmit {
 
                 MainScope().launch {
-                    val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
+                    window.fetch("/service/security/logout", RequestInit("POST")).await()
 
                     ApplicationService.invoke()
-
-                    println(post)
                 }
 
             }
-
-            inputContainer("Email") {
-
-                input("email", "email") {
-                    validatorsProperty.add(EmailValidator())
-                    subscribeBidirectional(loginForm.email, valueProperty)
-                }
-
-            }
-
-            inputContainer("Password") {
-
-                input("password", "password") {
-                    validatorsProperty.add(SizeValidator(5, 30))
-                    subscribeBidirectional(loginForm.password, valueProperty)
-                }
-
-            }
-
 
             div {
                 className { "button-container glass-border" }
 
-                button("Login") { }
+                button("Lgout") { }
             }
 
         }
@@ -75,10 +55,10 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 }
 
 context(scope: NodeScope)
-fun passwordLoginPage(block: context(NodeScope) PasswordLoginPage.() -> Unit = {}): PasswordLoginPage {
+fun logoutPage(block: context(NodeScope) LogoutPage.() -> Unit = {}): LogoutPage {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("login-page")
-    val c = PasswordLoginPage(el)
+    val c = LogoutPage(el)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))

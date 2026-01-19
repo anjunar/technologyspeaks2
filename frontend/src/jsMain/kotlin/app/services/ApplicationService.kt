@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 
 object ApplicationService {
 
-    val app = Property<Application?>(null)
+    val app = Property(Application())
 
     fun invoke(): Job {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

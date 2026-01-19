@@ -12,4 +12,9 @@ class SessionHolder {
 
     var credentials: UUID? = null
 
+    fun invalidate() {
+        user = null
+        credentials = null
+    }
+
 }

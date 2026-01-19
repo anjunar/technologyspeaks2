@@ -6,6 +6,7 @@ import jFx2.controls.text
 import jFx2.core.dsl.className
 import jFx2.core.rendering.dynamicOutlet
 import jFx2.core.rendering.foreach
+import jFx2.core.rendering.observeRender
 import jFx2.core.runtime.component
 import jFx2.layout.div
 import jFx2.layout.hbox
@@ -18,8 +19,7 @@ import org.w3c.dom.HTMLDivElement
 fun main() {
     val root = document.getElementById("root") as HTMLDivElement
 
-    ApplicationService.invoke().invokeOnCompletion {
-    }
+    ApplicationService.invoke()
 
     component(root) {
         vbox {
@@ -34,16 +34,13 @@ fun main() {
                 div {
                     className { "glass app-shell-nav" }
 
-                    ApplicationService.app.observe { app ->
-                        if (app != null) {
-                            foreach(app.links, { key -> key.id }) { link, index ->
-                                link(link.url) {
-                                    text { link.name }
-                                }
+                    observeRender(ApplicationService.app) { app ->
+                        foreach(app.links, { key -> key.id }) { link, index ->
+                            link(link.url) {
+                                text { link.name }
                             }
                         }
                     }
-
                 }
 
                 windowRouter(Routes.routes) { }
