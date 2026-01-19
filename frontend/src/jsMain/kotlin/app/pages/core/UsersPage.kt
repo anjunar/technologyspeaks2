@@ -7,12 +7,12 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.layout.div
 import jFx2.state.Property
+import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
 import jFx2.table.LazyTableModel
 import jFx2.table.SortState
-import jFx2.table.cells.ComponentCell
-import jFx2.table.cells.TextCell
-import jFx2.table.dsl.tableView
+import jFx2.table.TextCell
+import jFx2.table.tableView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.w3c.dom.HTMLDivElement
