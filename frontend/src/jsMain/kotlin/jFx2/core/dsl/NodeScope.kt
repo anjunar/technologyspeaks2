@@ -49,6 +49,7 @@ fun style(block: CSSStyleDeclaration.() -> Unit) {
     scope.dispose.register { disposed = true }
 }
 
+@Suppress("UNCHECKED_CAST")
 context(scope: NodeScope)
 fun mousedown(block: (MouseEvent) -> Unit) {
     val listener = block as (Event) -> Unit

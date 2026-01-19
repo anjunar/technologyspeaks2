@@ -53,7 +53,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                     valueProperty = { it.id },
                     cellFactory = {
                         val host = scope.create<HTMLDivElement>("div")
-                        TextCell<UserRow, Long>(host)
+                        TextCell(host)
                     }
                 )
                 columnProperty(
@@ -63,7 +63,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                     valueProperty = { it.nick },
                     cellFactory = {
                         val host = scope.create<HTMLDivElement>("div")
-                        TextCell<UserRow, String>(host)
+                        TextCell(host)
                     }
                 )
                 columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
