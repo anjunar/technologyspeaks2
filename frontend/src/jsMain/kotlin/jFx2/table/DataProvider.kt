@@ -2,28 +2,14 @@ package jFx2.table
 
 import jFx2.state.Property
 import kotlinx.coroutines.*
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.floor
 
-/**
- * Range-based data source (Lazy loading).
- *
- * totalCount:
- *  - null => unknown / infinite (grow-on-demand)
- *  - n => finite size
- */
 interface DataProvider<T> {
+    /** null => unknown/infinite */
     val totalCount: Property<Int?>
     suspend fun loadRange(offset: Int, limit: Int): List<T>
 }
 
-/**
- * Lazy model with cache + inflight de-duplication.
- *
- * Exposes:
- *  - get(index): T?  (null => not loaded yet)
- *  - invalidateTick: Property<Long>  (bump to trigger UI refresh)
- */
 class LazyTableModel<T>(
     private val scope: CoroutineScope,
     private val provider: DataProvider<T>,
@@ -32,30 +18,25 @@ class LazyTableModel<T>(
 ) {
     val totalCount: Property<Int?> get() = provider.totalCount
 
-    /** Bump to tell the virtual flow: "some rows may have changed now" */
+    /** bump => UI should re-render visible rows */
     val invalidateTick = Property(0L)
 
-    // Simple page cache: pageIndex -> list of items in that page
-    private val cache = HashMap<Int, List<T>>()
-
-    // inflight: pageIndex -> deferred
-    private val inflight = HashMap<Int, Deferred<List<T>>>()
+    private val cache = HashMap<Int, List<T>>()                  // pageIndex -> items
+    private val inflight = HashMap<Int, Deferred<List<T>>>()     // pageIndex -> request
 
     fun clearCache() {
         cache.clear()
-        // don't cancel inflight automatically; depends on your preference
-        invalidateTick.value = invalidateTick.value + 1
+        invalidateTick.set(invalidateTick.get() + 1)
     }
 
     fun get(index: Int): T? {
         val pageIndex = floorDiv(index, pageSize)
-        val page = cache[pageIndex]
-        if (page != null) {
+        cache[pageIndex]?.let { page ->
             val local = index - pageIndex * pageSize
             return if (local in page.indices) page[local] else null
         }
 
-        // schedule load for this and some neighbors
+        // load target page and neighbors
         requestPage(pageIndex)
         for (i in 1..prefetchPages) {
             requestPage(pageIndex - i)
@@ -69,28 +50,28 @@ class LazyTableModel<T>(
         if (cache.containsKey(pageIndex)) return
         if (inflight.containsKey(pageIndex)) return
 
-        val total = totalCount.value
+        val total = totalCount.get()
         if (total != null) {
             val start = pageIndex * pageSize
             if (start >= total) return
         }
 
-        val deferred = scope.async(Dispatchers.Default) {
+        val d = scope.async(Dispatchers.Default) {
             provider.loadRange(pageIndex * pageSize, pageSize)
         }
-        inflight[pageIndex] = deferred
+        inflight[pageIndex] = d
 
-        deferred.invokeOnCompletion { cause ->
+        d.invokeOnCompletion { cause ->
             inflight.remove(pageIndex)
             if (cause == null) {
-                val list = runCatching { deferred.getCompleted() }.getOrNull()
+                val list = runCatching { d.getCompleted() }.getOrNull()
                 if (list != null) {
                     cache[pageIndex] = list
-                    invalidateTick.value = invalidateTick.value + 1
+                    invalidateTick.set(invalidateTick.get() + 1)
                 }
             }
         }
     }
 
-    private fun floorDiv(a: Int, b: Int): Int = kotlin.math.floor(a.toDouble() / b.toDouble()).toInt()
+    private fun floorDiv(a: Int, b: Int): Int = floor(a.toDouble() / b.toDouble()).toInt()
 }

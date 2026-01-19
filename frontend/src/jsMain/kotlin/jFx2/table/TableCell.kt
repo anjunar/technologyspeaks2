@@ -18,7 +18,6 @@ class TextCell<R, V>(
     ) {
         val el = node as HTMLElement
         el.textContent = if (empty) "" else (value?.toString() ?: "")
-        // optional CSS states:
         el.classList.toggle("selected", selected)
         el.classList.toggle("focused", focused)
     }
