@@ -185,7 +185,7 @@ internal class VirtualTableFlow<R>(
             val focused = focus.focusedIndex.get() == index
 
             row.node.classList.toggle("selected", selected)
-            row.node.style.display = "flex"
+            row.node.classList.remove("is-hidden")
 
             row.cells.forEach { holderAny ->
                 @Suppress("UNCHECKED_CAST")
@@ -195,7 +195,7 @@ internal class VirtualTableFlow<R>(
         }
 
         for (i in used until rows.size) {
-            rows[i].node.style.display = "none"
+            rows[i].node.classList.add("is-hidden")
             rows[i].boundIndex = -1
         }
     }

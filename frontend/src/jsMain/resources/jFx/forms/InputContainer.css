@@ -5,7 +5,14 @@
         margin-bottom: 4px;
 
         span.placeholder {
+            display: inline;
             font-size: 10px;
+        }
+    }
+
+    &.empty {
+        .label span.placeholder {
+            display: none;
         }
     }
 
