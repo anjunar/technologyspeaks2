@@ -2,16 +2,17 @@ package app.services
 
 import app.domain.Application
 import jFx2.client.JsonClient
+import jFx2.state.Property
 import kotlinx.coroutines.*
 
 object ApplicationService {
 
-    lateinit var app: Application
+    val app = Property<Application?>(null)
 
     fun invoke(): Job {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         return scope.launch {
-            app = JsonClient.invoke("/service")
+            app.set(JsonClient.invoke("/service"))
         }
     }
 
