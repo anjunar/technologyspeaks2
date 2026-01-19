@@ -33,9 +33,9 @@ class TextCell<R, V>(
 }
 
 class ComponentCell<R, V>(
-    private val scope: NodeScope,
-    override val node: Element,                 // host element inside table cell
-    private val componentFactory: context(NodeScope) (R, Int, V?) -> Component<*>
+    private val outerScope: NodeScope,
+    override val node: Element,
+    private val render: context(NodeScope) (R, Int, V?) -> Unit
 ) : RecyclableTableCell<R, V>() {
 
     private val host = node as HTMLElement
@@ -50,20 +50,25 @@ class ComponentCell<R, V>(
     ) {
         host.classList.toggle("selected", selected)
 
-        if (empty || rowItem == null) {
-            resetUpdateBagInternal()
-            scope.ui.dom.clear(host)
-            return
-        }
-
+        // dispose previous cell subtree and clear host
         resetUpdateBagInternal()
-        scope.ui.dom.clear(host)
+        outerScope.ui.dom.clear(host)
 
-        val child = componentFactory(scope, rowItem, rowIndex, value)
-        val childScope = scope.fork(parent = host, insertPoint = ElementInsertPoint(host    ))
-        childScope.attach(child)
+        if (empty || rowItem == null) return
 
-        onUpdateDispose { runCatching { child.dispose() } }
+        // render using a scope that targets the host insertPoint
+        val cellScope = outerScope.fork(
+            parent = host,
+            insertPoint = ElementInsertPoint(host)
+        )
+
+        // ensure the whole subtree is disposed on recycle
+        onUpdateDispose { cellScope.dispose.dispose() }
+
+        with(cellScope) {
+            render(rowItem, rowIndex, value)
+            ui.build.flush()
+        }
     }
 }
 

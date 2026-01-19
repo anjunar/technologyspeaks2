@@ -28,7 +28,7 @@ fun main() {
                 div {
                     className { "app-shell-body" }
 
-                    vbox {
+                    div {
                         className { "glass app-shell-nav" }
 
                         foreach(ApplicationService.app.links, { key -> key.id }) { link, index ->

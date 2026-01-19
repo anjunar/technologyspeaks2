@@ -37,7 +37,9 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
     fun afterBuild() {
 
         val provider = UsersProvider()
-        val cs = CoroutineScope(SupervisorJob())
+        val job = SupervisorJob()
+        val cs = CoroutineScope(job)
+        onDispose { job.cancel() }
         val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
         div {
@@ -66,13 +68,11 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                 )
                 columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
                     ComponentCell(
-                        scope = scope,
+                        outerScope = scope,
                         node = scope.create("div"),
-                        componentFactory = { row, idx, v ->
+                        render = { row, idx, v ->
                             div {
-                                text {
-                                    v.toString()
-                                }
+                                text { v.toString() }
                             }
                         }
                     )

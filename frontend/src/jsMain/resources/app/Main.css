@@ -10,7 +10,7 @@ body {
 }
 
 .app-shell-bar {
-    align-items: space-between;
+    justify-content: space-between;
     background-color: var(--color-background-secondary);
     height: 32px;
 }
@@ -21,6 +21,8 @@ body {
 }
 
 .app-shell-nav {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     left: 16px;
     top: 50%;
