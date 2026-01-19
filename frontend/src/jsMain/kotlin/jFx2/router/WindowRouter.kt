@@ -5,7 +5,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.renderField
+import jFx2.core.dsl.renderComponent
 import jFx2.core.rendering.foreachAsync
 import jFx2.modals.window
 import jFx2.state.ListProperty
@@ -27,7 +27,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
         val scope = CoroutineScope(SupervisorJob())
         scope.launch {
             foreachAsync(windows, {key -> key.id.toString()}) { state, index ->
-                val field = state.route.factory!!()
+                val component = state.route.factory!!()
 
                 window {
 
@@ -36,7 +36,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                     }
 
                     div {
-                        renderField(field)
+                        renderComponent(component)
                     }
                 }
             }
@@ -44,19 +44,17 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
        }
 
 
-        fun extracted() {
+        fun addRouteToWindows() {
             val resolveRoutes = resolveRoutes(routes, window.location.pathname)
             val routeMatch = resolveRoutes.matches.last()
             windows.add(routeMatch)
         }
 
         window.addEventListener("popstate", {
-
-            extracted()
-
+            addRouteToWindows()
         })
 
-        extracted()
+        addRouteToWindows()
 
 
     }

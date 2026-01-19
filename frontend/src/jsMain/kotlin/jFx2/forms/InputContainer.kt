@@ -8,7 +8,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
-import jFx2.core.dsl.renderField
+import jFx2.core.dsl.renderComponent
 import jFx2.core.template
 import jFx2.layout.hr
 import jFx2.state.Disposable
@@ -49,7 +49,7 @@ class InputContainer(
             }
 
             div {
-                renderField(field)
+                renderComponent(field)
             }
 
             hr {

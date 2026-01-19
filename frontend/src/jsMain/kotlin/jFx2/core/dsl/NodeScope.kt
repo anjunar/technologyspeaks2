@@ -2,14 +2,13 @@ package jFx2.core.dsl
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.forms.FormField
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 
 context(scope: NodeScope)
-fun renderField(field: Component<*>) {
+fun renderComponent(field: Component<*>) {
     if (field.node.parentNode !== scope.insertPoint.parent) {
         scope.insertPoint.insert(field.node)
     }
@@ -21,7 +20,7 @@ fun renderField(field: Component<*>) {
 
 context(scope: NodeScope)
 fun renderFields(vararg field: Component<*>) {
-    for (f in field) renderField(f)
+    for (f in field) renderComponent(f)
 }
 
 
