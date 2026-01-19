@@ -4,7 +4,7 @@ import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.style
+import jFx2.core.dsl.className
 import jFx2.layout.div
 import jFx2.state.Property
 import jFx2.table.DataProvider
@@ -41,10 +41,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
         val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
         div {
-
-            style {
-                height = "600px"
-            }
+            className { "users-page-table" }
 
             tableView(model, rowHeightPx = 28) {
                 columnProperty(
@@ -104,5 +101,4 @@ fun usersPage(block: context(NodeScope) UsersPage.() -> Unit = {}): UsersPage {
 
     return c
 }
-
 

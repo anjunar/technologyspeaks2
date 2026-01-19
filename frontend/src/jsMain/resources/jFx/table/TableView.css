@@ -1,3 +1,91 @@
-.jfx-table-row.selected { background: rgba(0,0,0,0.06); }
-.jfx-table-cell-host { border-right: 1px solid rgba(0,0,0,0.06); }
-.jfx-table-header-cell { border-right: 1px solid rgba(0,0,0,0.06); }
+.jfx-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #3333;
+}
+
+.jfx-table-header {
+    display: flex;
+    flex: 0 0 auto;
+    height: var(--row-height);
+    border-bottom: 1px solid #3333;
+}
+
+.jfx-table-header-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    border-right: 1px solid rgba(0,0,0,0.06);
+}
+
+.jfx-table-header-title {
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.jfx-table-sort-indicator {
+    flex: 0 0 auto;
+    margin-left: 6px;
+    opacity: 0.65;
+}
+
+.jfx-table-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+}
+
+.jfx-table-viewport {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.jfx-table-content {
+    position: relative;
+    width: fit-content;
+    min-width: 100%;
+}
+
+.jfx-table-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--row-height);
+    display: flex;
+}
+
+.jfx-table-row.is-hidden {
+    display: none;
+}
+
+.jfx-table-row.selected {
+    background: rgba(0,0,0,0.06);
+}
+
+.jfx-table-cell-host {
+    box-sizing: border-box;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid rgba(0,0,0,0.06);
+}

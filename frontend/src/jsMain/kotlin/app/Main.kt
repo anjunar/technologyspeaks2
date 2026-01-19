@@ -4,7 +4,6 @@ import app.services.ApplicationService
 import jFx2.controls.link
 import jFx2.controls.text
 import jFx2.core.dsl.className
-import jFx2.core.dsl.style
 import jFx2.core.rendering.foreach
 import jFx2.core.runtime.component
 import jFx2.layout.div
@@ -23,29 +22,14 @@ fun main() {
             vbox {
 
                 hbox {
-                    style {
-                        alignItems = "space-between"
-                        backgroundColor = "var(--color-background-secondary)"
-                        height = "32px"
-                    }
+                    className { "app-shell-bar" }
                 }
 
                 div {
-                    style {
-                        flex = "1"
-                        alignItems = "center"
-                    }
+                    className { "app-shell-body" }
 
                     vbox {
-                        className { "glass" }
-                        style {
-                            position = "absolute"
-                            left = "16px"
-                            top = "50%"
-                            transform = "translateY(-50%)"
-                            padding = "16px"
-                            height = "unset"
-                        }
+                        className { "glass app-shell-nav" }
 
                         foreach(ApplicationService.app.links, { key -> key.id }) { link, index ->
                             link(link.url) {
@@ -61,11 +45,7 @@ fun main() {
 
 
                 hbox {
-                    style {
-                        alignItems = "space-between"
-                        backgroundColor = "var(--color-background-secondary)"
-                        height = "32px"
-                    }
+                    className { "app-shell-bar" }
                 }
             }
 

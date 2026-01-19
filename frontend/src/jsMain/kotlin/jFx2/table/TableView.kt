@@ -45,18 +45,10 @@ class TableView<R>(
     fun build(): TableView<R> {
         scope.ui.dom.clear(node)
 
-        node.style.display = "flex"
-        node.style.flexDirection = "column"
-        node.style.width = "100%"
-        node.style.height = "100%"
-        node.style.border = "1px solid #3333"
+        node.style.setProperty("--row-height", "${rowHeightPx}px")
 
         val header = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-header"
-            style.display = "flex"
-            style.flex = "0 0 auto"
-            style.height = "${rowHeightPx}px"
-            style.borderBottom = "1px solid #3333"
         }
 
         onDispose(sortState.observe { s ->
@@ -67,12 +59,6 @@ class TableView<R>(
         columns.forEach { col ->
             val headerCell = scope.create<HTMLDivElement>("div").apply {
                 className = "jfx-table-header-cell"
-                style.position = "relative"
-                style.display = "flex"
-                style.alignItems = "center"
-                style.padding = "0 8px"
-                style.boxSizing = "border-box"
-                style.flex = "0 0 auto" // we control width manually
             }
 
             onDispose(col.width.observe { w ->
@@ -82,17 +68,11 @@ class TableView<R>(
             })
 
             val title = scope.create<HTMLDivElement>("div").apply {
-                style.flex = "1 1 auto"
-                style.overflowX = "hidden"
-                style.overflowY = "hidden"
-                style.whiteSpace = "nowrap"
-                style.textOverflow = "ellipsis"
+                className = "jfx-table-header-title"
             }
 
             val sortIndicator = scope.create<HTMLDivElement>("div").apply {
-                style.flex = "0 0 auto"
-                style.marginLeft = "6px"
-                style.opacity = "0.65"
+                className = "jfx-table-sort-indicator"
             }
 
             // update indicator on sort changes
@@ -134,12 +114,6 @@ class TableView<R>(
             // RESIZE handle
             val handle = scope.create<HTMLDivElement>("div").apply {
                 className = "jfx-table-resize-handle"
-                style.position = "absolute"
-                style.top = "0px"
-                style.right = "0px"
-                style.width = "6px"
-                style.height = "100%"
-                style.cursor = "col-resize"
             }
 
             handle.addEventListener("mousedown", { e ->
@@ -173,18 +147,11 @@ class TableView<R>(
         // viewport
         viewport = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-viewport"
-            style.position = "relative"
-            style.overflowX = "auto"
-            style.overflowY = "auto"
-            style.flex = "1 1 auto"
         }
 
         // content
         content = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-content"
-            style.position = "relative"
-            style.width = "fit-content"
-            style.minWidth = "100%"
         }
 
         viewport.appendChild(content)
@@ -292,31 +259,11 @@ class TableView<R>(
         repeat(poolSize) { _ ->
             val rowEl = scope.create<HTMLDivElement>("div").apply {
                 className = "jfx-table-row"
-                style.position = "absolute"
-                style.left = "0px"
-                style.right = "0px"
-                style.height = "${rowHeightPx}px"
-                style.display = "flex"
             }
 
             val cellHolders = columns.map { col ->
                 val host = scope.create<HTMLDivElement>("div").apply {
                     className = "jfx-table-cell-host"
-
-                    style.boxSizing = "border-box"
-
-                    // NICHT mehr: style.flex = "0 0 ${col.prefWidthPx}px"
-                    style.flexGrow = "0"
-                    style.flexShrink = "0"
-                    style.flexBasis = "auto"        // wichtig: kein px-basis mehr
-
-                    style.overflowX = "hidden"
-                    style.overflowY = "hidden"
-                    style.whiteSpace = "nowrap"
-                    style.textOverflow = "ellipsis"
-                    style.padding = "0 8px"
-                    style.display = "flex"
-                    style.alignItems = "center"
                 }
 
                 onDispose(col.width.observe { w ->
