@@ -9,11 +9,17 @@ body {
     background-size: cover;
 }
 
-.app-shell-bar {
+.app-header-bar {
     justify-content: space-between;
     background-color: var(--color-background-secondary);
     height: 32px;
 }
+
+.app-footer-bar {
+    background-color: var(--color-background-secondary);
+    height: 32px;
+}
+
 
 .app-shell-body {
     flex: 1;

@@ -17,6 +17,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.state.JobRegistry
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
@@ -33,7 +34,7 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
             onSubmit {
 
-                MainScope().launch {
+                JobRegistry.instance.launch("Password Register") {
                     val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
                     println(post)
                 }

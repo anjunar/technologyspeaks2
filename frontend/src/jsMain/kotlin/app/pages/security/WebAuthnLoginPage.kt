@@ -1,6 +1,7 @@
 package app.pages.security
 
 import app.domain.security.WebAuthnLogin
+import app.services.ApplicationService
 import app.services.WebAuthnLoginClient
 import jFx2.controls.button
 import jFx2.core.Component
@@ -13,6 +14,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.state.JobRegistry
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
@@ -28,9 +30,12 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
             onSubmit {
 
-                MainScope().launch {
+                JobRegistry.instance.launch("WebAuthn Login") {
                     try {
                         val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
+
+                        ApplicationService.invoke()
+
                         console.log("Login OK:", finishResponseText)
                     } catch (t: Throwable) {
                         console.error("WebAuthn login failed", t)

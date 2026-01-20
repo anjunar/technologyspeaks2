@@ -18,6 +18,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.state.JobRegistry
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
@@ -34,7 +35,7 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 
             onSubmit {
 
-                MainScope().launch {
+                JobRegistry.instance.launch("Logout"){
                     window.fetch("/service/security/logout", RequestInit("POST")).await()
 
                     ApplicationService.invoke()

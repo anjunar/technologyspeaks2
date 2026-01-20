@@ -9,11 +9,8 @@ object ApplicationService {
 
     val app = Property(Application())
 
-    fun invoke(): Job {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        return scope.launch {
-            app.set(JsonClient.invoke("/service"))
-        }
+    suspend fun invoke() {
+        app.set(JsonClient.invoke("/service"))
     }
 
 }

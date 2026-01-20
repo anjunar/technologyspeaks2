@@ -40,7 +40,7 @@ object WebAuthnLoginClient {
             js("{ optionsJSON: optionsDyn }")
         ).await()
 
-        val finishBody = js("JSON.stringify(asseResp)")
+        val finishBody = js("JSON.stringify({optionsJSON : asseResp, email : email})")
         return postJsonText(
             url = finishUrl,
             body = finishBody.unsafeCast<String>()

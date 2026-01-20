@@ -14,6 +14,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.state.JobRegistry
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
@@ -32,7 +33,7 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
                 val email = registerForm.email.get()
                 val nickname = registerForm.nickName.get()
 
-                MainScope().launch {
+                JobRegistry.instance.launch("WebAuthn Register") {
                     try {
                         val resp = WebAuthnRegistrationClient.register(email, nickname)
                         console.log("Registration OK:", resp)

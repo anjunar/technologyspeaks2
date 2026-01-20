@@ -13,28 +13,37 @@ import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.router
 import jFx2.router.windowRouter
+import jFx2.state.JobRegistry
 import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 
 fun main() {
     val root = document.getElementById("root") as HTMLDivElement
 
-    ApplicationService.invoke()
+    val jobs = JobRegistry.instance
+
+    jobs.launch(label = "ApplicationService.invoke", owner = "app") {
+        ApplicationService.invoke()
+    }
 
     component(root) {
         vbox {
 
             hbox {
-                className { "app-shell-bar" }
+                className { "app-header-bar" }
             }
 
             div {
                 className { "app-shell-body" }
 
-                div {
-                    className { "glass app-shell-nav" }
+                observeRender(ApplicationService.app) { app ->
+                    div {
+                        className { "glass app-shell-nav" }
 
-                    observeRender(ApplicationService.app) { app ->
                         foreach(app.links, { key -> key.id }) { link, index ->
                             link(link.url) {
                                 text { link.name }
@@ -47,9 +56,16 @@ fun main() {
             }
 
 
-
             hbox {
-                className { "app-shell-bar" }
+                className { "app-footer-bar" }
+
+                foreach(jobs.entries, { key -> key.id }) { job, index ->
+                    div {
+                        text {
+                            job.label
+                        }
+                    }
+                }
             }
         }
 

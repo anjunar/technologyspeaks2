@@ -3,7 +3,7 @@ import { Window } from "happy-dom";
 let start = performance.now();
 
 const windowObj = new Window({
-    url: "http://localhost",
+    url: "http://localhost:8080",
 });
 
 windowObj.document.documentElement.innerHTML = `
@@ -44,11 +44,12 @@ copyWindowToGlobal(windowObj);
 globalThis.navigator ??= windowObj.navigator;
 globalThis.location ??= windowObj.location;
 
-const { SSRApi } = await import(
-    "./../../../build/compileSync/js/main/developmentExecutable/kotlin/technology-speaks-frontend.mjs"
+const Module = await import(
+    "./../../../build/kotlin-webpack/js/developmentExecutable/frontend.js"
 );
 
-console.log(SSRApi.getInstance().renderToString("/home"));
-console.log(windowObj.document.body.innerHTML)
+let moduleExports = Module["module.exports"];
+let ssrapi = moduleExports.SSRApi.getInstance();
+console.log(await ssrapi.renderToString("/home"));
 
 console.log(`SSR took ${performance.now() - start}ms`);

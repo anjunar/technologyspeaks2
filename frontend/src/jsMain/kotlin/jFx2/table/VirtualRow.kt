@@ -143,7 +143,7 @@ internal class VirtualTableFlow<R>(
         if (rows.isEmpty()) return
 
         val viewportH = viewport.clientHeight
-        val scrollTop = viewport.scrollTop.toDouble()
+        val scrollTop = viewport.scrollTop
 
         val totalKnown = model.totalCount.get()
         val first = max(0, floor(scrollTop / rowHeightPx).toInt() - overscan)

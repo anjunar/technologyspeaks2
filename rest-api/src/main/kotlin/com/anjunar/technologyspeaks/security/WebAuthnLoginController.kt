@@ -55,8 +55,8 @@ class WebAuthnLoginController(val store: CredentialStore, val entityManager: Ent
     @PostMapping("/security/login/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
     fun finish(@RequestBody body : JsonObject) : JsonObject {
-        val publicKeyCredential = body.getJsonObject("publicKeyCredential")
-        val username = body.getString("username")
+        val publicKeyCredential = body.getJsonObject("optionsJSON")
+        val username = body.getString("email")
         val credentialId = publicKeyCredential.getString("id")
         if (credentialId.isEmpty()) {
             throw IllegalArgumentException("Credential ID is missing in response")

@@ -13,6 +13,8 @@ kotlin {
     js(IR) {
         binaries.executable()
 
+        nodejs()
+
         browser {
             commonWebpackConfig {
                 cssSupport { enabled.set(true) }

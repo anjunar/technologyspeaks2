@@ -7,13 +7,16 @@ import jFx2.core.dom.moveRangeInclusive
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
+import jFx2.state.JobRegistry
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import kotlinx.browser.document
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import org.w3c.dom.Comment
 import org.w3c.dom.Node
+import kotlin.random.Random
 
 private data class JobRangeItemMount(
     val key: Any,
@@ -44,7 +47,6 @@ private fun lisIndices(seq: IntArray): BooleanArray {
 
     for (i in 0 until n) {
         val x = seq[i]
-        // binary search in tailVal[0..length)
         var lo = 0
         var hi = length
         while (lo < hi) {
@@ -67,6 +69,8 @@ private fun lisIndices(seq: IntArray): BooleanArray {
     return keep
 }
 
+private fun newToken(prefix: String): Any = "$prefix-${Random.nextInt()}"
+
 context(scope: NodeScope)
 fun <T> foreachAsync(
     items: ListProperty<T>,
@@ -82,8 +86,10 @@ fun <T> foreachAsync(
     // keyed mounts (stable)
     val mounts = LinkedHashMap<Any, JobRangeItemMount>()
 
-    val foreachJob = SupervisorJob()
-    val foreachScope = CoroutineScope(foreachJob + Dispatchers.Default)
+    // owner token for all jobs created by this foreach-instance
+    val foreachOwner = newToken("foreach")
+
+    val jobs = JobRegistry.instance
 
     fun disposeAndRemove(im: JobRangeItemMount) {
         im.disposed = true
@@ -94,20 +100,24 @@ fun <T> foreachAsync(
     }
 
     fun startAsync(im: JobRangeItemMount, item: T) {
+        // cancel old job
         im.job?.cancel()
 
-        im.job = foreachScope.launch {
+        // each item job: registered centrally
+        val label = "foreachAsync[item=${im.key}]"
+        im.job = jobs.launch(label = label, owner = foreachOwner) {
             try {
                 with(im.scope) { block(item, im.index) }
                 im.scope.ui.build.flush()
             } catch (_: CancellationException) {
                 // ignore
-            } catch (_: Throwable) {
-                // optionally log
+            } catch (t: Throwable) {
+                // optional: log/collect
+                // console.error("foreachAsync item failed", t)
             }
         }
 
-        // cancel on parent dispose
+        // item should also die with parent scope
         scope.dispose.register { im.job?.cancel() }
     }
 
@@ -148,19 +158,10 @@ fun <T> foreachAsync(
         return im
     }
 
-    /**
-     * Core reconcile:
-     * - remove missing keys
-     * - add new keys (appended first, then moved by reorder phase)
-     * - reorder using LIS (minimal moves)
-     * - update indices + restart async for items whose content might depend on data
-     *
-     * This does *not* remount existing items; it keeps scopes/mounts stable.
-     */
     fun reconcile(newItems: List<T>, restartJobs: Boolean) {
         val parent: Node = hostStart.parentNode ?: return
 
-        // 1) compute new key order
+        // 1) new key order
         val newKeys = ArrayList<Any>(newItems.size)
         for (it in newItems) newKeys += key(it)
         val newKeySet = newKeys.toHashSet()
@@ -177,7 +178,7 @@ fun <T> foreachAsync(
             }
         }
 
-        // 3) add missing (insert at end before hostEnd for now)
+        // 3) add missing (append before hostEnd for now)
         for (i in newItems.indices) {
             val k = newKeys[i]
             if (!mounts.containsKey(k)) {
@@ -186,16 +187,6 @@ fun <T> foreachAsync(
         }
 
         // 4) reorder with LIS
-        // Map existing key -> current position in DOM order (based on current keyed order in mounts as they appear)
-        // We need a stable "current order list" of keys by DOM. We can derive it by walking newKeys and filtering
-        // those that exist, but we must know their current relative order. Easiest: snapshot current DOM order by
-        // iterating nodes between hostStart/hostEnd and mapping start markers back to mounts.
-        //
-        // However: we already own all start markers; we can build current key order by reading mounts in their
-        // insertion order *only if* we always keep mounts order synced with DOM. We won't rely on that.
-        //
-        // We'll compute "current index" by scanning DOM comments between hostStart and hostEnd and matching start nodes.
-
         val startToKey = HashMap<Node, Any>(mounts.size * 2)
         for ((k, im) in mounts) startToKey[im.start] = k
 
@@ -212,17 +203,13 @@ fun <T> foreachAsync(
         val currentIndex = HashMap<Any, Int>(currentKeys.size * 2)
         for (i in currentKeys.indices) currentIndex[currentKeys[i]] = i
 
-        // Build seq of "current positions" in the order of newKeys, but only for keys that already existed in DOM order.
-        // Since we added missing keys by inserting them at end, they will appear at the end in currentKeys; that's fine.
         val seq = IntArray(newKeys.size)
         for (i in newKeys.indices) {
-            seq[i] = currentIndex[newKeys[i]] ?: Int.MAX_VALUE // should not happen
+            seq[i] = currentIndex[newKeys[i]] ?: Int.MAX_VALUE
         }
 
-        // Determine which elements are part of LIS => keep them, move the others
         val keep = lisIndices(seq)
 
-        // Reorder by walking from end to start; move only those not kept
         var before: Node? = hostEnd
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
@@ -233,7 +220,7 @@ fun <T> foreachAsync(
             before = im.start
         }
 
-        // 5) update indices (and optionally restart async)
+        // 5) update indices + optional restart
         for (i in newItems.indices) {
             val k = newKeys[i]
             val im = mounts.getValue(k)
@@ -241,8 +228,7 @@ fun <T> foreachAsync(
             if (restartJobs) startAsync(im, newItems[i])
         }
 
-        // 6) keep mounts iteration order somewhat aligned with new order (not required, but good hygiene)
-        // rebuild LinkedHashMap in new key order
+        // 6) keep LinkedHashMap order aligned with new order (hygiene)
         if (mounts.size == newKeys.size) {
             val rebuilt = LinkedHashMap<Any, JobRangeItemMount>(mounts.size * 2)
             for (k in newKeys) rebuilt[k] = mounts.getValue(k)
@@ -251,12 +237,9 @@ fun <T> foreachAsync(
         }
     }
 
-    // Initial mount: full reconcile + start jobs
+    // Initial
     reconcile(items.get(), restartJobs = true)
 
-    // Observe changes:
-    // - For pure reorder / add / remove: reconcile and restart jobs only for structural changes if you want.
-    // - Most UIs want restart on Replace/SetAll because item instances may have changed behind same key.
     val d: Disposable = items.observeChanges { ch ->
         when (ch) {
             is ListChange.Add -> reconcile(items.get(), restartJobs = false)
@@ -274,8 +257,11 @@ fun <T> foreachAsync(
     }
 
     scope.dispose.register(d)
+
     scope.dispose.register {
-        foreachJob.cancel()
+        // kill all jobs belonging to this foreach instance
+        runCatching { jobs.cancelAllFor(foreachOwner) }
+
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
         runCatching { hostRange.dispose() }
