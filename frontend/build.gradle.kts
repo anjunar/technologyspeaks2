@@ -40,9 +40,19 @@ kotlin {
     sourceSets {
         val jsMain by getting {
             dependencies {
+                implementation(project(":js-externals:prosemirror"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.9.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation(npm("@simplewebauthn/browser", "13.2.2"))
+                implementation(npm("prosemirror-model", "1.25.2"))
+                implementation(npm("prosemirror-state", "1.4.3"))
+                implementation(npm("prosemirror-view", "1.34.3"))
+                implementation(npm("prosemirror-transform", "1.10.4"))
+                implementation(npm("prosemirror-commands", "1.7.1"))
+                implementation(npm("prosemirror-history", "1.4.1"))
+                implementation(npm("prosemirror-keymap", "1.2.3"))
+                implementation(npm("prosemirror-schema-basic", "1.2.4"))
+                implementation(npm("prosemirror-schema-list", "1.5.1"))
             }
         }
         all {
