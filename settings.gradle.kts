@@ -22,7 +22,6 @@ include(":system")
 include(":domain")
 include(":rest-api")
 include(":application")
-include(":js-externals:prosemirror")
 include(":frontend")
 
 rootProject.name = "technology-speaks"
