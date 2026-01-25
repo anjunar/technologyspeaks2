@@ -8,6 +8,8 @@ import jFx2.core.rendering.dynamicOutlet
 import jFx2.core.rendering.foreach
 import jFx2.core.rendering.observeRender
 import jFx2.core.runtime.component
+import jFx2.forms.editor
+import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox

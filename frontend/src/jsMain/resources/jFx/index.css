@@ -1,6 +1,7 @@
 @import "./control/Button.css";
 @import "./control/Link.css";
 
+@import "forms/Editor.css";
 @import "forms/Input.css";
 @import "forms/InputContainer.css";
 @import "forms/SubForm.css";

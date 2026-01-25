@@ -6,7 +6,6 @@ import jFx2.state.ListProperty
 import org.w3c.dom.Element
 
 abstract class FormField<V, N : Element> : Component<N>() {
-    // This abstract trick avoids forcing node in base; we override in concrete field
     abstract override val node: N
 
     val statusProperty = ListProperty<String>()

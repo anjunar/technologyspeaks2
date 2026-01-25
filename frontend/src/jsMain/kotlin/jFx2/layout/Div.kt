@@ -6,7 +6,13 @@ import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import org.w3c.dom.HTMLDivElement
 
-class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>()
+class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+
+    var contentEditable : Boolean
+        get() = node.contentEditable == "true"
+        set(value) { node.contentEditable = value.toString() }
+
+}
 
 context(scope: NodeScope)
 fun div(block: context(NodeScope) Div.() -> Unit = {}): Div {

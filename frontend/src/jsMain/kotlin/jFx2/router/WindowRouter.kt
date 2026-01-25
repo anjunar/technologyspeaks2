@@ -6,6 +6,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.renderComponent
+import jFx2.core.dsl.style
 import jFx2.core.rendering.foreachAsync
 import jFx2.modals.window
 import jFx2.state.ListProperty
@@ -36,6 +37,10 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                     }
 
                     div {
+                        style {
+                            width = "100%"
+                            height = "100%"
+                        }
                         renderComponent(component)
                     }
                 }

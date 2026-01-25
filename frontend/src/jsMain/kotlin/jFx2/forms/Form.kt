@@ -44,13 +44,10 @@ fun form(
     val c = Form(el)
     scope.attach(c)
 
-    val formContextParent = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
-    val formContext = FormContext(formContextParent, namespace)
     val childScope = scope.fork(
         parent = c.node,
         owner = c,
         ctx = scope.ctx.fork().also {
-            it.set(FormContextKey, formContext)
             it.set(FormOwnerKey, c)
         },
         ElementInsertPoint(c.node)

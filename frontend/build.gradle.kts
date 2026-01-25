@@ -43,7 +43,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.9.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation(npm("@simplewebauthn/browser", "13.2.2"))
-                implementation(npm("prosemirror-model", "1.25.2"))
+                implementation(npm("prosemirror-model", "1.25.4"))
                 implementation(npm("prosemirror-state", "1.4.3"))
                 implementation(npm("prosemirror-view", "1.34.3"))
                 implementation(npm("prosemirror-transform", "1.10.4"))

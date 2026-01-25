@@ -9,14 +9,10 @@ import jFx2.forms.FormField
 
 context(scope: NodeScope)
 fun registerField(name: String, field: FormField<*, *>) {
-    val formContext = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
-    formContext?.registerField(name, field)
-
     val formOwner = runCatching { scope.ctx.get(FormOwnerKey) }.getOrNull()
     formOwner?.fields?.set(name, field)
 
     scope.dispose.register {
-        formContext?.unregisterField(name, field)
         if (formOwner?.fields?.get(name) === field) {
             formOwner.fields.remove(name)
         }
