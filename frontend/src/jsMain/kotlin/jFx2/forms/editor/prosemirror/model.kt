@@ -18,9 +18,11 @@ external interface SchemaSpec {
 
 external class Node {
     val type: NodeType
-    val attrs: Any
+    val attrs: dynamic
 
     val marks: Array<Mark>
+
+    fun nodeAt(pos: Int): Node?
 
     fun nodesBetween(
         from: Int,
@@ -32,6 +34,11 @@ external class Node {
 
 external class NodeType {
     val name: String
+    fun create(
+        attrs: dynamic = definedExternally,
+        content: Fragment = definedExternally,
+        marks: Array<Mark> = definedExternally
+    ): Node
 }
 
 external class Mark {
@@ -44,7 +51,11 @@ external class MarkType {
     fun isInSet(set: Array<Mark>): Mark?
 }
 
-external class Fragment
+external class Fragment {
+    companion object {
+        fun from(node: Node): Fragment
+    }
+}
 
 external class Slice(content: Fragment, openStart: Int, openEnd: Int)
 
@@ -74,5 +85,12 @@ external class DOMSerializer private constructor() {
     }
 }
 
-external object NodeSelection
+external class NodeSelection : Selection {
+    val node: Node
+
+    companion object {
+        fun create(doc: Node, from: Int): NodeSelection
+    }
+}
+
 external object TextSelection

@@ -3,7 +3,7 @@
 
 package jFx2.forms.editor.prosemirror
 
-external class Selection {
+open external class Selection {
     val from: Int
     val to: Int
     val empty: Boolean
@@ -28,6 +28,17 @@ external class EditorState {
 
 external class Transaction(state: EditorState) : Transform {
     val docChanged: Boolean
+    fun setNodeMarkup(
+        pos: Int,
+        type: NodeType,
+        attrs: dynamic = definedExternally,
+        marks: Array<Mark> = definedExternally
+    ): Transaction
+    fun replaceSelectionWith(
+        node: Node,
+        inheritMarks: Boolean = definedExternally
+    ): Transaction
+    fun scrollIntoView(): Transaction
 }
 
 external interface EditorStateConfig {
