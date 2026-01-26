@@ -85,12 +85,4 @@ external class DOMSerializer private constructor() {
     }
 }
 
-external class NodeSelection : Selection {
-    val node: Node
-
-    companion object {
-        fun create(doc: Node, from: Int): NodeSelection
-    }
-}
-
 external object TextSelection

@@ -75,3 +75,12 @@ external interface StateField<T> {
     fun apply(tr: Transaction, value: T, oldState: EditorState, newState: EditorState): T
 }
 
+external class NodeSelection : Selection {
+    val node: Node
+
+    companion object {
+        fun create(doc: Node, from: Int): NodeSelection
+    }
+}
+
+

@@ -25,28 +25,24 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val scope = CoroutineScope(SupervisorJob())
-        scope.launch {
-            foreachAsync(windows, {key -> key.id.toString()}) { state, index ->
-                val component = state.route.factory!!()
+        foreachAsync(windows, {key -> key.id.toString()}) { state, index ->
+            val component = state.route.factory!!()
 
-                window {
+            window {
 
-                    onClose {
-                        windows.remove(state)
+                onClose {
+                    windows.remove(state)
+                }
+
+                div {
+                    style {
+                        width = "100%"
+                        height = "100%"
                     }
-
-                    div {
-                        style {
-                            width = "100%"
-                            height = "100%"
-                        }
-                        renderComponent(component)
-                    }
+                    renderComponent(component)
                 }
             }
-
-       }
+        }
 
 
         fun addRouteToWindows() {
