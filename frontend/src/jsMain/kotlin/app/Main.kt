@@ -13,6 +13,7 @@ import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
+import jFx2.modals.viewport
 import jFx2.router.router
 import jFx2.router.windowRouter
 import jFx2.state.JobRegistry
@@ -54,7 +55,9 @@ fun main() {
                     }
                 }
 
-                windowRouter(Routes.routes) { }
+                viewport {
+                    windowRouter(Routes.routes) { }
+                }
             }
 
 

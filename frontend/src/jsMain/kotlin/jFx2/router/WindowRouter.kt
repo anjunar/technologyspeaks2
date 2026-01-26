@@ -8,7 +8,10 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.style
 import jFx2.core.rendering.foreachAsync
+import jFx2.modals.ViewPort
+import jFx2.modals.WindowConf
 import jFx2.modals.window
+import jFx2.state.JobRegistry
 import jFx2.state.ListProperty
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -16,39 +19,23 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val routes: List<Route>) : Component<HTMLDivElement>() {
 
-    val windows = ListProperty<RouteMatch>()
-
     context(scope: NodeScope)
     fun afterBuild() {
 
-        foreachAsync(windows, {key -> key.id.toString()}) { state, index ->
-            val component = state.route.factory!!()
-
-            window {
-
-                onClose {
-                    windows.remove(state)
-                }
-
-                div {
-                    style {
-                        width = "100%"
-                        height = "100%"
-                    }
-                    renderComponent(component)
-                }
-            }
-        }
-
-
         fun addRouteToWindows() {
-            val resolveRoutes = resolveRoutes(routes, window.location.pathname)
-            val routeMatch = resolveRoutes.matches.last()
-            windows.add(routeMatch)
+
+            JobRegistry.instance.launch("Router", "Router") {
+                val resolveRoutes = resolveRoutes(routes, window.location.pathname)
+                val routeMatch = resolveRoutes.matches.last()
+                val component = routeMatch.route.factory!!()
+                ViewPort.windows.add(WindowConf(Uuid.generateV4().toString(), "Test", component))
+            }
+
         }
 
         window.addEventListener("popstate", {
