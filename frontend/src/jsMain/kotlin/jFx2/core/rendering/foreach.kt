@@ -1,26 +1,21 @@
 package jFx2.core.rendering
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.RangeInsertPoint
-import jFx2.core.dom.moveRangeInclusive
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
-import kotlinx.browser.document
-import org.w3c.dom.Comment
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.Node
 
 private data class RangeItemMount(
     val key: Any,
-    val start: Comment,
-    val end: Comment,
-    val range: RangeInsertPoint,
-    val owner: Component<*>,
-    val scope: NodeScope,              // IMPORTANT: stable per-item scope
+    val node: HTMLDivElement,
+    val owner: RenderContainer,
+    val scope: NodeScope,
     var mount: ComponentMount,
     val index: Property<Int>
 )
@@ -66,42 +61,34 @@ fun <T> foreach(
     key: (T) -> Any,
     block: context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val hostStart = document.createComment("jFx2:foreach")
-    val hostEnd = document.createComment("jFx2:/foreach")
-    scope.insertPoint.insert(hostStart)
-    scope.insertPoint.insert(hostEnd)
-    val hostRange = RangeInsertPoint(hostStart, hostEnd)
+    val host = attachRenderContainer(scope)
 
     // keyed mounts (stable scopes, stable mounts)
     val mounts = LinkedHashMap<Any, RangeItemMount>()
 
     fun disposeAndRemove(im: RangeItemMount) {
         runCatching { im.mount.dispose() }
-        runCatching { im.range.dispose() }
+        runCatching { im.owner.dispose() }
+        im.node.parentNode?.removeChild(im.node)
     }
 
     fun mountItem(item: T, idx: Int, k: Any): RangeItemMount {
-        val itemStart = document.createComment("jFx2:item")
-        val itemEnd = document.createComment("jFx2:/item")
-        hostRange.insert(itemStart)
-        hostRange.insert(itemEnd)
-
-        val itemRange = RangeInsertPoint(itemStart, itemEnd)
-        val owner = RangeOwner(itemStart)
+        val itemNode = scope.create<HTMLDivElement>("div")
+        val owner = RenderContainer(itemNode)
         val indexProp = Property(idx)
 
+        host.node.appendChild(itemNode)
+
         val childScope = scope.fork(
-            parent = itemRange.parent,
+            parent = itemNode,
             owner = owner,
             ctx = scope.ctx.fork(),
-            insertPoint = itemRange
+            insertPoint = ElementInsertPoint(itemNode)
         )
 
         with(childScope) {
             scope.ui.build.afterBuild { owner.afterBuild() }
         }
-
-        childScope.dispose.register { itemRange.dispose() }
 
         val m = componentWithScope(childScope) {
             block(item, indexProp)
@@ -109,9 +96,7 @@ fun <T> foreach(
 
         return RangeItemMount(
             key = k,
-            start = itemStart,
-            end = itemEnd,
-            range = itemRange,
+            node = itemNode,
             owner = owner,
             scope = childScope,
             mount = m,
@@ -130,7 +115,7 @@ fun <T> foreach(
      * you can add a "remount/refresh" strategy here (but you asked specifically for diffing).
      */
     fun reconcile(newItems: List<T>) {
-        val parent: Node = hostStart.parentNode ?: return
+        val parent: Node = host.node
 
         // 1) new key order
         val newKeys = ArrayList<Any>(newItems.size)
@@ -159,12 +144,12 @@ fun <T> foreach(
 
         // 4) compute current DOM order (robust; does not assume mounts iteration == DOM)
         val startToKey = HashMap<Node, Any>(mounts.size * 2)
-        for ((k, im) in mounts) startToKey[im.start] = k
+        for ((k, im) in mounts) startToKey[im.node] = k
 
         val currentKeys = ArrayList<Any>(mounts.size)
         run {
-            var n: Node? = hostStart.nextSibling
-            while (n != null && n != hostEnd) {
+            var n: Node? = parent.firstChild
+            while (n != null) {
                 val k = startToKey[n]
                 if (k != null) currentKeys += k
                 n = n.nextSibling
@@ -183,14 +168,14 @@ fun <T> foreach(
         // 5) minimal reorder via LIS
         val keep = lisKeepMask(seq)
 
-        var before: Node? = hostEnd
+        var before: Node? = null
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
             val im = mounts.getValue(k)
             if (!keep[i]) {
-                moveRangeInclusive(parent, im.start, im.end, before)
+                parent.insertBefore(im.node, before)
             }
-            before = im.start
+            before = im.node
         }
 
         // 6) update indices
@@ -220,7 +205,9 @@ fun <T> foreach(
             is ListChange.Clear -> {
                 for ((_, im) in mounts) disposeAndRemove(im)
                 mounts.clear()
-                hostRange.clear() // leaves foreach markers, clears content between them
+                while (host.node.firstChild != null) {
+                    host.node.removeChild(host.node.firstChild!!)
+                }
             }
         }
     }
@@ -229,6 +216,8 @@ fun <T> foreach(
     scope.dispose.register {
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        runCatching { hostRange.dispose() } // removes foreach markers too
+        while (host.node.firstChild != null) {
+            host.node.removeChild(host.node.firstChild!!)
+        }
     }
 }

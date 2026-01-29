@@ -1,25 +1,12 @@
 package jFx2.core.rendering
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.RangeInsertPoint
-import jFx2.core.dsl.renderFields
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
 import jFx2.state.Property
-import kotlinx.browser.document
-import org.w3c.dom.Comment
 import org.w3c.dom.Element
-
-private class ConditionOwner(override val node: Element) : Component<Element>() {
-
-    context(scope: NodeScope)
-    fun afterBuild() {
-        renderFields(*this@ConditionOwner.children.toTypedArray())
-    }
-
-}
 
 class ConditionBuilder internal constructor() {
     internal var thenBlock: (context(NodeScope) () -> Unit)? = null
@@ -31,15 +18,15 @@ class ConditionBuilder internal constructor() {
 
 private fun mountIntoExistingRange(
     parentScope: NodeScope,
-    range: RangeInsertPoint,
-    owner: Component<*>,
+    container: Element,
+    owner: RenderContainer,
     block: context(NodeScope) () -> Unit
 ): ComponentMount {
     val childScope = parentScope.fork(
-        parent = range.parent,
+        parent = container,
         owner = owner,
         ctx = parentScope.ctx.fork(),
-        insertPoint = range
+        insertPoint = ElementInsertPoint(container)
     )
     return componentWithScope(childScope, block)
 }
@@ -48,15 +35,8 @@ context(scope: NodeScope)
 fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
     val builder = ConditionBuilder().apply(build)
 
-    val start: Comment = document.createComment("jFx2:condition")
-    val end: Comment = document.createComment("jFx2:/condition")
-    scope.insertPoint.insert(start)
-    scope.insertPoint.insert(end)
-
-    val range = RangeInsertPoint(start, end)
-
-    val ownerEl = scope.create<Element>("div")
-    val owner = ConditionOwner(ownerEl)
+    val container = attachRenderContainer(scope)
+    val containerInsertPoint = ElementInsertPoint(container.node)
 
     var current: Boolean? = null
     var currentMount: ComponentMount? = null
@@ -68,12 +48,12 @@ fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
         currentMount?.dispose()
         currentMount = null
 
-        range.clear()
+        containerInsertPoint.clear()
 
         val chosen = if (v) builder.thenBlock else builder.elseBlock ?: return
-        currentMount = mountIntoExistingRange(scope, range, owner, chosen!!)
+        currentMount = mountIntoExistingRange(scope, container.node, container, chosen!!)
 
-        scope.ui.build.afterBuild { owner.afterBuild() }
+        scope.ui.build.afterBuild { container.afterBuild() }
     }
 
     val d: Disposable = flag.observe { rebuild(it) }
@@ -84,7 +64,7 @@ fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
     scope.dispose.register {
         currentMount?.dispose()
         currentMount = null
-        range.dispose()
+        containerInsertPoint.clear()
     }
 }
 
@@ -92,15 +72,8 @@ context(scope: NodeScope)
 fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
     val builder = ConditionBuilder().apply(build)
 
-    val start: Comment = document.createComment("jFx2:condition")
-    val end: Comment = document.createComment("jFx2:/condition")
-    scope.insertPoint.insert(start)
-    scope.insertPoint.insert(end)
-
-    val range = RangeInsertPoint(start, end)
-
-    val ownerEl = scope.create<Element>("div")
-    val owner = ConditionOwner(ownerEl)
+    val container = attachRenderContainer(scope)
+    val containerInsertPoint = ElementInsertPoint(container.node)
 
     var current: Boolean? = null
     var currentMount: ComponentMount? = null
@@ -113,12 +86,12 @@ fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
         currentMount?.dispose()
         currentMount = null
 
-        range.clear()
+        containerInsertPoint.clear()
 
         val chosen = if (v) builder.thenBlock else builder.elseBlock ?: return
-        currentMount = mountIntoExistingRange(scope, range, owner, chosen!!)
+        currentMount = mountIntoExistingRange(scope, container.node, container, chosen!!)
 
-        scope.ui.build.afterBuild { owner.afterBuild() }
+        scope.ui.build.afterBuild { container.afterBuild() }
     }
 
     fun scheduleCheck() {
@@ -140,6 +113,6 @@ fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
         disposed = true
         currentMount?.dispose()
         currentMount = null
-        range.dispose()
+        containerInsertPoint.clear()
     }
 }
