@@ -1,9 +1,7 @@
 package jFx2.core.rendering
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.RangeInsertPoint
-import jFx2.core.dom.moveRangeInclusive
+import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
@@ -11,20 +9,17 @@ import jFx2.state.JobRegistry
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 import jFx2.state.Property
-import kotlinx.browser.document
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import org.w3c.dom.Comment
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.Node
 import kotlin.random.Random
 
 private data class JobRangeItemMount(
     val key: Any,
-    val start: Comment,
-    val end: Comment,
-    val range: RangeInsertPoint,
-    val owner: Component<*>,
-    val scope: NodeScope,              // stable per-item scope
+    val node: HTMLDivElement,
+    val owner: RenderContainer,
+    val scope: NodeScope,
     var mount: ComponentMount,
     val index: Property<Int>,
     var job: Job? = null,
@@ -72,11 +67,7 @@ fun <T> foreachAsync(
     key: (T) -> Any,
     block: suspend context(NodeScope) (T, Property<Int>) -> Unit
 ) {
-    val hostStart = document.createComment("jFx2:foreach")
-    val hostEnd = document.createComment("jFx2:/foreach")
-    scope.insertPoint.insert(hostStart)
-    scope.insertPoint.insert(hostEnd)
-    val hostRange = RangeInsertPoint(hostStart, hostEnd)
+    val host = attachRenderContainer(scope)
 
     // keyed mounts (stable)
     val mounts = LinkedHashMap<Any, JobRangeItemMount>()
@@ -91,7 +82,8 @@ fun <T> foreachAsync(
         runCatching { im.job?.cancel() }
         im.job = null
         runCatching { im.mount.dispose() }
-        runCatching { im.range.dispose() }
+        runCatching { im.owner.dispose() }
+        im.node.parentNode?.removeChild(im.node)
     }
 
     fun startAsync(im: JobRangeItemMount, item: T) {
@@ -117,22 +109,16 @@ fun <T> foreachAsync(
     }
 
     fun mountItem(item: T, idx: Int, k: Any): JobRangeItemMount {
-        val itemStart = document.createComment("jFx2:item")
-        val itemEnd = document.createComment("jFx2:/item")
-        hostRange.insert(itemStart)
-        hostRange.insert(itemEnd)
-
-        val itemRange = RangeInsertPoint(itemStart, itemEnd)
-        val owner = RangeOwner(itemStart)
+        val itemNode = scope.create<HTMLDivElement>("div")
+        val owner = RenderContainer(itemNode)
         val indexProp = Property(idx)
 
         val itemScope = scope.fork(
-            parent = itemRange.parent,
+            parent = itemNode,
             owner = owner,
             ctx = scope.ctx.fork(),
-            insertPoint = itemRange
+            insertPoint = ElementInsertPoint(itemNode)
         )
-        itemScope.dispose.register { itemRange.dispose() }
 
         with(itemScope) {
             scope.ui.build.afterBuild { owner.afterBuild() }
@@ -142,11 +128,11 @@ fun <T> foreachAsync(
             // optional placeholder
         }
 
+        host.node.appendChild(itemNode)
+
         val im = JobRangeItemMount(
             key = k,
-            start = itemStart,
-            end = itemEnd,
-            range = itemRange,
+            node = itemNode,
             owner = owner,
             scope = itemScope,
             mount = m,
@@ -158,7 +144,7 @@ fun <T> foreachAsync(
     }
 
     fun reconcile(newItems: List<T>, restartJobs: Boolean) {
-        val parent: Node = hostStart.parentNode ?: return
+        val parent: Node = host.node
 
         // 1) new key order
         val newKeys = ArrayList<Any>(newItems.size)
@@ -187,12 +173,12 @@ fun <T> foreachAsync(
 
         // 4) reorder with LIS
         val startToKey = HashMap<Node, Any>(mounts.size * 2)
-        for ((k, im) in mounts) startToKey[im.start] = k
+        for ((k, im) in mounts) startToKey[im.node] = k
 
         val currentKeys = ArrayList<Any>(mounts.size)
         run {
-            var n: Node? = hostStart.nextSibling
-            while (n != null && n != hostEnd) {
+            var n: Node? = parent.firstChild
+            while (n != null) {
                 val k = startToKey[n]
                 if (k != null) currentKeys += k
                 n = n.nextSibling
@@ -209,14 +195,14 @@ fun <T> foreachAsync(
 
         val keep = lisIndices(seq)
 
-        var before: Node? = hostEnd
+        var before: Node? = null
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
             val im = mounts.getValue(k)
             if (!keep[i]) {
-                moveRangeInclusive(parent, im.start, im.end, before)
+                parent.insertBefore(im.node, before)
             }
-            before = im.start
+            before = im.node
         }
 
         // 5) update indices + optional restart
@@ -250,7 +236,9 @@ fun <T> foreachAsync(
             is ListChange.Clear -> {
                 for ((_, im) in mounts) disposeAndRemove(im)
                 mounts.clear()
-                hostRange.clear()
+                while (host.node.firstChild != null) {
+                    host.node.removeChild(host.node.firstChild!!)
+                }
             }
         }
     }
@@ -263,6 +251,8 @@ fun <T> foreachAsync(
 
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        runCatching { hostRange.dispose() }
+        while (host.node.firstChild != null) {
+            host.node.removeChild(host.node.firstChild!!)
+        }
     }
 }
