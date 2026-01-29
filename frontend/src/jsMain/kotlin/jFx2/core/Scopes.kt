@@ -56,12 +56,8 @@ class NodeScope(
     fun attach(child: Component<*>) {
         owner.addChild(child)
 
-        // IMPORTANT: insertion is no longer coupled to "parent"
-        insertPoint.insert(child.node)
-
         dispose.register {
             runCatching { child.dispose() }
-            ui.dom.detach(child.node)
             owner.removeChild(child)
         }
     }

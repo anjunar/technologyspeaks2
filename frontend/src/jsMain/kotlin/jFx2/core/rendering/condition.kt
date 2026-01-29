@@ -3,6 +3,7 @@ package jFx2.core.rendering
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.RangeInsertPoint
+import jFx2.core.dsl.renderFields
 import jFx2.core.runtime.ComponentMount
 import jFx2.core.runtime.componentWithScope
 import jFx2.state.Disposable
@@ -11,7 +12,14 @@ import kotlinx.browser.document
 import org.w3c.dom.Comment
 import org.w3c.dom.Element
 
-private class ConditionOwner(override val node: Element) : Component<Element>()
+private class ConditionOwner(override val node: Element) : Component<Element>() {
+
+    context(scope: NodeScope)
+    fun afterBuild() {
+        renderFields(*this@ConditionOwner.children.toTypedArray())
+    }
+
+}
 
 class ConditionBuilder internal constructor() {
     internal var thenBlock: (context(NodeScope) () -> Unit)? = null
@@ -64,6 +72,8 @@ fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
 
         val chosen = if (v) builder.thenBlock else builder.elseBlock ?: return
         currentMount = mountIntoExistingRange(scope, range, owner, chosen!!)
+
+        scope.ui.build.afterBuild { owner.afterBuild() }
     }
 
     val d: Disposable = flag.observe { rebuild(it) }
@@ -107,6 +117,8 @@ fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
 
         val chosen = if (v) builder.thenBlock else builder.elseBlock ?: return
         currentMount = mountIntoExistingRange(scope, range, owner, chosen!!)
+
+        scope.ui.build.afterBuild { owner.afterBuild() }
     }
 
     fun scheduleCheck() {

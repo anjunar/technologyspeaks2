@@ -4,13 +4,16 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.dsl.renderFields
 import org.w3c.dom.HTMLDivElement
 
 class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
-    var contentEditable : Boolean
-        get() = node.contentEditable == "true"
-        set(value) { node.contentEditable = value.toString() }
+    context(scope: NodeScope)
+    fun afterBuild() {
+        renderFields(*this@Div.children.toTypedArray())
+    }
+
 
 }
 
@@ -27,7 +30,12 @@ fun div(block: context(NodeScope) Div.() -> Unit = {}): Div {
         insertPoint = ElementInsertPoint(c.node)
     )
 
+
     block(childScope, c)
+
+    with(childScope) {
+        scope.ui.build.afterBuild { c.afterBuild() }
+    }
 
     return c
 }
@@ -45,7 +53,12 @@ fun hbox(block: context(NodeScope) Div.() -> Unit = {}): Div {
         insertPoint = ElementInsertPoint(c.node)
     )
 
+
     block(childScope, c)
+
+    with(childScope) {
+        scope.ui.build.afterBuild { c.afterBuild() }
+    }
 
     el.classList.add("hbox")
 
@@ -66,6 +79,10 @@ fun vbox(block: context(NodeScope) Div.() -> Unit = {}): Div {
     )
 
     block(childScope, c)
+
+    with(childScope) {
+        scope.ui.build.afterBuild { c.afterBuild() }
+    }
 
     el.classList.add("vbox")
 

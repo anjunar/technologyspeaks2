@@ -12,6 +12,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.template
 import jFx2.forms.EmailValidator
 import jFx2.forms.SizeValidator
 import jFx2.forms.form
@@ -31,25 +32,29 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     context(scope: NodeScope)
     fun afterBuild() {
 
-        form {
+        template {
+            form {
 
-            onSubmit {
+                onSubmit {
 
-                JobRegistry.instance.launch("Logout"){
-                    window.fetch("/service/security/logout", RequestInit("POST")).await()
+                    JobRegistry.instance.launch("Logout"){
+                        window.fetch("/service/security/logout", RequestInit("POST")).await()
 
-                    ApplicationService.invoke()
+                        ApplicationService.invoke()
+                    }
+
+                }
+
+                div {
+                    className { "button-container glass-border" }
+
+                    button("Lgout") { }
                 }
 
             }
-
-            div {
-                className { "button-container glass-border" }
-
-                button("Lgout") { }
-            }
-
         }
+
+
 
     }
 

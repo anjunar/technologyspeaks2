@@ -5,6 +5,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.template
 import jFx2.layout.div
 import jFx2.state.Property
 import jFx2.table.ComponentCell
@@ -42,43 +43,47 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
         onDispose { job.cancel() }
         val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
-        div {
-            className { "users-page-table" }
+        template {
+            div {
+                className { "users-page-table" }
 
-            tableView(model, rowHeightPx = 28) {
-                columnProperty(
-                    id = "id",
-                    header = "ID",
-                    prefWidthPx = 100,
-                    valueProperty = { it.id },
-                    cellFactory = {
-                        val host = scope.create<HTMLDivElement>("div")
-                        TextCell(host)
-                    }
-                )
-                columnProperty(
-                    id = "nick",
-                    header = "Nick",
-                    prefWidthPx = 200,
-                    valueProperty = { it.nick },
-                    cellFactory = {
-                        val host = scope.create<HTMLDivElement>("div")
-                        TextCell(host)
-                    }
-                )
-                columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
-                    ComponentCell(
-                        outerScope = scope,
-                        node = scope.create("div"),
-                        render = { row, idx, v ->
-                            div {
-                                text { v.toString() }
-                            }
+                tableView(model, rowHeightPx = 28) {
+                    columnProperty(
+                        id = "id",
+                        header = "ID",
+                        prefWidthPx = 100,
+                        valueProperty = { it.id },
+                        cellFactory = {
+                            val host = scope.create<HTMLDivElement>("div")
+                            TextCell(host)
                         }
                     )
+                    columnProperty(
+                        id = "nick",
+                        header = "Nick",
+                        prefWidthPx = 200,
+                        valueProperty = { it.nick },
+                        cellFactory = {
+                            val host = scope.create<HTMLDivElement>("div")
+                            TextCell(host)
+                        }
+                    )
+                    columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
+                        ComponentCell(
+                            outerScope = scope,
+                            node = scope.create("div"),
+                            render = { row, idx, v ->
+                                div {
+                                    text { v.toString() }
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
+
+
 
     }
 

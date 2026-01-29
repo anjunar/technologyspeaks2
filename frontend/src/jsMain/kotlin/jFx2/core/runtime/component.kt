@@ -4,17 +4,30 @@ import jFx2.core.Component
 import jFx2.core.Ctx
 import jFx2.core.capabilities.*
 import jFx2.core.dom.RangeInsertPoint
+import jFx2.core.dsl.renderFields
 import kotlinx.browser.document
 import org.w3c.dom.Comment
 import org.w3c.dom.Node
 
-private class RootComponent(override val node: Node) : Component<Node>()
+private class RootComponent(override val node: Node) : Component<Node>() {
+
+    context(scope: NodeScope)
+    fun afterBuild() {
+
+        renderFields(*this@RootComponent.children.toTypedArray())
+
+    }
+
+}
 
 class ComponentMount(
     val ui: UiScope,
     val scope: NodeScope,
     private val disposeScope: DisposeScope
 ) {
+
+
+
     fun dispose() = disposeScope.dispose()
 }
 
@@ -35,6 +48,12 @@ fun component(
         ctx = ctx,
         dispose = dispose
     )
+
+    with(scope) {
+        ui.build.afterBuild {
+            if (rootOwner is RootComponent) rootOwner.afterBuild()
+        }
+    }
 
     block(scope)
     ui.build.flush()

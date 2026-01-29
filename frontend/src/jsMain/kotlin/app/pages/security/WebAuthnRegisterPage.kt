@@ -8,6 +8,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.template
 import jFx2.forms.EmailValidator
 import jFx2.forms.SizeValidator
 import jFx2.forms.form
@@ -26,49 +27,52 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
         val registerForm = WebAuthnRegister()
 
-        form {
+        template {
+            form {
 
-            onSubmit {
+                onSubmit {
 
-                val email = registerForm.email.get()
-                val nickname = registerForm.nickName.get()
+                    val email = registerForm.email.get()
+                    val nickname = registerForm.nickName.get()
 
-                JobRegistry.instance.launch("WebAuthn Register") {
-                    try {
-                        val resp = WebAuthnRegistrationClient.register(email, nickname)
-                        console.log("Registration OK:", resp)
-                    } catch (t: Throwable) {
-                        console.error("WebAuthn registration failed", t)
+                    JobRegistry.instance.launch("WebAuthn Register") {
+                        try {
+                            val resp = WebAuthnRegistrationClient.register(email, nickname)
+                            console.log("Registration OK:", resp)
+                        } catch (t: Throwable) {
+                            console.error("WebAuthn registration failed", t)
+                        }
                     }
+
+                }
+
+                inputContainer("Email") {
+
+                    input("email", "email") {
+                        validatorsProperty.add(EmailValidator())
+                        subscribeBidirectional(registerForm.email, valueProperty)
+                    }
+
+                }
+
+                inputContainer("Nickname") {
+
+                    input("nickname") {
+                        validatorsProperty.add(SizeValidator(3, 20))
+                        subscribeBidirectional(registerForm.nickName, valueProperty)
+                    }
+
+                }
+
+                div {
+                    className { "button-container glass-border" }
+
+                    button("Register") { }
                 }
 
             }
-
-            inputContainer("Email") {
-
-                input("email", "email") {
-                    validatorsProperty.add(EmailValidator())
-                    subscribeBidirectional(registerForm.email, valueProperty)
-                }
-
-            }
-
-            inputContainer("Nickname") {
-
-                input("nickname") {
-                    validatorsProperty.add(SizeValidator(3, 20))
-                    subscribeBidirectional(registerForm.nickName, valueProperty)
-                }
-
-            }
-
-            div {
-                className { "button-container glass-border" }
-
-                button("Register") { }
-            }
-
         }
+
 
     }
 

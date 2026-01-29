@@ -9,6 +9,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.template
 import jFx2.forms.EmailValidator
 import jFx2.forms.form
 import jFx2.forms.input
@@ -26,40 +27,44 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
         val loginForm = WebAuthnLogin()
 
-        form {
+        template {
+            form {
 
-            onSubmit {
+                onSubmit {
 
-                JobRegistry.instance.launch("WebAuthn Login") {
-                    try {
-                        val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
+                    JobRegistry.instance.launch("WebAuthn Login") {
+                        try {
+                            val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
 
-                        ApplicationService.invoke()
+                            ApplicationService.invoke()
 
-                        console.log("Login OK:", finishResponseText)
-                    } catch (t: Throwable) {
-                        console.error("WebAuthn login failed", t)
+                            console.log("Login OK:", finishResponseText)
+                        } catch (t: Throwable) {
+                            console.error("WebAuthn login failed", t)
+                        }
                     }
+
+                }
+
+                inputContainer("Email") {
+
+                    input("email", "email") {
+                        validatorsProperty.add(EmailValidator())
+                        subscribeBidirectional(loginForm.email, valueProperty)
+                    }
+
+                }
+
+                div {
+                    className { "button-container glass-border" }
+
+                    button("Login") { }
                 }
 
             }
-
-            inputContainer("Email") {
-
-                input("email", "email") {
-                    validatorsProperty.add(EmailValidator())
-                    subscribeBidirectional(loginForm.email, valueProperty)
-                }
-
-            }
-
-            div {
-                className { "button-container glass-border" }
-
-                button("Login") { }
-            }
-
         }
+
+
 
     }
 

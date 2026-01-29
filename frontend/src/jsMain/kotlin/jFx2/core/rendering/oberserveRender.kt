@@ -21,7 +21,7 @@ fun <T> observeRender(
     scope.insertPoint.insert(end)
 
     val range = RangeInsertPoint(start, end)
-    val owner: Component<*> = RangeOwner(start)
+    val owner = RangeOwner(start)
 
     var currentMount: ComponentMount? = null
 
@@ -36,6 +36,10 @@ fun <T> observeRender(
             ctx = scope.ctx.fork(),
             insertPoint = range
         )
+
+        with(childScope) {
+            scope.ui.build.afterBuild { owner.afterBuild() }
+        }
 
         currentMount = componentWithScope(childScope) {
             block(value)

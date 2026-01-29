@@ -6,6 +6,7 @@ import jFx2.core.capabitities.FormContextKey
 import jFx2.core.capabitities.FormOwnerKey
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerSubForm
+import jFx2.core.dsl.renderFields
 import org.w3c.dom.HTMLFormElement
 
 class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), Formular {
@@ -17,7 +18,10 @@ class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), F
 
     fun onSubmit(handler: () -> Unit) { submitHandler = handler }
 
+    context(scope: NodeScope)
     fun initialize() {
+        renderFields(*this@Form.children.toTypedArray())
+
         node.addEventListener("submit", { event -> event.preventDefault(); submitHandler?.invoke() })
     }
 
@@ -53,7 +57,10 @@ fun form(
         ElementInsertPoint(c.node)
     )
 
-    scope.ui.build.afterBuild { c.initialize() }
+    with(childScope) {
+        scope.ui.build.afterBuild { c.initialize() }
+    }
+
 
     block(childScope, c)
     return c

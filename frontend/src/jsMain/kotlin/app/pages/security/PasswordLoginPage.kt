@@ -12,6 +12,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.template
 import jFx2.forms.EmailValidator
 import jFx2.forms.SizeValidator
 import jFx2.forms.form
@@ -30,46 +31,50 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
         val loginForm = PasswordLogin()
 
-        form {
+        template {
+            form {
 
-            onSubmit {
+                onSubmit {
 
-                JobRegistry.instance.launch("Password Login") {
-                    val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
+                    JobRegistry.instance.launch("Password Login") {
+                        val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
 
-                    ApplicationService.invoke()
+                        ApplicationService.invoke()
 
-                    println(post)
+                        println(post)
+                    }
+
+                }
+
+                inputContainer("Email") {
+
+                    input("email", "email") {
+                        validatorsProperty.add(EmailValidator())
+                        subscribeBidirectional(loginForm.email, valueProperty)
+                    }
+
+                }
+
+                inputContainer("Password") {
+
+                    input("password", "password") {
+                        validatorsProperty.add(SizeValidator(5, 30))
+                        subscribeBidirectional(loginForm.password, valueProperty)
+                    }
+
+                }
+
+
+                div {
+                    className { "button-container glass-border" }
+
+                    button("Login") { }
                 }
 
             }
-
-            inputContainer("Email") {
-
-                input("email", "email") {
-                    validatorsProperty.add(EmailValidator())
-                    subscribeBidirectional(loginForm.email, valueProperty)
-                }
-
-            }
-
-            inputContainer("Password") {
-
-                input("password", "password") {
-                    validatorsProperty.add(SizeValidator(5, 30))
-                    subscribeBidirectional(loginForm.password, valueProperty)
-                }
-
-            }
-
-
-            div {
-                className { "button-container glass-border" }
-
-                button("Login") { }
-            }
-
         }
+
+
 
     }
 

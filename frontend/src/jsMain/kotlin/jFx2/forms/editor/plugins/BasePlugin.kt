@@ -6,6 +6,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.template
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.Node
@@ -135,28 +136,32 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 
     context(scope: NodeScope)
     fun initialize() {
-        hbox {
 
-            boldBtn = button("format_bold") {
-                className { "material-icons" }
-                onClick { toggleMarkCommand("strong") }
-            }
+        template {
+            hbox {
 
-            italicBtn = button("format_italic") {
-                className { "material-icons" }
-                onClick { toggleMarkCommand("em") }
-            }
+                boldBtn = button("format_bold") {
+                    className { "material-icons" }
+                    onClick { toggleMarkCommand("strong") }
+                }
 
-            undoBtn = button("undo") {
-                className { "material-icons" }
-                onClick { undoCommand() }
-            }
+                italicBtn = button("format_italic") {
+                    className { "material-icons" }
+                    onClick { toggleMarkCommand("em") }
+                }
 
-            redoBtn = button("redo") {
-                className { "material-icons" }
-                onClick { redoCommand() }
+                undoBtn = button("undo") {
+                    className { "material-icons" }
+                    onClick { undoCommand() }
+                }
+
+                redoBtn = button("redo") {
+                    className { "material-icons" }
+                    onClick { redoCommand() }
+                }
             }
         }
+
     }
 
     companion object {
@@ -177,13 +182,13 @@ fun basePlugin(block: context(NodeScope) BasePlugin.() -> Unit = {}): BasePlugin
         insertPoint = ElementInsertPoint(c.node)
     )
 
+    block(childScope, c)
+
     scope.ui.build.afterBuild {
         with(childScope) {
             c.initialize()
         }
     }
-
-    block(childScope, c)
 
     return c
 }

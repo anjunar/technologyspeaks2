@@ -5,6 +5,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.style
+import jFx2.core.template
 import jFx2.forms.editor
 import jFx2.forms.editor.plugins.basePlugin
 import jFx2.forms.editor.plugins.headingPlugin
@@ -16,28 +17,32 @@ class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>() {
     context(scope: NodeScope)
     fun afterBuild() {
 
-        style {
-            height = "100%"
-            width = "100%"
-        }
-
-
-        form {
+        template {
             style {
                 height = "100%"
                 width = "100%"
             }
 
-            editor("test") {
+
+            form {
                 style {
                     height = "100%"
                     width = "100%"
                 }
 
-                basePlugin {  }
-                headingPlugin {  }
+                editor("test") {
+                    style {
+                        height = "100%"
+                        width = "100%"
+                    }
+
+                    basePlugin {  }
+                    headingPlugin {  }
+                }
             }
+
         }
+
 
     }
 }

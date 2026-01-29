@@ -18,6 +18,8 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     context(scope: NodeScope)
     fun afterBuild() {
 
+        renderFields(*this@ViewPort.children.toTypedArray())
+
         foreach(windows, { key -> key.id }) { window, index ->
             window {
 

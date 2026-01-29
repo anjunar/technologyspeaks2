@@ -31,11 +31,6 @@ private data class JobRangeItemMount(
     var disposed: Boolean = false
 )
 
-/**
- * Computes indices (in [seq]) of a Longest Increasing Subsequence.
- * Input: seq = positions of existing nodes in the new order (e.g. [5,2,3,7,...])
- * Output: indices in seq that form an LIS (so we keep those "in place").
- */
 private fun lisIndices(seq: IntArray): BooleanArray {
     val n = seq.size
     if (n == 0) return BooleanArray(0)
@@ -128,7 +123,7 @@ fun <T> foreachAsync(
         hostRange.insert(itemEnd)
 
         val itemRange = RangeInsertPoint(itemStart, itemEnd)
-        val owner: Component<*> = RangeOwner(itemStart)
+        val owner = RangeOwner(itemStart)
         val indexProp = Property(idx)
 
         val itemScope = scope.fork(
@@ -138,6 +133,10 @@ fun <T> foreachAsync(
             insertPoint = itemRange
         )
         itemScope.dispose.register { itemRange.dispose() }
+
+        with(itemScope) {
+            scope.ui.build.afterBuild { owner.afterBuild() }
+        }
 
         val m = componentWithScope(itemScope) {
             // optional placeholder

@@ -17,6 +17,7 @@ import jFx2.forms.editor.prosemirror.history
 import jFx2.forms.editor.prosemirror.keymap
 import jFx2.forms.editor.prosemirror.redo
 import jFx2.forms.editor.prosemirror.undo
+import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.forms.editor.prosemirror.schema as basicSchema
 import jFx2.state.Disposable
@@ -54,14 +55,16 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
                 renderFields(*this@Editor.children.toTypedArray())
             }
 
-            val createState = createState()
+            div {
+                val createState = createState()
 
-            val view = EditorView(node, jsObject {
-                state = createState
-            })
+                val view = EditorView(this@div.node, jsObject {
+                    state = createState
+                })
 
-            this@Editor.children.forEach {
-                (it as EditorPlugin).view = view
+                this@Editor.children.forEach {
+                    (it as EditorPlugin).view = view
+                }
             }
 
         }
@@ -86,6 +89,7 @@ fun editor(name: String, block: context(NodeScope) Editor.() -> Unit = {}): Edit
         it.classList.add("editor")
     }
     val c = Editor(el)
+    scope.attach(c)
 
     registerField(name, c)
 
@@ -98,7 +102,6 @@ fun editor(name: String, block: context(NodeScope) Editor.() -> Unit = {}): Edit
         }
     }
 
-    scope.attach(c)
     return c
 }
 

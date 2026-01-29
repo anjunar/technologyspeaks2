@@ -365,6 +365,7 @@ class Window(
                     }
                 }
 
+
             }
 
             div {
@@ -399,13 +400,13 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
         insertPoint = ElementInsertPoint(c.node)
     )
 
+    block(childScope, c)
+
     scope.ui.build.afterBuild {
         with(childScope) {
             c.afterBuild()
         }
     }
-
-    block(childScope, c)
 
     return c
 }

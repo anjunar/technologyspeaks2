@@ -11,6 +11,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.template
 import jFx2.forms.EmailValidator
 import jFx2.forms.SizeValidator
 import jFx2.forms.form
@@ -30,51 +31,55 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
         val registerForm = PasswordRegister()
 
-        form {
+        template {
+            form {
 
-            onSubmit {
+                onSubmit {
 
-                JobRegistry.instance.launch("Password Register") {
-                    val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
-                    println(post)
+                    JobRegistry.instance.launch("Password Register") {
+                        val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
+                        println(post)
+                    }
+
+                }
+
+                inputContainer("Nickname") {
+
+                    input("nickname") {
+                        validatorsProperty.add(SizeValidator(3, 20))
+                        subscribeBidirectional(registerForm.nickName, valueProperty)
+                    }
+
+                }
+
+                inputContainer("Email") {
+
+                    input("email", "email") {
+                        validatorsProperty.add(EmailValidator())
+                        subscribeBidirectional(registerForm.email, valueProperty)
+                    }
+
+                }
+
+                inputContainer("Password") {
+
+                    input("password", "password") {
+                        validatorsProperty.add(SizeValidator(5, 30))
+                        subscribeBidirectional(registerForm.password, valueProperty)
+                    }
+
+                }
+
+                div {
+                    className { "button-container glass-border" }
+
+                    button("Register") { }
                 }
 
             }
-
-            inputContainer("Nickname") {
-
-                input("nickname") {
-                    validatorsProperty.add(SizeValidator(3, 20))
-                    subscribeBidirectional(registerForm.nickName, valueProperty)
-                }
-
-            }
-
-            inputContainer("Email") {
-
-                input("email", "email") {
-                    validatorsProperty.add(EmailValidator())
-                    subscribeBidirectional(registerForm.email, valueProperty)
-                }
-
-            }
-
-            inputContainer("Password") {
-
-                input("password", "password") {
-                    validatorsProperty.add(SizeValidator(5, 30))
-                    subscribeBidirectional(registerForm.password, valueProperty)
-                }
-
-            }
-
-            div {
-                className { "button-container glass-border" }
-
-                button("Register") { }
-            }
-
         }
+
+
 
     }
 

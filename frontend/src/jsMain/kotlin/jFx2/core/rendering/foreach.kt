@@ -25,12 +25,6 @@ private data class RangeItemMount(
     val index: Property<Int>
 )
 
-/**
- * Returns a boolean array "keep" of the same size as seq:
- * keep[i] = true if element i belongs to a Longest Increasing Subsequence.
- *
- * seq must be a sequence of integers; LIS is computed over increasing values.
- */
 private fun lisKeepMask(seq: IntArray): BooleanArray {
     val n = seq.size
     if (n == 0) return BooleanArray(0)
@@ -93,7 +87,7 @@ fun <T> foreach(
         hostRange.insert(itemEnd)
 
         val itemRange = RangeInsertPoint(itemStart, itemEnd)
-        val owner: Component<*> = RangeOwner(itemStart)
+        val owner = RangeOwner(itemStart)
         val indexProp = Property(idx)
 
         val childScope = scope.fork(
@@ -102,7 +96,11 @@ fun <T> foreach(
             ctx = scope.ctx.fork(),
             insertPoint = itemRange
         )
-        // range cleanup on scope dispose
+
+        with(childScope) {
+            scope.ui.build.afterBuild { owner.afterBuild() }
+        }
+
         childScope.dispose.register { itemRange.dispose() }
 
         val m = componentWithScope(childScope) {
