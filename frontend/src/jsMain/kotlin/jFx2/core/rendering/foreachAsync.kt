@@ -15,6 +15,7 @@ import kotlinx.browser.document
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import org.w3c.dom.Comment
+import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
 import kotlin.random.Random
 
@@ -31,7 +32,7 @@ private data class JobRangeItemMount(
     var disposed: Boolean = false
 )
 
-private fun lisIndices(seq: IntArray): BooleanArray {
+private fun lisKeepMask(seq: IntArray): BooleanArray {
     val n = seq.size
     if (n == 0) return BooleanArray(0)
 
@@ -66,27 +67,78 @@ private fun lisIndices(seq: IntArray): BooleanArray {
 
 private fun newToken(prefix: String): Any = "$prefix-${Random.nextInt()}"
 
-context(scope: NodeScope)
-fun <T> foreachAsync(
-    items: ListProperty<T>,
-    key: (T) -> Any,
-    block: suspend context(NodeScope) (T, Property<Int>) -> Unit
-) {
-    val hostStart = document.createComment("jFx2:foreach")
-    val hostEnd = document.createComment("jFx2:/foreach")
-    scope.insertPoint.insert(hostStart)
-    scope.insertPoint.insert(hostEnd)
-    val hostRange = RangeInsertPoint(hostStart, hostEnd)
+private class ForeachAsyncComponent<T>(
+    override val node: DocumentFragment,
+    private val start: Comment,
+    private val end: Comment,
+    private val items: ListProperty<T>,
+    private val keyOf: (T) -> Any,
+    private val block: suspend context(NodeScope) (T, Property<Int>) -> Unit
+) : Component<DocumentFragment>() {
 
-    // keyed mounts (stable)
-    val mounts = LinkedHashMap<Any, JobRangeItemMount>()
+    private var disposed = false
+    private var baseScope: NodeScope? = null
+    private var committedRange: RangeInsertPoint? = null
 
-    // owner token for all jobs created by this foreach-instance
-    val foreachOwner = newToken("foreach")
+    private val mounts = LinkedHashMap<Any, JobRangeItemMount>()
 
-    val jobs = JobRegistry.instance
+    private val foreachOwner = newToken("foreach")
+    private val jobs = JobRegistry.instance
 
-    fun disposeAndRemove(im: JobRangeItemMount) {
+    override fun mount() {
+        with(baseScope!!) {
+            reconcile(items.get(), restartJobs = true)
+        }
+    }
+
+    context(scope: NodeScope)
+    fun init() {
+        baseScope = scope
+
+        val d: Disposable = items.observeChanges { ch ->
+            when (ch) {
+                is ListChange.Add,
+                is ListChange.Remove -> scheduleReconcile(restartJobs = false)
+
+                is ListChange.Replace,
+                is ListChange.SetAll -> scheduleReconcile(restartJobs = true)
+
+                is ListChange.Clear -> scheduleClear()
+            }
+        }
+        onDispose(d)
+    }
+
+    private fun ensureRangeCommitted(): RangeInsertPoint {
+        committedRange?.let { return it }
+        return RangeInsertPoint(start, end).also { committedRange = it }
+    }
+
+    private fun scheduleReconcile(restartJobs: Boolean) {
+        val scope = baseScope ?: return
+        if (disposed) return
+
+        with(scope) { reconcile(items.get(), restartJobs) }
+    }
+
+    private fun scheduleClear() {
+        val scope = baseScope ?: return
+        if (disposed) return
+
+        scope.ui.build.afterBuild {
+            if (disposed) return@afterBuild
+            val range = ensureRangeCommitted() ?: return@afterBuild
+
+            // kill all jobs belonging to this foreach instance
+            runCatching { jobs.cancelAllFor(foreachOwner) }
+
+            for ((_, im) in mounts) disposeAndRemove(im)
+            mounts.clear()
+            range.clear()
+        }
+    }
+
+    private fun disposeAndRemove(im: JobRangeItemMount) {
         im.disposed = true
         runCatching { im.job?.cancel() }
         im.job = null
@@ -94,11 +146,10 @@ fun <T> foreachAsync(
         runCatching { im.range.dispose() }
     }
 
-    fun startAsync(im: JobRangeItemMount, item: T) {
+    private fun startAsync(parentScope: NodeScope, im: JobRangeItemMount, item: T) {
         // cancel old job
         im.job?.cancel()
 
-        // each item job: registered centrally
         val label = "foreachAsync[item=${im.key}]"
         im.job = jobs.launch(label = label, owner = foreachOwner) {
             try {
@@ -106,17 +157,17 @@ fun <T> foreachAsync(
                 im.scope.ui.build.flush()
             } catch (_: CancellationException) {
                 // ignore
-            } catch (t: Throwable) {
-                // optional: log/collect
-                // console.error("foreachAsync item failed", t)
+            } catch (_: Throwable) {
+                // optional logging
             }
         }
 
         // item should also die with parent scope
-        scope.dispose.register { im.job?.cancel() }
+        parentScope.dispose.register { im.job?.cancel() }
     }
 
-    fun mountItem(item: T, idx: Int, k: Any): JobRangeItemMount {
+    context(scope: NodeScope)
+    private fun mountItem(item: T, idx: Int, k: Any, hostRange: RangeInsertPoint): JobRangeItemMount {
         val itemStart = document.createComment("jFx2:item")
         val itemEnd = document.createComment("jFx2:/item")
         hostRange.insert(itemStart)
@@ -134,12 +185,8 @@ fun <T> foreachAsync(
         )
         itemScope.dispose.register { itemRange.dispose() }
 
-        with(itemScope) {
-            scope.ui.build.afterBuild { owner.afterBuild() }
-        }
-
         val m = componentWithScope(itemScope) {
-            // optional placeholder
+            // placeholder (optional)
         }
 
         val im = JobRangeItemMount(
@@ -153,16 +200,20 @@ fun <T> foreachAsync(
             index = indexProp
         )
 
-        startAsync(im, item)
+        startAsync(scope, im, item)
         return im
     }
 
-    fun reconcile(newItems: List<T>, restartJobs: Boolean) {
-        val parent: Node = hostStart.parentNode ?: return
+    context(scope: NodeScope)
+    private fun reconcile(newItems: List<T>, restartJobs: Boolean) {
+        if (disposed) return
+
+        val hostRange = ensureRangeCommitted() ?: return
+        val parent: Node = start.parentNode ?: return
 
         // 1) new key order
         val newKeys = ArrayList<Any>(newItems.size)
-        for (it in newItems) newKeys += key(it)
+        for (it in newItems) newKeys += keyOf(it)
         val newKeySet = newKeys.toHashSet()
 
         // 2) remove missing
@@ -177,11 +228,11 @@ fun <T> foreachAsync(
             }
         }
 
-        // 3) add missing (append before hostEnd for now)
+        // 3) add missing
         for (i in newItems.indices) {
             val k = newKeys[i]
             if (!mounts.containsKey(k)) {
-                mounts[k] = mountItem(newItems[i], i, k)
+                mounts[k] = mountItem(newItems[i], i, k, hostRange)
             }
         }
 
@@ -191,8 +242,8 @@ fun <T> foreachAsync(
 
         val currentKeys = ArrayList<Any>(mounts.size)
         run {
-            var n: Node? = hostStart.nextSibling
-            while (n != null && n != hostEnd) {
+            var n: Node? = start.nextSibling
+            while (n != null && n != end) {
                 val k = startToKey[n]
                 if (k != null) currentKeys += k
                 n = n.nextSibling
@@ -207,9 +258,9 @@ fun <T> foreachAsync(
             seq[i] = currentIndex[newKeys[i]] ?: Int.MAX_VALUE
         }
 
-        val keep = lisIndices(seq)
+        val keep = lisKeepMask(seq)
 
-        var before: Node? = hostEnd
+        var before: Node? = end
         for (i in newKeys.indices.reversed()) {
             val k = newKeys[i]
             val im = mounts.getValue(k)
@@ -224,10 +275,10 @@ fun <T> foreachAsync(
             val k = newKeys[i]
             val im = mounts.getValue(k)
             im.index.set(i)
-            if (restartJobs) startAsync(im, newItems[i])
+            if (restartJobs) startAsync(scope, im, newItems[i])
         }
 
-        // 6) keep LinkedHashMap order aligned with new order (hygiene)
+        // 6) align map order
         if (mounts.size == newKeys.size) {
             val rebuilt = LinkedHashMap<Any, JobRangeItemMount>(mounts.size * 2)
             for (k in newKeys) rebuilt[k] = mounts.getValue(k)
@@ -236,33 +287,45 @@ fun <T> foreachAsync(
         }
     }
 
-    // Initial
-    reconcile(items.get(), restartJobs = true)
+    override fun dispose() {
+        disposed = true
 
-    val d: Disposable = items.observeChanges { ch ->
-        when (ch) {
-            is ListChange.Add -> reconcile(items.get(), restartJobs = false)
-            is ListChange.Remove -> reconcile(items.get(), restartJobs = false)
-
-            is ListChange.Replace -> reconcile(items.get(), restartJobs = true)
-            is ListChange.SetAll -> reconcile(items.get(), restartJobs = true)
-
-            is ListChange.Clear -> {
-                for ((_, im) in mounts) disposeAndRemove(im)
-                mounts.clear()
-                hostRange.clear()
-            }
-        }
-    }
-
-    scope.dispose.register(d)
-
-    scope.dispose.register {
-        // kill all jobs belonging to this foreach instance
         runCatching { jobs.cancelAllFor(foreachOwner) }
 
         for ((_, im) in mounts) runCatching { disposeAndRemove(im) }
         mounts.clear()
-        runCatching { hostRange.dispose() }
+
+        runCatching { committedRange?.dispose() }
+        committedRange = null
+
+        runCatching { end.parentNode?.removeChild(end) }
+
+        super.dispose()
     }
+}
+
+context(scope: NodeScope)
+fun <T> foreachAsync(
+    items: ListProperty<T>,
+    key: (T) -> Any,
+    block: suspend context(NodeScope) (T, Property<Int>) -> Unit
+) {
+    val start: Comment = document.createComment("jFx2:foreach")
+    val end: Comment = document.createComment("jFx2:/foreach")
+
+    val fragment = document.createDocumentFragment()
+    fragment.appendChild(start)
+    fragment.appendChild(end)
+
+    val comp = ForeachAsyncComponent(
+        node = fragment,
+        start = start,
+        end = end,
+        items = items,
+        keyOf = key,
+        block = block
+    )
+
+    scope.attach(comp)
+    with(scope) { comp.init() }
 }

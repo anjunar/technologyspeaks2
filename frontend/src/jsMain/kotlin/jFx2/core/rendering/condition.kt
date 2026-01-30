@@ -10,6 +10,7 @@ import jFx2.state.Disposable
 import jFx2.state.Property
 import kotlinx.browser.document
 import org.w3c.dom.Comment
+import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Element
 
 class ConditionOwner(override val node: Element) : Component<Element>() {
@@ -30,12 +31,13 @@ class ConditionBuilder internal constructor() {
 }
 
 private class ConditionComponent(
-    override val node: Comment,
+    override val node: DocumentFragment,
+    private val start: Comment,
     private val end: Comment,
     private val builder: ConditionBuilder,
     private val readFlag: () -> Boolean,
     private val subscribe: (((Boolean) -> Unit) -> Disposable?)? // null => polling
-) : Component<Comment>() {
+) : Component<DocumentFragment>() {
 
     private var disposed = false
 
@@ -66,13 +68,6 @@ private class ConditionComponent(
 
     private fun ensureRangeCommitted(): RangeInsertPoint? {
         if (committedRange != null) return committedRange
-
-        val start = node
-        val parent = start.parentNode ?: return null
-
-        if (end.parentNode == null) {
-            parent.insertBefore(end, start.nextSibling)
-        }
 
         return RangeInsertPoint(start, end).also { committedRange = it }
     }
@@ -152,8 +147,13 @@ fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
     val start: Comment = document.createComment("jFx2:condition")
     val end: Comment = document.createComment("jFx2:/condition")
 
+    val fragment = document.createDocumentFragment()
+    fragment.appendChild(start)
+    fragment.appendChild(end)
+
     val comp = ConditionComponent(
-        node = start,
+        node = fragment,
+        start = start,
         end = end,
         builder = builder,
         readFlag = { flag.get() },
@@ -174,8 +174,13 @@ fun condition(flag: () -> Boolean, build: ConditionBuilder.() -> Unit) {
     val start: Comment = document.createComment("jFx2:condition")
     val end: Comment = document.createComment("jFx2:/condition")
 
+    val fragment = document.createDocumentFragment()
+    fragment.appendChild(start)
+    fragment.appendChild(end)
+
     val comp = ConditionComponent(
-        node = start,
+        node = fragment,
+        start = start,
         end = end,
         builder = builder,
         readFlag = flag,

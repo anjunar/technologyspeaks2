@@ -7,6 +7,7 @@ import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
 import jFx2.core.rendering.foreach
+import jFx2.core.template
 import jFx2.layout.div
 import jFx2.state.ListProperty
 import org.w3c.dom.HTMLDivElement
@@ -18,24 +19,27 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     context(scope: NodeScope)
     fun afterBuild() {
 
-        renderFields(*this@ViewPort.children.toTypedArray())
+        template {
+            renderFields(*this@ViewPort.children.toTypedArray())
 
-        foreach(windows, { key -> key.id }) { window, index ->
-            window {
+            foreach(windows, { key -> key.id }) { window, index ->
+                window {
 
-                onClose {
-                    windows.remove(window)
-                }
-
-                div {
-                    style {
-                        width = "100%"
-                        height = "100%"
+                    onClose {
+                        windows.remove(window)
                     }
-                    renderComponent(window.component)
+
+                    div {
+                        style {
+                            width = "100%"
+                            height = "100%"
+                        }
+                        renderComponent(window.component)
+                    }
                 }
             }
         }
+
 
     }
 
