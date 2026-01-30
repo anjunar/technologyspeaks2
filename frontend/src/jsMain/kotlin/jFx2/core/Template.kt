@@ -2,6 +2,7 @@ package jFx2.core
 
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dsl.renderFields
+import kotlinx.browser.window
 import org.w3c.dom.Element
 
 class TemplateOwner(override val node: Element) : Component<Element>() {
@@ -10,8 +11,6 @@ class TemplateOwner(override val node: Element) : Component<Element>() {
     fun afterBuild() {
         renderFields(*this@TemplateOwner.children.toTypedArray())
     }
-
-
 
 }
 
@@ -22,8 +21,6 @@ fun template(block: context(NodeScope) () -> Unit) {
     with(s) {
         block()
         owner.afterBuild()
+        scope.ui.build.flush()
     }
-
-
-
 }

@@ -12,6 +12,8 @@ abstract class Component<N : Node> {
 
     val children = ArrayList<Component<*>>()
 
+    open fun mount() {}
+
     fun onDispose(d: Disposable) = disposeBag.add(d)
 
     fun addChild(child: Component<*>) {

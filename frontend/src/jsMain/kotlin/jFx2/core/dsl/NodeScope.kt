@@ -11,6 +11,7 @@ context(scope: NodeScope)
 fun renderComponent(field: Component<*>) {
     if (field.node.parentNode !== scope.insertPoint.parent) {
         scope.insertPoint.insert(field.node)
+        field.mount()
     }
     scope.dispose.register {
         runCatching { field.dispose() }
