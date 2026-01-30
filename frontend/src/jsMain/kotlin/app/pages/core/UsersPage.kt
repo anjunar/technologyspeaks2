@@ -73,8 +73,10 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                             outerScope = scope,
                             node = scope.create("div"),
                             render = { row, idx, v ->
-                                div {
-                                    text { v.toString() }
+                                template {
+                                    div {
+                                        text { v.toString() }
+                                    }
                                 }
                             }
                         )
