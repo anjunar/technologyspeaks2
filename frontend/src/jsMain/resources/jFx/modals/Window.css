@@ -14,6 +14,7 @@
     >.container {
         padding: 10px;
         height: calc(100% - 54px);
+        overflow: auto;
     }
 
     >.header {
@@ -26,6 +27,10 @@
         vertical-align: center;
         width: 100%;
         overflow: hidden;
+
+        .title {
+            padding-left: 10px;
+        }
     }
 
     .nw {

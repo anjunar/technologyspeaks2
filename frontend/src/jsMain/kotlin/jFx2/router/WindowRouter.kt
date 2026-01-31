@@ -33,7 +33,8 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                 val resolveRoutes = resolveRoutes(routes, window.location.pathname)
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!()
-                ViewPort.windows.add(WindowConf(Uuid.generateV4().toString(), "Test", component))
+                val page = component as Page
+                ViewPort.addWindow(WindowConf(page.name, {component}))
             }
 
         }

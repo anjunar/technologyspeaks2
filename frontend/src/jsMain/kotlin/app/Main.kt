@@ -18,6 +18,7 @@ import jFx2.router.router
 import jFx2.router.windowRouter
 import jFx2.state.JobRegistry
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,47 +34,56 @@ fun main() {
         ApplicationService.invoke()
     }
 
-    component(root) {
-        vbox {
+    window.addEventListener("load", {
 
-            hbox {
-                className { "app-header-bar" }
-            }
+        document.asDynamic().fonts.load("24px 'Material Icons'")
+            .then {
+                component(root) {
+                    vbox {
 
-            div {
-                className { "app-shell-body" }
+                        hbox {
+                            className { "app-header-bar" }
+                        }
 
-                observeRender(ApplicationService.app) { app ->
-                    div {
-                        className { "glass app-shell-nav" }
+                        div {
+                            className { "app-shell-body" }
 
-                        foreach(app.links, { key -> key.id }) { link, index ->
-                            link(link.url) {
-                                text { link.name }
+                            observeRender(ApplicationService.app) { app ->
+                                div {
+                                    className { "glass app-shell-nav" }
+
+                                    foreach(app.links, { key -> key.id }) { link, index ->
+                                        link(link.url) {
+                                            text { link.name }
+                                        }
+                                    }
+                                }
+                            }
+
+                            viewport {
+                                windowRouter(Routes.routes) { }
+                            }
+                        }
+
+
+                        hbox {
+                            className { "app-footer-bar" }
+
+                            foreach(jobs.entries, { key -> key.id }) { job, index ->
+                                div {
+                                    text {
+                                        job.label
+                                    }
+                                }
                             }
                         }
                     }
-                }
 
-                viewport {
-                    windowRouter(Routes.routes) { }
                 }
             }
 
 
-            hbox {
-                className { "app-footer-bar" }
+    })
 
-                foreach(jobs.entries, { key -> key.id }) { job, index ->
-                    div {
-                        text {
-                            job.label
-                        }
-                    }
-                }
-            }
-        }
-
-    }
 
 }

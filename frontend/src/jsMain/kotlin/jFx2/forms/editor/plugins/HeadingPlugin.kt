@@ -4,9 +4,11 @@ import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.template
 import jFx2.forms.Select
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorView
+import jFx2.forms.editor.prosemirror.NodeSpec
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.PluginKey
 import jFx2.forms.editor.prosemirror.attrInt
@@ -23,6 +25,8 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
     override lateinit var view: EditorView
 
     lateinit var selectComponent : Select
+
+    override val name: String = "heading"
 
     private fun activeHeadingLevel(v: EditorView): Int {
         val state = v.state
@@ -98,41 +102,45 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
         return Plugin(spec)
     }
 
+    override val nodeSpec: NodeSpec? = null
+
     context(scope: NodeScope)
     fun initialize() {
 
-        selectComponent = select("heading") {
+        template {
+            selectComponent = select("heading") {
 
-            observeValue { when(it) {
-                "p" -> setParagraph(view)
-                "h1" -> setHeading(view, 1)
-                "h2" -> setHeading(view, 2)
-                "h3" -> setHeading(view, 3)
-                "h4" -> setHeading(view, 4)
-                "h5" -> setHeading(view, 5)
-                "h6" -> setHeading(view, 6)
-            } }
+                observeValue { when(it) {
+                    "p" -> setParagraph(view)
+                    "h1" -> setHeading(view, 1)
+                    "h2" -> setHeading(view, 2)
+                    "h3" -> setHeading(view, 3)
+                    "h4" -> setHeading(view, 4)
+                    "h5" -> setHeading(view, 5)
+                    "h6" -> setHeading(view, 6)
+                } }
 
-            option("p") {
-                text { "Paragraph" }
-            }
-            option("h1") {
-                text { "Heading 1" }
-            }
-            option("h2") {
-                text { "Heading 2" }
-            }
-            option("h3") {
-                text { "Heading 3" }
-            }
-            option("h4") {
-                text { "Heading 4" }
-            }
-            option("h5") {
-                text { "Heading 5" }
-            }
-            option("h6") {
-                text { "Heading 6" }
+                option("p") {
+                    text { "Paragraph" }
+                }
+                option("h1") {
+                    text { "Heading 1" }
+                }
+                option("h2") {
+                    text { "Heading 2" }
+                }
+                option("h3") {
+                    text { "Heading 3" }
+                }
+                option("h4") {
+                    text { "Heading 4" }
+                }
+                option("h5") {
+                    text { "Heading 5" }
+                }
+                option("h6") {
+                    text { "Heading 6" }
+                }
             }
         }
 

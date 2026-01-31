@@ -6,12 +6,16 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
 import jFx2.core.dsl.renderFields
+import jFx2.core.dsl.style
 import jFx2.core.template
 import jFx2.forms.editor.plugins.EditorPlugin
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorStateConfig
 import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.Plugin
+import jFx2.forms.editor.prosemirror.Schema
+import jFx2.forms.editor.prosemirror.SchemaSpec
+import jFx2.forms.editor.prosemirror.addListNodes
 import jFx2.forms.editor.prosemirror.baseKeymap
 import jFx2.forms.editor.prosemirror.history
 import jFx2.forms.editor.prosemirror.keymap
@@ -39,8 +43,31 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
         val editorPlugins = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any ?> }
 
+        val specs: dynamic = js("({})")
+
+        this@Editor.children.forEach {
+            val p = it as EditorPlugin
+            if (p.nodeSpec != null) {
+                specs[p.name] = p.nodeSpec
+            }
+        }
+
+        val customNodes =
+            addListNodes(
+                basicSchema.spec.nodes.append(specs),
+                "paragraph block*",
+                "block"
+            )
+
+        val customSchema = Schema(
+            jsObject {
+                nodes = customNodes
+                marks = basicSchema.spec.marks
+            }
+        )
+
         val cfg = jsObject<EditorStateConfig> {
-            schema = basicSchema
+            schema = customSchema
             this.plugins = plugins + editorPlugins
         }
 
@@ -52,6 +79,11 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
         template {
             hbox {
+
+                style {
+                    alignItems = "center"
+                }
+
                 renderFields(*this@Editor.children.toTypedArray())
             }
 

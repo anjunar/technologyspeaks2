@@ -6,13 +6,14 @@ package jFx2.forms.editor.prosemirror
 import org.w3c.dom.Node as DomNode
 
 external class Schema(spec: SchemaSpec = definedExternally) {
-    val nodes: Any
-    val marks: Any
+    var nodes: Any
+    var marks: Any
+    val spec: SchemaSpec
 }
 
 external interface SchemaSpec {
-    var nodes: Any
-    var marks: Any
+    var nodes: dynamic
+    var marks: dynamic
     var topNode: String?
 }
 
@@ -83,6 +84,26 @@ external class DOMSerializer private constructor() {
     companion object {
         fun fromSchema(schema: Schema): DOMSerializer
     }
+}
+
+typealias DOMOutputSpec = Any
+
+external interface ParseRule {
+    var tag: String?
+    var getAttrs: ((dom: DomNode) -> dynamic)?
+}
+
+external interface AttrSpec {
+    var default: Any?
+}
+
+external interface NodeSpec {
+    var inline: Boolean?
+    var group: String?
+    var draggable: Boolean?
+    var attrs: dynamic
+    var parseDOM: Array<ParseRule>?
+    var toDOM: ((node: dynamic) -> DOMOutputSpec)?
 }
 
 external object TextSelection

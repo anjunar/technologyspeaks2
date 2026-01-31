@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package jFx2.modals
 
 import jFx2.core.Component
@@ -11,8 +13,15 @@ import jFx2.core.template
 import jFx2.layout.div
 import jFx2.state.ListProperty
 import org.w3c.dom.HTMLDivElement
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-class WindowConf(val id : String, val title : String, val component : Component<*>)
+class WindowConf(
+    val title : String,
+    val component : context(NodeScope) () -> Component<*>
+) {
+    val id : String = Uuid.generateV4().toString()
+}
 
 class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
@@ -25,6 +34,8 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
             foreach(windows, { key -> key.id }) { window, index ->
                 window {
 
+                    title = window.title
+
                     onClose {
                         windows.remove(window)
                     }
@@ -34,7 +45,7 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                             width = "100%"
                             height = "100%"
                         }
-                        renderComponent(window.component)
+                        renderComponent(window.component())
                     }
                 }
             }
@@ -44,7 +55,11 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     }
 
     companion object {
-        val windows = ListProperty<WindowConf>()
+        private val windows = ListProperty<WindowConf>()
+
+        fun addWindow(conf: WindowConf) {
+            windows.add(conf)
+        }
     }
 
 }

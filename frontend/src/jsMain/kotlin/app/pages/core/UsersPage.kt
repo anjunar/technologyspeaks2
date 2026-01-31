@@ -7,6 +7,7 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.template
 import jFx2.layout.div
+import jFx2.router.Page
 import jFx2.state.Property
 import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
@@ -32,7 +33,11 @@ class UsersProvider : DataProvider<UserRow> {
     }
 }
 
-class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+
+    override val name: String = "Users"
+    override val width: Int = -1
+    override val height: Int = -1
 
     context(scope: NodeScope)
     fun afterBuild() {

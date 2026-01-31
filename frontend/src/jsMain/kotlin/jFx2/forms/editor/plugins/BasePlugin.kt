@@ -10,6 +10,7 @@ import jFx2.core.template
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.Node
+import jFx2.forms.editor.prosemirror.NodeSpec
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.PluginKey
 import jFx2.forms.editor.prosemirror.PluginSpec
@@ -32,6 +33,8 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     private lateinit var italicBtn: Button
     private lateinit var undoBtn: Button
     private lateinit var redoBtn: Button
+
+    override val name: String = "base"
 
     private fun jsPluginView(
         onUpdate: (view: EditorView, prevState: EditorState?) -> Unit
@@ -62,6 +65,8 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         }
         return Plugin(spec)
     }
+
+    override val nodeSpec: NodeSpec? = null
 
     private fun toggleMarkCommand(markName: String) {
         val v = view

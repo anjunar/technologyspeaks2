@@ -4,6 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
+import jFx2.core.dsl.renderFields
 import jFx2.forms.editor.plugins.Heading
 import jFx2.state.Disposable
 import jFx2.state.Property
@@ -13,8 +14,13 @@ class Select(override val node: HTMLSelectElement) : FormField<String?, HTMLSele
 
     val value = Property<String?>(null)
 
+    context(scope: NodeScope)
     fun initialize() {
         node.onchange = { value.set(node.value) }
+
+        observeValue { node.value = it ?: "" }
+
+        renderFields(*this@Select.children.toTypedArray())
     }
 
     override fun read(): String? = value.get()
@@ -38,8 +44,10 @@ fun select(name : String, block: context(NodeScope) Select.() -> Unit = {}): Sel
         insertPoint = ElementInsertPoint(c.node)
     )
 
-    scope.ui.build.afterBuild {
-        c.initialize()
+    with(childScope) {
+        scope.ui.build.afterBuild {
+            c.initialize()
+        }
     }
 
     block(childScope, c)

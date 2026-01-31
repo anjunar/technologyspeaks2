@@ -10,6 +10,7 @@ import jFx2.state.ListProperty
 import jFx2.state.Property
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.events.Event
 
 enum class Status { valid, invalid, dirty, empty, focus }
 
@@ -48,6 +49,12 @@ class Input(
     val validatorsProperty = ListProperty<Validator>()
     val valueProperty = Property(node.value)
 
+    val valueAsNumberProperty = Property(node.valueAsNumber)
+
+    fun onChange(callback : (Event) -> Unit) {
+        node.onchange = callback
+    }
+
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
     fun initialize() {
@@ -55,7 +62,17 @@ class Input(
         node.name = name
         val defaultValue = valueProperty.get()
 
-        valueProperty.observe { node.value = it }
+        valueProperty.observe {
+            if (node.type != "file") {
+                node.value = it
+            }
+        }
+
+        valueAsNumberProperty.observe {
+            if (node.type == "number") {
+                node.valueAsNumber = it
+            }
+        }
 
         node.addEventListener("input", {
             val v = node.value
@@ -64,6 +81,11 @@ class Input(
             if (v != defaultValue) statusProperty.add(Status.dirty.name) else statusProperty.remove(Status.dirty.name)
 
             valueProperty.set(v)
+
+            if (node.type == "number") {
+                valueAsNumberProperty.set(node.valueAsNumber)
+            }
+
             validate()
             ui.build.flush()
         })

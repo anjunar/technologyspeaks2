@@ -28,6 +28,8 @@ class Window(
     var draggable = true
     var resizeable = true
 
+    var title : String = ""
+
     private var onClose: (() -> Unit)? = null
 
     fun onClose(block: () -> Unit) { onClose = block }
@@ -351,7 +353,7 @@ class Window(
 
                 span {
                     className { "title" }
-                    text { "Header name" }
+                    text { title }
                 }
 
                 condition({this@Window.onClose != null}) {

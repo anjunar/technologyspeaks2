@@ -19,6 +19,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.router.Page
 import jFx2.state.JobRegistry
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
@@ -27,7 +28,11 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 import org.w3c.fetch.RequestInit
 
-class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+
+    override val name: String = "Logout"
+    override val width: Int = -1
+    override val height: Int = -1
 
     context(scope: NodeScope)
     fun afterBuild() {
