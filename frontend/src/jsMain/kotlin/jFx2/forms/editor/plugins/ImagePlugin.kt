@@ -18,7 +18,6 @@ import jFx2.forms.input
 import jFx2.forms.jsObject
 import jFx2.layout.div
 import jFx2.layout.hbox
-import jFx2.layout.vbox
 import jFx2.modals.ViewPort
 import jFx2.modals.WindowConf
 import jFx2.state.Property
@@ -30,9 +29,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.files.FileReader
 import kotlin.js.Json
 import kotlin.js.json
-import kotlin.math.max
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 class Dimensions(val width : Property<Double> = Property(320.0), val height : Property<Double> = Property(240.0))
 
@@ -130,51 +127,24 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
         ))
     }
 
-    fun insertImage(
-        source: String,
-        width: Int? = null,
-        height: Int? = null,
-        pos: Int? = null
-    ) {
-        val v = view
-        if (source.isBlank()) return
+    fun insertImage(source: String, width: Int, height: Int) {
 
-        val state = v.state
+        val state = view.state
         val imageType = state.schema.nodes["image"] ?: return
 
         val styleString = "width:${width}px;height:${height}px;"
-
-        var baseAttrs: dynamic = {}
-
-        if (pos != null) {
-            state.doc.nodeAt(pos)?.let {
-                baseAttrs = it.attrs
-            }
-        }
 
         val attrs = json(
             "src" to source,
             "style" to styleString
         )
 
-        js("Object.assign")(attrs, baseAttrs)
-
         var tr = state.tr
 
-        when {
-            pos != null ->
-                tr = tr.setNodeMarkup(pos, imageType, attrs)
+        tr = tr.replaceSelectionWith(imageType.create(attrs), false)
 
-            state.selection is NodeSelection &&
-                    state.selection.node.type == imageType ->
-                tr = tr.setNodeMarkup(state.selection.from, imageType, attrs)
-
-            else ->
-                tr = tr.replaceSelectionWith(imageType.create(attrs), false)
-        }
-
-        v.dispatch(tr.scrollIntoView())
-        v.focus()
+        view.dispatch(tr.scrollIntoView())
+        view.focus()
     }
 
     private fun openFromSelection() {
