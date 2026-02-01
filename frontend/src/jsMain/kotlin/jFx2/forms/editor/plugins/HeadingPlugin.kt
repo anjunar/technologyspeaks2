@@ -11,14 +11,13 @@ import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.NodeSpec
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.PluginKey
-import jFx2.forms.editor.prosemirror.attrInt
-import jFx2.forms.editor.prosemirror.nodeType
 import jFx2.forms.editor.prosemirror.setBlockType
 import jFx2.forms.editor.prosemirror.PluginSpec
 import jFx2.forms.jsObject
 import jFx2.forms.option
 import jFx2.forms.select
 import org.w3c.dom.HTMLDivElement
+import kotlin.js.json
 
 class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
@@ -31,12 +30,12 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
     private fun activeHeadingLevel(v: EditorView): Int {
         val state = v.state
         val sel = state.selection
-        val headingType = state.schema.nodeType("heading") ?: return 0
+        val headingType = state.schema.nodes["heading"] ?: return 0
 
         var found = 0
         state.doc.nodesBetween(sel.from, sel.to, { node, _, _, _ ->
             if (node.type == headingType) {
-                val lvl = node.attrInt("level") ?: 0
+                val lvl = node.attrs["level"] ?: 0
                 if (lvl in 1..6) {
                     found = lvl
                     return@nodesBetween false // nicht weiter absteigen
@@ -50,7 +49,7 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
 
     private fun setParagraph(v: EditorView) {
         val state = v.state
-        val paraType = state.schema.nodeType("paragraph") ?: return
+        val paraType = state.schema.nodes["paragraph"] ?: return
 
         val dispatch = v::dispatch
         setBlockType(paraType)(state, dispatch, v)
@@ -59,10 +58,11 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
 
     private fun setHeading(v: EditorView, level: Int) {
         val state = v.state
-        val type = state.schema.nodeType("heading") ?: return
+        val type = state.schema.nodes["heading"] ?: return
 
-        val attrs = js("({})")
-        attrs.level = level
+        val attrs = json(
+            "level" to level
+        )
 
         val dispatch = v::dispatch
         setBlockType(type, attrs)(state, dispatch, v)
@@ -72,14 +72,11 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
     private fun jsPluginView(
         onUpdate: (view: EditorView, prevState: EditorState?) -> Unit
     ): dynamic {
-        val obj = js("({})")
-        obj.update = { v: dynamic, prev: dynamic ->
-            onUpdate(
-                v.unsafeCast<EditorView>(),
-                prev?.unsafeCast<EditorState>()
-            )
-        }
-        return obj
+        return json(
+            "update" to { v: dynamic, prev: dynamic ->
+                onUpdate(v, prev)
+            }
+        )
     }
 
     private fun levelToValue(level: Int): String =

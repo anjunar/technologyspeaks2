@@ -26,14 +26,17 @@ import jFx2.layout.hbox
 import jFx2.forms.editor.prosemirror.schema as basicSchema
 import jFx2.state.Disposable
 import org.w3c.dom.HTMLDivElement
+import kotlin.js.json
+
 
 @Suppress("CAST_NEVER_SUCCEEDS")
 class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivElement>() {
 
     fun createState(): EditorState {
-        val extraKeys = js("({})")
-        extraKeys["Mod-z"] = undo
-        extraKeys["Mod-y"] = redo
+        val extraKeys = json(
+            "Mod-z" to undo,
+            "Mod-y" to redo
+        )
 
         val plugins = arrayOf(
             history(),
@@ -43,7 +46,7 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
         val editorPlugins = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any ?> }
 
-        val specs: dynamic = js("({})")
+        val specs: dynamic = {}
 
         this@Editor.children.forEach {
             val p = it as EditorPlugin

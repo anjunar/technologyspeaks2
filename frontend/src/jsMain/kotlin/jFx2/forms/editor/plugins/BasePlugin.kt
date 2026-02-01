@@ -23,6 +23,7 @@ import jFx2.forms.jsObject
 import jFx2.layout.hbox
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
+import kotlin.js.json
 import kotlin.js.unsafeCast
 
 class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
@@ -39,14 +40,11 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     private fun jsPluginView(
         onUpdate: (view: EditorView, prevState: EditorState?) -> Unit
     ): dynamic {
-        val obj = js("({})")
-        obj.update = { v: dynamic, prev: dynamic ->
-            onUpdate(
-                v.unsafeCast<EditorView>(),
-                prev?.unsafeCast<EditorState>()
-            )
-        }
-        return obj
+        return json(
+            "update" to { v: dynamic, prev: dynamic ->
+                onUpdate(v, prev)
+            }
+        )
     }
 
     override fun plugin(): Plugin<*> {
@@ -72,7 +70,7 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         val v = view
         val state = v.state
 
-        val type = state.schema.marks.asDynamic()[markName]
+        val type = state.schema.marks[markName]
         if (type != null) {
             toggleMark(type)(state, { tr -> v.dispatch(tr) }, v)
         }
@@ -87,7 +85,7 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         val to = selection.to
         val empty = selection.empty
 
-        val type = state.schema.marks.asDynamic()[markTypeName] ?: return false
+        val type = state.schema.marks[markTypeName] ?: return false
 
         return if (empty) {
             val stored = state.storedMarks

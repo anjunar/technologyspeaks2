@@ -6,8 +6,8 @@ package jFx2.forms.editor.prosemirror
 import org.w3c.dom.Node as DomNode
 
 external class Schema(spec: SchemaSpec = definedExternally) {
-    var nodes: Any
-    var marks: Any
+    var nodes: dynamic
+    var marks: dynamic
     val spec: SchemaSpec
 }
 

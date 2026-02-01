@@ -140,24 +140,22 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
         if (source.isBlank()) return
 
         val state = v.state
-        val imageType = state.schema.nodeType("image") ?: return
+        val imageType = state.schema.nodes["image"] ?: return
 
-        var styleString = ""
-        if (width != null) styleString += "width:${width}px;"
-        if (height != null) styleString += "height:${height}px;"
-        val styleAttr = if (styleString.isBlank()) null else styleString
+        val styleString = "width:${width}px;height:${height}px;"
 
-        var baseAttrs: dynamic = js("({})")
+        var baseAttrs: dynamic = {}
 
         if (pos != null) {
             state.doc.nodeAt(pos)?.let {
-                baseAttrs = js("Object.assign({}, it.attrs)")
+                baseAttrs = it.attrs
             }
         }
 
-        val attrs : dynamic = {}
-        attrs.src = source
-        attrs.style = styleAttr
+        val attrs = json(
+            "src" to source,
+            "style" to styleString
+        )
 
         js("Object.assign")(attrs, baseAttrs)
 
@@ -181,9 +179,9 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
 
     private fun openFromSelection() {
         val state = view.state
-        val imageType = state.schema.nodeType("image") ?: return
+        val imageType = state.schema.nodes["image"] ?: return
 
-        var attrs: dynamic = js("({})")
+        var attrs: dynamic = {}
 
         if (state.selection is NodeSelection) {
             val sel = state.selection
@@ -231,7 +229,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
         draggable = true
 
         parseDOM = arrayOf(
-            jsObject<ParseRule> {
+            jsObject {
                 tag = "img[src]"
                 getAttrs = { dom ->
                     val el = dom as Element
