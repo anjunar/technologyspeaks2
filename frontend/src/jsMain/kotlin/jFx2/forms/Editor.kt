@@ -14,12 +14,18 @@ import jFx2.forms.editor.prosemirror.EditorStateConfig
 import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.Schema
-import jFx2.forms.editor.prosemirror.SchemaSpec
 import jFx2.forms.editor.prosemirror.addListNodes
 import jFx2.forms.editor.prosemirror.baseKeymap
+import jFx2.forms.editor.prosemirror.chainCommands
+import jFx2.forms.editor.prosemirror.exitCode
 import jFx2.forms.editor.prosemirror.history
 import jFx2.forms.editor.prosemirror.keymap
+import jFx2.forms.editor.prosemirror.liftListItem
+import jFx2.forms.editor.prosemirror.newlineInCode
 import jFx2.forms.editor.prosemirror.redo
+import jFx2.forms.editor.prosemirror.sinkListItem
+import jFx2.forms.editor.prosemirror.splitBlock
+import jFx2.forms.editor.prosemirror.splitListItem
 import jFx2.forms.editor.prosemirror.undo
 import jFx2.layout.div
 import jFx2.layout.hbox
@@ -33,16 +39,6 @@ import kotlin.js.json
 class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivElement>() {
 
     fun createState(): EditorState {
-        val extraKeys = json(
-            "Mod-z" to undo,
-            "Mod-y" to redo
-        )
-
-        val plugins = arrayOf(
-            history(),
-            keymap(extraKeys),
-            keymap(baseKeymap)
-        )
 
         val editorPlugins = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any ?> }
 
@@ -67,6 +63,29 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
                 nodes = customNodes
                 marks = basicSchema.spec.marks
             }
+        )
+
+        val itemType = customSchema.nodes["list_item"] ?: error("list_item missing in schema")
+
+        val extraKeys = json(
+            "Enter" to chainCommands(
+                splitListItem(itemType),
+                newlineInCode,
+                splitBlock,
+                exitCode
+            ),
+
+            "Tab" to sinkListItem(itemType),
+            "Shift-Tab" to liftListItem(itemType),
+
+            "Mod-z" to undo,
+            "Mod-y" to redo
+        )
+
+        val plugins = arrayOf(
+            history(),
+            keymap(extraKeys),
+            keymap(baseKeymap)
         )
 
         val cfg = jsObject<EditorStateConfig> {

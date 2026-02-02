@@ -23,6 +23,10 @@ external fun setBlockType(nodeType: NodeType, attrs: Any? = definedExternally): 
 external fun wrapIn(nodeType: NodeType, attrs: Any? = definedExternally): Command
 external fun lift(state: EditorState, dispatch: ((Transaction) -> Unit)? = definedExternally): Boolean
 
+external val newlineInCode : Command
+external val splitBlock : Command
+external val exitCode : Command
+
 external fun chainCommands(vararg commands: Command): Command
 external fun exitCode(state: EditorState, dispatch: ((Transaction) -> Unit)? = definedExternally): Boolean
 

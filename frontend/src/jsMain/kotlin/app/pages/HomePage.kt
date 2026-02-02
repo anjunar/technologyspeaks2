@@ -9,6 +9,8 @@ import jFx2.forms.editor
 import jFx2.forms.editor.plugins.basePlugin
 import jFx2.forms.editor.plugins.headingPlugin
 import jFx2.forms.editor.plugins.imagePlugin
+import jFx2.forms.editor.plugins.listPlugin
+import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.form
 import jFx2.router.Page
 import org.w3c.dom.HTMLDivElement
@@ -43,6 +45,8 @@ class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), Pag
 
                     basePlugin { }
                     headingPlugin { }
+                    listPlugin { }
+                    linkPlugin { }
                     imagePlugin { }
                 }
             }
