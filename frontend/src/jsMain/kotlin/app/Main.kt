@@ -57,6 +57,10 @@ fun main() {
                                             text { link.name }
                                         }
                                     }
+
+                                    link("/core/virtual-list") {
+                                        text { "Virtual List Demo" }
+                                    }
                                 }
                             }
 

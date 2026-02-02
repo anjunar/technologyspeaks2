@@ -1,0 +1,18 @@
+.jfx-virtual-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #3333;
+}
+
+.jfx-virtual-list-viewport {
+    position: relative;
+    overflow: auto;
+    flex: 1 1 auto;
+}
+
+.jfx-virtual-list-cell {
+    width: 100%;
+    box-sizing: border-box;
+}

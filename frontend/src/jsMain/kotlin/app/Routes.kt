@@ -2,6 +2,7 @@ package app
 
 import app.pages.Home
 import app.pages.core.usersPage
+import app.pages.core.virtualListDemoPage
 import app.pages.homePage
 import app.pages.security.WebAuthnLoginPage
 import app.pages.security.WebAuthnRegisterPage
@@ -35,6 +36,10 @@ object Routes {
                         Route(
                             path = "users",
                             factory = { usersPage {} }
+                        ),
+                        Route(
+                            path = "virtual-list",
+                            factory = { virtualListDemoPage {} }
                         )
                     )
                 )
