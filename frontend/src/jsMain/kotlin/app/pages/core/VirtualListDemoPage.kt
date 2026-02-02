@@ -9,7 +9,7 @@ import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.Page
 import jFx2.virtual.RangeDataProvider
-import jFx2.virtual.virtualListView
+import jFx2.virtual.virtualList
 import kotlinx.coroutines.delay
 import org.w3c.dom.HTMLDivElement
 
@@ -75,12 +75,13 @@ class VirtualListDemoPage(override val node: HTMLDivElement) : Component<HTMLDiv
             div {
                 className { "virtual-list-demo" }
 
-                virtualListView(
+                virtualList(
                     dataProvider = provider,
                     estimateHeightPx = 44,
                     overscanPx = 240,
                     prefetchItems = 80,
                     renderer = { item, index ->
+
 
                         template {
 

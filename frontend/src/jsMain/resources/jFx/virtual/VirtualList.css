@@ -12,7 +12,15 @@
     flex: 1 1 auto;
 }
 
+.jfx-virtual-list-content {
+    position: relative;
+    width: 100%;
+}
+
 .jfx-virtual-list-cell {
     width: 100%;
     box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    right: 0;
 }
