@@ -22,7 +22,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
             JobRegistry.instance.launch("Router", "Router") {
                 val resolveRoutes = resolveRoutes(routes, window.location.pathname)
                 val routeMatch = resolveRoutes.matches.last()
-                val component = routeMatch.route.factory!!()
+                val component = routeMatch.route.factory!!(routeMatch.params)
                 val page = component as PageInfo
                 ViewPort.addWindow(WindowConf(page.name, {component}))
             }

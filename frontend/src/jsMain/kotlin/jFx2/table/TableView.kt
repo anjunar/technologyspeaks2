@@ -31,6 +31,9 @@ class TableView<R>(
     val selectionModel = SelectionModel(SelectionMode.MULTIPLE)
     val focusModel = FocusModel()
 
+    var onSelectionChanged: ((List<R>) -> Unit)? = null
+    var onRowDoubleClick: ((R, Int) -> Unit)? = null
+
     private lateinit var viewport: HTMLElement
     private lateinit var content: HTMLElement
 
@@ -149,6 +152,11 @@ class TableView<R>(
         viewport.appendChild(content)
         node.appendChild(header)
         node.appendChild(viewport)
+
+        onDispose(selectionModel.selected.observe { indices ->
+            val items = indices.mapNotNull { idx -> model.get(idx) }
+            onSelectionChanged?.invoke(items)
+        })
 
         val poolSize = computeInitialPoolSize(viewport, rowHeightPx, overscan)
         val pool = buildRowPool(poolSize)
@@ -283,6 +291,16 @@ class TableView<R>(
                     focusModel.focus(idx)
                     selectionModel.select(idx, additive = additive, range = range)
                     viewport.focus()
+                }
+            })
+
+            rowEl.addEventListener("dblclick", {
+                val idx = rows.firstOrNull { it.node === rowEl }?.boundIndex ?: -1
+                if (idx >= 0) {
+                    val item = model.get(idx)
+                    if (item != null) {
+                        onRowDoubleClick?.invoke(item, idx)
+                    }
                 }
             })
 

@@ -17,8 +17,10 @@ import jFx2.table.LazyTableModel
 import jFx2.table.SortState
 import jFx2.table.TextCell
 import jFx2.table.tableView
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import org.w3c.dom.CustomEvent
 import org.w3c.dom.HTMLDivElement
 
 class UsersProvider : DataProvider<Data<User>> {
@@ -114,6 +116,11 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                             )
                                         }
                     */
+
+                    onRowDoubleClick { user, _ ->
+                        window.history.pushState(null, "", "/core/users/user/" + user.data.id.get())
+                        window.dispatchEvent(CustomEvent("popstate"))
+                    }
                 }
             }
         }

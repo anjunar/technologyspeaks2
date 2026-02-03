@@ -5,6 +5,8 @@ import jFx2.state.ReadOnlyProperty
 
 class TableBuilder<R> {
     internal val cols = ArrayList<Column<R, *>>()
+    internal var onSelectionChanged: ((List<R>) -> Unit)? = null
+    internal var onRowDoubleClick: ((R, Int) -> Unit)? = null
 
     fun <V> columnValue(
         id : String,
@@ -39,6 +41,14 @@ class TableBuilder<R> {
             cellFactory = cellFactory
         )
     }
+
+    fun onSelectionChanged(handler: (List<R>) -> Unit) {
+        onSelectionChanged = handler
+    }
+
+    fun onRowDoubleClick(handler: (R, Int) -> Unit) {
+        onRowDoubleClick = handler
+    }
 }
 
 context(scope: NodeScope)
@@ -55,6 +65,9 @@ fun <R> tableView(
         rowHeightPx = rowHeightPx,
         overscan = overscan
     )
+
+    tableView.onSelectionChanged = b.onSelectionChanged
+    tableView.onRowDoubleClick = b.onRowDoubleClick
 
     scope.attach(tableView)
 

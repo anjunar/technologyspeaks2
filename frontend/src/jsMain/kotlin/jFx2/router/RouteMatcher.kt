@@ -84,7 +84,20 @@ fun resolveRoutes(routes: List<Route>, path: String): RouterState {
 
         val prefixOk = if (isRoot) true else {
             if (targetSegments.size < routeSegments.size) false
-            else targetSegments.take(routeSegments.size) == routeSegments
+            else {
+                var ok = true
+                for (i in routeSegments.indices) {
+                    val ps = routeSegments[i]
+                    val ts = targetSegments[i]
+                    if (ps == "*") break
+                    if (ps.startsWith(":")) continue
+                    if (ps != ts) {
+                        ok = false
+                        break
+                    }
+                }
+                ok
+            }
         }
 
         if (!prefixOk) return null
@@ -94,7 +107,7 @@ fun resolveRoutes(routes: List<Route>, path: String): RouterState {
         val paramsForThis = matchPattern(routeFull, target) ?: emptyMap()
 
         // If exact match: return [this]
-        if (routeFull == target) {
+        if (matchPattern(routeFull, target) != null) {
             return listOf(RouteMatch(route, routeFull, paramsForThis))
         }
 

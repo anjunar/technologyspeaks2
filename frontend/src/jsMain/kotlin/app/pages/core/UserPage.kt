@@ -2,14 +2,17 @@ package app.pages.core
 
 import app.domain.core.Data
 import app.domain.core.User
+import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
 import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
+import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
@@ -38,6 +41,37 @@ object UserPage {
                         }
                     }
 
+                    inputContainer("First Name") {
+                        input("firstName") {
+                            subscribeBidirectional(model.get().data.userInfo.firstName, valueProperty)
+                        }
+                    }
+
+                    inputContainer("Last Name") {
+                        input("lastName") {
+                            subscribeBidirectional(model.get().data.userInfo.lastName, valueProperty)
+                        }
+                    }
+
+                    inputContainer("Birthdate") {
+                        input("birthdate", "date") {
+                            subscribeBidirectional(model.get().data.userInfo.birthDate, valueProperty)
+                        }
+                    }
+
+                    hbox {
+
+                        style {
+                            justifyContent = "flex-end"
+                        }
+
+                        button("Save") {
+
+                        }
+
+                    }
+
+
                 }
             }
         }
@@ -52,11 +86,11 @@ object UserPage {
 
         val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
 
-        with(childScope) {
-            c.afterBuild()
-        }
-
         block(childScope, c)
+
+        with(childScope) {
+            scope.ui.build.afterBuild { c.afterBuild() }
+        }
 
         return c
     }

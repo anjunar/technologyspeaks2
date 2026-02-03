@@ -9,7 +9,9 @@ class UserInfo(
     @Serializable(with = StringPropertySerializer::class)
     val firstName: Property<String> = Property(""),
     @Serializable(with = StringPropertySerializer::class)
-    val lastName: Property<String> = Property("")) {
+    val lastName: Property<String> = Property(""),
+    @Serializable(with = StringPropertySerializer::class)
+    val birthDate: Property<String> = Property("")) {
 
     override fun toString(): String {
         return "UserInfo(firstName=${firstName.get()}, lastName=${lastName.get()})"

@@ -39,16 +39,18 @@ object Routes {
                     children = listOf(
                         Route(
                             path = "users",
-                            factory = { usersPage {} }
-                        ),
-                        Route(
-                            path = "user/:id",
-                            factory = { params ->
-                                val user = JsonClient.invoke<Data<User>>("/service/core/user/" + params["id"]!!)
-                                UserPage.page {
-                                    model(user)
-                                }
-                            }
+                            factory = { usersPage {} },
+                            children = listOf(
+                                Route(
+                                    path = "user/:id",
+                                    factory = { params ->
+                                        val user = JsonClient.invoke<Data<User>>("/service/core/users/user/" + params["id"]!!)
+                                        UserPage.page {
+                                            model(user)
+                                        }
+                                    }
+                                )
+                            )
                         ),
                         Route(
                             path = "virtual-list",
