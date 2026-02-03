@@ -4,6 +4,7 @@
 @import "forms/Editor.css";
 @import "forms/Input.css";
 @import "forms/InputContainer.css";
+@import "forms/ImageCropper.css";
 @import "forms/SubForm.css";
 
 @import "./layout/HBox.css";

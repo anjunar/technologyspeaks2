@@ -9,7 +9,9 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
+import jFx2.forms.NotBlankValidator
 import jFx2.forms.form
+import jFx2.forms.imageCropper
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.hbox
@@ -34,6 +36,18 @@ object UserPage {
         fun afterBuild() {
             template {
                 form {
+
+                    inputContainer("Avatar") {
+                        imageCropper("avatar") {
+                            aspectRatio = 1.0
+                            outputType = "image/jpeg"
+                            outputQuality = 0.92
+                            outputMaxWidth = 512
+                            outputMaxHeight = 512
+
+                            validatorsProperty.add(NotBlankValidator())
+                        }
+                    }
 
                     inputContainer("Nick Name") {
                         input("nickName") {
