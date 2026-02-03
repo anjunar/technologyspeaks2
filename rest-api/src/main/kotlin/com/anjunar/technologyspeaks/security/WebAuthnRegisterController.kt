@@ -16,6 +16,7 @@ import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.server.ServerProperty
 import com.webauthn4j.util.Base64UrlUtil
 import jakarta.annotation.security.RolesAllowed
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -29,6 +30,7 @@ class WebAuthnRegisterController(val store: CredentialStore, val registerService
 
     @PostMapping("/security/register/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
+    @Transactional
     fun options(@RequestBody body: JsonObject): JsonObject {
         val username = body.getString("email")
 
@@ -77,6 +79,7 @@ class WebAuthnRegisterController(val store: CredentialStore, val registerService
 
     @PostMapping("/security/register/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
+    @Transactional
     fun finish(@RequestBody body: JsonObject): JsonObject {
         val publicKeyCredential = body.getJsonObject("optionsJSON")
         val credentialId = publicKeyCredential.getString("id")

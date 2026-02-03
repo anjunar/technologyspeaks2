@@ -31,7 +31,7 @@ import jakarta.validation.constraints.Size
 class User(@JsonbProperty @NotBlank @Size(min = 2, max = 80) var nickName: String)
     : AbstractEntity(), EntityContext<User>, OwnerProvider {
 
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JsonbProperty
     var image: Media? = null
 

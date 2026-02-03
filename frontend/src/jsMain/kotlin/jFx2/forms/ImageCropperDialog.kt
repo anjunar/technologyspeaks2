@@ -1,10 +1,13 @@
 package jFx2.forms
 
+import app.domain.core.Media
+import app.domain.core.Thumbnail
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.modals.ViewPort
 import jFx2.modals.WindowConf
+import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.CanvasRenderingContext2D
@@ -44,14 +47,14 @@ private enum class DragMode { New, Move, ResizeNW, ResizeNE, ResizeSW, ResizeSE 
 class ImageCropperSession(
     var applied: Boolean = false,
     var closed: Boolean = false,
-    val initialValue: String?,
+    val initialValue: Media?,
 )
 
 class ImageCropperDialog(
     override val node: HTMLDivElement,
     private val field: ImageCropper,
     private val windowConf: WindowConf,
-    private val source: String,
+    private val source: Media,
     private val session: ImageCropperSession,
 ) : Component<HTMLDivElement>() {
 
@@ -63,6 +66,7 @@ class ImageCropperDialog(
 
     private var livePending = false
     private val outCanvas: HTMLCanvasElement = document.createElement("canvas").unsafeCast<HTMLCanvasElement>()
+    private val thumbCanvas: HTMLCanvasElement = document.createElement("canvas").unsafeCast<HTMLCanvasElement>()
 
     private lateinit var canvas: HTMLCanvasElement
     private lateinit var applyBtn: HTMLButtonElement
@@ -112,9 +116,9 @@ class ImageCropperDialog(
         wireCanvasDragging()
 
         val onApplyClick: (Event) -> Unit = onApplyClick@{
-            val url = cropToDataUrl() ?: return@onApplyClick
+            val media = cropToMedia() ?: return@onApplyClick
             session.applied = true
-            field.valueProperty.set(url)
+            field.valueProperty.set(media)
             ViewPort.closeWindow(windowConf)
         }
         applyBtn.addEventListener("click", onApplyClick)
@@ -142,7 +146,26 @@ class ImageCropperDialog(
             crop = defaultCrop()
             render()
         }
-        img.src = source
+        img.src = sourceToImgSrc(source)
+    }
+
+    private fun sourceToImgSrc(media: Media): String {
+        val data = media.data.get().trim()
+        if (data.isEmpty()) return ""
+        if (
+            data.startsWith("data:") ||
+            data.startsWith("http://") ||
+            data.startsWith("https://") ||
+            data.startsWith("blob:")
+        ) {
+            return data
+        }
+
+        val ct = media.contentType.get().trim().ifEmpty {
+            field.outputType.trim().ifEmpty { "image/png" }
+        }
+
+        return "data:$ct;base64,$data"
     }
 
     private fun scheduleLivePreview() {
@@ -152,8 +175,8 @@ class ImageCropperDialog(
         window.requestAnimationFrame {
             livePending = false
             if (session.closed) return@requestAnimationFrame
-            val url = cropToDataUrl() ?: return@requestAnimationFrame
-            field.valueProperty.set(url)
+            val media = cropToMedia() ?: return@requestAnimationFrame
+            field.valueProperty.set(media)
         }
     }
 
@@ -424,7 +447,7 @@ class ImageCropperDialog(
         return Pt(x, y)
     }
 
-    private fun cropToDataUrl(): String? {
+    private fun cropToMedia(): Media? {
         val img = loadedImage ?: return null
 
         val r = (crop?.normalize() ?: defaultCrop()).normalize()
@@ -455,7 +478,54 @@ class ImageCropperDialog(
         val octx = outCanvas.getContext("2d")?.unsafeCast<CanvasRenderingContext2D>() ?: return null
         octx.drawImage(img, sx, sy, sw, sh, 0.0, 0.0, outW.toDouble(), outH.toDouble())
 
-        return outCanvas.toDataURL(field.outputType, field.outputQuality)
+        val dataUrl = outCanvas.toDataURL(field.outputType, field.outputQuality)
+        val data = base64FromDataUrl(dataUrl) ?: dataUrl
+
+        val thumbData = run {
+            val twMax = max(1, field.thumbnailMaxWidth)
+            val thMax = max(1, field.thumbnailMaxHeight)
+
+            val s = min(
+                1.0,
+                min(twMax.toDouble() / outW.toDouble(), thMax.toDouble() / outH.toDouble())
+            )
+
+            val tw = max(1, (outW.toDouble() * s).roundToInt())
+            val th = max(1, (outH.toDouble() * s).roundToInt())
+
+            thumbCanvas.width = tw
+            thumbCanvas.height = th
+
+            val tctx = thumbCanvas.getContext("2d")?.unsafeCast<CanvasRenderingContext2D>() ?: return@run ""
+            tctx.drawImage(outCanvas, 0.0, 0.0, outW.toDouble(), outH.toDouble(), 0.0, 0.0, tw.toDouble(), th.toDouble())
+
+            val url = thumbCanvas.toDataURL(field.outputType, field.outputQuality)
+            base64FromDataUrl(url) ?: url
+        }
+
+        val name = source.name.get()
+        val id = source.id.get()
+        val contentType = field.outputType
+
+        return Media(
+            id = Property(id),
+            name = Property(name),
+            contentType = Property(contentType),
+            data = Property(data),
+            thumbnail = Thumbnail(
+                id = Property(source.thumbnail.id.get()),
+                name = Property(source.thumbnail.name.get().ifBlank { name }),
+                contentType = Property(contentType),
+                data = Property(thumbData),
+            )
+        )
+    }
+
+    private fun base64FromDataUrl(dataUrl: String): String? {
+        if (!dataUrl.startsWith("data:")) return null
+        val comma = dataUrl.indexOf(',', startIndex = 5)
+        if (comma < 0) return null
+        return dataUrl.substring(comma + 1)
     }
 }
 
@@ -463,7 +533,7 @@ context(scope: NodeScope)
 fun imageCropperDialog(
     field: ImageCropper,
     windowConf: WindowConf,
-    source: String,
+    source: Media,
     session: ImageCropperSession,
 ): ImageCropperDialog {
     val el = scope.create<HTMLDivElement>("div")

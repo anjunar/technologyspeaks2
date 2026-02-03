@@ -16,6 +16,7 @@ class UserController {
 
     @GetMapping(value = ["/core/users/user/{id}"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
+    @Transactional
     fun read(@PathVariable("id") user : User): Data<User> {
 
         val form = Data(user, User.schema())
@@ -33,6 +34,7 @@ class UserController {
 
     @PutMapping(value = ["/core/users/user"], produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("User", "Administrator")
+    @Transactional
     fun update(@RequestBody user : User): Data<User> {
         val form = Data(user.merge(), User.schema())
 

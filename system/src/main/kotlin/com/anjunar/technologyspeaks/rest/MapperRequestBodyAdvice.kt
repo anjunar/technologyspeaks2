@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.converter.HttpMessageConverter
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice
 import java.lang.reflect.Type
@@ -33,6 +34,7 @@ class MapperRequestBodyAdvice(val entityManager: EntityManager) : RequestBodyAdv
         return inputMessage
     }
 
+    @Transactional
     override fun afterBodyRead(
         body: Any,
         inputMessage: HttpInputMessage,

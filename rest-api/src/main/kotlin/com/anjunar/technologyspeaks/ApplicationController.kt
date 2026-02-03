@@ -9,6 +9,7 @@ import com.anjunar.technologyspeaks.security.PasswordRegisterController
 import com.anjunar.technologyspeaks.security.WebAuthnLoginController
 import com.anjunar.technologyspeaks.security.WebAuthnRegisterController
 import jakarta.annotation.security.RolesAllowed
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -17,6 +18,7 @@ class ApplicationController(val identityHolder: IdentityHolder) {
 
     @GetMapping(value = [""], produces = ["application/json"])
     @RolesAllowed("Anonymous", "Guest",  "User", "Administrator")
+    @Transactional
     fun main() : Application {
 
         val application = Application(identityHolder.user)

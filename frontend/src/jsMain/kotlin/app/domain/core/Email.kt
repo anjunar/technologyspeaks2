@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Email(
     @Serializable(with = StringPropertySerializer::class)
+    val id : Property<String> = Property(""),
+    @Serializable(with = StringPropertySerializer::class)
     val value: Property<String> = Property("")
 ) {
 

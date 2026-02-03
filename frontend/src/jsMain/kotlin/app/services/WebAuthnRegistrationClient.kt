@@ -26,7 +26,7 @@ object WebAuthnRegistrationClient {
 
     suspend fun register(
         email: String,
-        nickname: String,
+        nickName: String,
         optionsUrl: String = "/service/security/register/options",
         finishUrl: String = "/service/security/register/finish"
     ): String {
@@ -39,11 +39,11 @@ object WebAuthnRegistrationClient {
         val optionsDyn = json.parseToJsonElement(optionsJsonText).toDynamic()
 
         val registrationResponse = startRegistration(
-            js("{ optionsJSON: optionsDyn, nickname: nickname, email: email }")
+            js("{ optionsJSON: optionsDyn, nickName: nickName, email: email }")
         ).await()
 
         // 3) response ans backend schicken
-        val finishBody = js("JSON.stringify(registrationResponse)")
+        val finishBody = js("JSON.stringify({optionsJSON: registrationResponse, nickName: nickName, email: email})")
         return postJsonText(
             url = finishUrl,
             body = finishBody.unsafeCast<String>()

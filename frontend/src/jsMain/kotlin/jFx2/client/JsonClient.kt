@@ -53,4 +53,17 @@ object JsonClient {
         ))
     }
 
+    suspend inline fun <reified I, reified O> put(url: String, entity : I): O {
+        val headers = Headers()
+        headers.set("Content-Type", "application/json")
+        headers.set("Accept", "application/json")
+
+        return invoke(url, RequestInit(
+            method = "PUT",
+            headers = headers,
+            body = Json.encodeToString(entity)
+        ))
+    }
+
+
 }

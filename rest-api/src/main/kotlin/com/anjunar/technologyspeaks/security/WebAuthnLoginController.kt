@@ -15,6 +15,7 @@ import com.webauthn4j.util.Base64UrlUtil
 import com.webauthn4j.verifier.exception.VerificationException
 import jakarta.annotation.security.RolesAllowed
 import jakarta.persistence.EntityManager
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -26,6 +27,7 @@ class WebAuthnLoginController(val store: CredentialStore, val entityManager: Ent
 
     @PostMapping("/security/login/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
+    @Transactional
     fun options(@RequestBody request: JsonObject): JsonObject {
         val username = request.getString("email")
 
@@ -54,6 +56,7 @@ class WebAuthnLoginController(val store: CredentialStore, val entityManager: Ent
 
     @PostMapping("/security/login/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
+    @Transactional
     fun finish(@RequestBody body : JsonObject) : JsonObject {
         val publicKeyCredential = body.getJsonObject("optionsJSON")
         val username = body.getString("email")

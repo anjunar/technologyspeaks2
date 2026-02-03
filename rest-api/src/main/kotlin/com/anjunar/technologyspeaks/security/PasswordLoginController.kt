@@ -5,6 +5,7 @@ import com.anjunar.technologyspeaks.core.EMail
 import com.anjunar.technologyspeaks.core.PasswordCredential
 import com.anjunar.technologyspeaks.core.User
 import jakarta.annotation.security.RolesAllowed
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -14,6 +15,7 @@ class PasswordLoginController(val sessionHolder: SessionHolder) {
 
     @PostMapping("/security/login", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
+    @Transactional
     fun login(@RequestBody jsonObject: JsonObject) : JsonObject {
 
         val email = jsonObject.getString("email")

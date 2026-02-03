@@ -1,5 +1,7 @@
 package jFx2.forms
 
+import app.domain.core.Media
+import app.domain.core.Thumbnail
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
@@ -23,13 +25,13 @@ class ImageCropper(
     val name: String,
     val ui: UiScope,
     override val node: HTMLDivElement,
-) : FormField<String?, HTMLDivElement>(), HasPlaceholder {
+) : FormField<Media?, HTMLDivElement>(), HasPlaceholder {
 
-    // Cropped (or original) result as Data URL (e.g. "data:image/png;base64,...")
-    val valueProperty = Property<String?>(null)
+    // Cropped (or original) result as Media (base64 in Media.data).
+    val valueProperty = Property<Media?>(null)
 
-    // Source image (Data URL) used for editing.
-    val sourceProperty = Property<String?>(null)
+    // Source image used for editing (original upload).
+    val sourceProperty = Property<Media?>(null)
 
     val fileProperty = Property<File?>(null)
 
@@ -49,9 +51,13 @@ class ImageCropper(
     var outputMaxWidth: Int? = null
     var outputMaxHeight: Int? = null
 
+    
+    var thumbnailMaxWidth: Int = 160
+    var thumbnailMaxHeight: Int = 160
+
     var windowTitle: String = "Crop Image"
 
-    private var defaultValue: String? = null
+    private var defaultData: String? = null
 
     private lateinit var fileInput: HTMLInputElement
     private lateinit var previewImg: HTMLImageElement
@@ -60,13 +66,13 @@ class ImageCropper(
 
     override var placeholder: String = ""
 
-    override fun observeValue(listener: (String?) -> Unit): Disposable = valueProperty.observe(listener)
+    override fun observeValue(listener: (Media?) -> Unit): Disposable = valueProperty.observe(listener)
 
-    override fun read(): String? = valueProperty.get()
+    override fun read(): Media? = valueProperty.get()
 
     context(scope: NodeScope)
     fun initialize() {
-        defaultValue = valueProperty.get()
+        defaultData = valueProperty.get()?.data?.get()
 
         node.classList.add("image-cropper")
         // Make the field focusable so it can emit "focus" status for InputContainer.
@@ -111,10 +117,11 @@ class ImageCropper(
             reader.onload = {
                 val src = reader.result as? String
                 if (src != null) {
-                    sourceProperty.set(src)
+                    val media = mediaFromFile(f, src)
+                    sourceProperty.set(media)
                     // Update the outside preview immediately; cropping happens in a window.
-                    valueProperty.set(src)
-                    openCropWindow(src)
+                    valueProperty.set(media)
+                    openCropWindow(media)
                 }
                 ui.build.flush()
             }
@@ -125,7 +132,8 @@ class ImageCropper(
 
         val onCropClick: (Event) -> Unit = onCropClick@{
             val src = sourceProperty.get() ?: valueProperty.get()
-            if (src.isNullOrBlank()) return@onCropClick
+            val data = src?.data?.get()
+            if (src == null || data.isNullOrBlank()) return@onCropClick
             openCropWindow(src)
             ui.build.flush()
         }
@@ -141,21 +149,23 @@ class ImageCropper(
 
         // Keep preview in sync even if external bindings set valueProperty directly.
         onDispose(valueProperty.observe { v ->
-            if (v.isNullOrBlank()) {
+            val preview = previewSrc(v)
+            if (preview.isNullOrBlank()) {
                 previewImg.removeAttribute("src")
             } else {
-                previewImg.src = v
+                previewImg.src = preview
             }
 
-            if (v.isNullOrBlank()) statusProperty.add(Status.empty.name) else statusProperty.remove(Status.empty.name)
-            if (v != defaultValue) statusProperty.add(Status.dirty.name) else statusProperty.remove(Status.dirty.name)
+            val currentData = v?.data?.get().orEmpty()
+            if (currentData.isBlank()) statusProperty.add(Status.empty.name) else statusProperty.remove(Status.empty.name)
+            if (currentData != defaultData.orEmpty()) statusProperty.add(Status.dirty.name) else statusProperty.remove(Status.dirty.name)
 
             validate()
         })
 
         // If the user sets value but not source, use it as the editable source image.
         onDispose(valueProperty.observe { v ->
-            if (!v.isNullOrBlank() && sourceProperty.get().isNullOrBlank()) {
+            if (v != null && sourceProperty.get() == null) {
                 sourceProperty.set(v)
             }
         })
@@ -171,8 +181,8 @@ class ImageCropper(
         }
     }
 
-    private fun openCropWindow(source: String) {
-        if (source.isBlank()) return
+    private fun openCropWindow(source: Media) {
+        if (source.data.get().isBlank()) return
 
         val session = ImageCropperSession(initialValue = valueProperty.get())
 
@@ -194,8 +204,71 @@ class ImageCropper(
         ViewPort.addWindow(conf)
     }
 
+    private fun mediaFromFile(file: File, dataUrl: String): Media {
+        val name = file.name
+        val contentType = file.type.takeIf { it.isNotBlank() }
+            ?: mimeTypeFromDataUrl(dataUrl).orEmpty()
+        val base64 = base64FromDataUrl(dataUrl) ?: dataUrl
+
+        return Media(
+            name = Property(name),
+            contentType = Property(contentType),
+            data = Property(base64),
+            thumbnail = Thumbnail(
+                name = Property(name),
+                contentType = Property(contentType),
+                data = Property(""),
+            )
+        )
+    }
+
+    private fun previewSrc(media: Media?): String? {
+        if (media == null) return null
+
+        val thumbData = media.thumbnail.data.get().takeIf { it.isNotBlank() }
+        if (thumbData != null) {
+            val ct = media.thumbnail.contentType.get().ifBlank { media.contentType.get() }
+            return toDataUrl(ct, thumbData)
+        }
+
+        val data = media.data.get()
+        if (data.isBlank()) return null
+        return toDataUrl(media.contentType.get(), data)
+    }
+
+    private fun toDataUrl(contentType: String, dataOrUrl: String): String? {
+        val data = dataOrUrl.trim()
+        if (data.isEmpty()) return null
+        if (
+            data.startsWith("data:") ||
+            data.startsWith("http://") ||
+            data.startsWith("https://") ||
+            data.startsWith("blob:")
+        ) {
+            return data
+        }
+        val ct = contentType.trim()
+        if (ct.isEmpty()) return null
+        return "data:$ct;base64,$data"
+    }
+
+    private fun mimeTypeFromDataUrl(dataUrl: String): String? {
+        if (!dataUrl.startsWith("data:")) return null
+        val semi = dataUrl.indexOf(';', startIndex = 5)
+        val comma = dataUrl.indexOf(',', startIndex = 5)
+        val end = listOf(semi, comma).filter { it > 5 }.minOrNull() ?: return null
+        return dataUrl.substring(5, end)
+    }
+
+    private fun base64FromDataUrl(dataUrl: String): String? {
+        if (!dataUrl.startsWith("data:")) return null
+        val comma = dataUrl.indexOf(',', startIndex = 5)
+        if (comma < 0) return null
+        return dataUrl.substring(comma + 1)
+    }
+
     private fun validate() {
-        val current = valueProperty.get().orEmpty()
+        val current = valueProperty.get()?.data?.get().orEmpty()
         val errors = validatorsProperty.get().filter { !it.validate(current) }
         if (errors.isNotEmpty()) {
             statusProperty.add(Status.invalid.name)

@@ -1,5 +1,6 @@
 package com.anjunar.technologyspeaks.core
 
+import com.anjunar.json.mapper.schema.DefaultWritableRule
 import com.anjunar.json.mapper.schema.EntitySchema
 import com.anjunar.json.mapper.schema.SchemaProvider
 import jakarta.json.bind.annotation.JsonbProperty
@@ -26,7 +27,6 @@ class Thumbnail(
 
     @NotBlank
     @Size(min = 2, max = 80)
-    @Column(unique = true)
     @JsonbProperty
     var name: String,
 
@@ -43,9 +43,9 @@ class Thumbnail(
     companion object : SchemaProvider {
 
         class Schema : EntitySchema<Thumbnail>() {
-            val name = property(Thumbnail::name)
-            val contentType = property(Thumbnail::contentType)
-            val data = property(Thumbnail::data)
+            val name = property(Thumbnail::name, DefaultWritableRule())
+            val contentType = property(Thumbnail::contentType, DefaultWritableRule())
+            val data = property(Thumbnail::data, DefaultWritableRule())
         }
 
     }

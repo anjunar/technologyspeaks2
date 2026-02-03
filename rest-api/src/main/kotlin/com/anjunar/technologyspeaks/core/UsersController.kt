@@ -6,6 +6,7 @@ import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
 import jakarta.annotation.security.RolesAllowed
 import jakarta.json.bind.annotation.JsonbProperty
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -14,6 +15,7 @@ class UsersController(val query: HibernateSearch) {
 
     @GetMapping(value = ["/core/users"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
+    @Transactional
     fun list(search: UserSearch): Table<UserRow> {
 
         val searchContext = query.searchContext(search)

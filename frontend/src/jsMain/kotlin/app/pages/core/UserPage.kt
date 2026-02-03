@@ -2,6 +2,7 @@ package app.pages.core
 
 import app.domain.core.Data
 import app.domain.core.User
+import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -16,6 +17,7 @@ import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.hbox
 import jFx2.router.PageInfo
+import jFx2.state.JobRegistry
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 
@@ -37,7 +39,15 @@ object UserPage {
             template {
                 form {
 
-                    imageCropper("avatar") {
+                    onSubmit {
+
+                        JobRegistry.instance.launch("Save User") {
+                            JsonClient.put("/service/core/users/user", model.get().data)
+                        }
+
+                    }
+
+                    imageCropper("image") {
                         aspectRatio = 1.0
                         outputType = "image/jpeg"
                         outputQuality = 0.92
@@ -45,8 +55,9 @@ object UserPage {
                         outputMaxHeight = 512
 
                         validatorsProperty.add(NotBlankValidator())
-                    }
 
+                        subscribeBidirectional(model.get().data.image, valueProperty)
+                    }
 
                     inputContainer("Nick Name") {
                         input("nickName") {
@@ -56,19 +67,19 @@ object UserPage {
 
                     inputContainer("First Name") {
                         input("firstName") {
-                            subscribeBidirectional(model.get().data.userInfo.firstName, valueProperty)
+                            subscribeBidirectional(model.get().data.info.firstName, valueProperty)
                         }
                     }
 
                     inputContainer("Last Name") {
                         input("lastName") {
-                            subscribeBidirectional(model.get().data.userInfo.lastName, valueProperty)
+                            subscribeBidirectional(model.get().data.info.lastName, valueProperty)
                         }
                     }
 
                     inputContainer("Birthdate") {
                         input("birthdate", "date") {
-                            subscribeBidirectional(model.get().data.userInfo.birthDate, valueProperty)
+                            subscribeBidirectional(model.get().data.info.birthDate, valueProperty)
                         }
                     }
 
