@@ -18,7 +18,8 @@ import kotlin.uuid.Uuid
 
 class WindowConf(
     val title : String,
-    val component : context(NodeScope) () -> Component<*>
+    val component : context(NodeScope) () -> Component<*>,
+    val onClose: (() -> Unit)? = null,
 ) {
     val id : String = Uuid.generateV4().toString()
 }
@@ -37,6 +38,7 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                     title = window.title
 
                     onClose {
+                        window.onClose?.invoke()
                         windows.remove(window)
                     }
 
@@ -59,6 +61,18 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
 
         fun addWindow(conf: WindowConf) {
             windows.add(conf)
+        }
+
+        fun closeWindow(conf: WindowConf) {
+            conf.onClose?.invoke()
+            windows.remove(conf)
+        }
+
+        fun closeWindowById(id: String) {
+            windows.firstOrNull { it.id == id }?.let {
+                it.onClose?.invoke()
+                windows.remove(it)
+            }
         }
     }
 

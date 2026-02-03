@@ -37,17 +37,16 @@ object UserPage {
             template {
                 form {
 
-                    inputContainer("Avatar") {
-                        imageCropper("avatar") {
-                            aspectRatio = 1.0
-                            outputType = "image/jpeg"
-                            outputQuality = 0.92
-                            outputMaxWidth = 512
-                            outputMaxHeight = 512
+                    imageCropper("avatar") {
+                        aspectRatio = 1.0
+                        outputType = "image/jpeg"
+                        outputQuality = 0.92
+                        outputMaxWidth = 512
+                        outputMaxHeight = 512
 
-                            validatorsProperty.add(NotBlankValidator())
-                        }
+                        validatorsProperty.add(NotBlankValidator())
                     }
+
 
                     inputContainer("Nick Name") {
                         input("nickName") {
