@@ -23,4 +23,9 @@
     position: absolute;
     left: 0;
     right: 0;
+
+    &.is-hidden {
+        display: none;
+    }
+
 }

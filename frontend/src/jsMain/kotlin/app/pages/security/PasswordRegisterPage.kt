@@ -1,8 +1,6 @@
 package app.pages.security
 
 import app.domain.security.PasswordRegister
-import app.domain.security.WebAuthnRegister
-import app.services.WebAuthnRegistrationClient
 import jFx2.client.JsonClient
 import jFx2.client.JsonResponse
 import jFx2.controls.button
@@ -18,14 +16,11 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
-import org.w3c.fetch.RequestInit
 
-class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Register"
     override val width: Int = -1

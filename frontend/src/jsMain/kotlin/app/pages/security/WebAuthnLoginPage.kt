@@ -15,13 +15,11 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 
-class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Login"
     override val width: Int = -1

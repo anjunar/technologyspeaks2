@@ -1,6 +1,9 @@
 package app
 
+import app.domain.core.Data
+import app.domain.core.User
 import app.pages.Home
+import app.pages.core.UserPage
 import app.pages.core.usersPage
 import app.pages.core.virtualListDemoPage
 import app.pages.homePage
@@ -11,6 +14,7 @@ import app.pages.security.passwordLoginPage
 import app.pages.security.passwordRegisterPage
 import app.pages.security.webAuthnLoginPage
 import app.pages.security.webAuthnRegisterPage
+import jFx2.client.JsonClient
 import jFx2.router.Route
 
 object Routes {
@@ -36,6 +40,15 @@ object Routes {
                         Route(
                             path = "users",
                             factory = { usersPage {} }
+                        ),
+                        Route(
+                            path = "user/:id",
+                            factory = { params ->
+                                val user = JsonClient.invoke<Data<User>>("/service/core/user/" + params["id"]!!)
+                                UserPage.page {
+                                    model(user)
+                                }
+                            }
                         ),
                         Route(
                             path = "virtual-list",

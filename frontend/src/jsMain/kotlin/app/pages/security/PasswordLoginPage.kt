@@ -1,9 +1,7 @@
 package app.pages.security
 
 import app.domain.security.PasswordLogin
-import app.domain.security.WebAuthnLogin
 import app.services.ApplicationService
-import app.services.WebAuthnLoginClient
 import jFx2.client.JsonClient
 import jFx2.client.JsonResponse
 import jFx2.controls.button
@@ -19,13 +17,11 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 
-class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Login"
     override val width: Int = -1

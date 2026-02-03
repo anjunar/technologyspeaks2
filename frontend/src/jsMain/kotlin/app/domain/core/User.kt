@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 class User(
     @Serializable(with = StringPropertySerializer::class)
+    val id : Property<String> = Property(""),
+    @Serializable(with = StringPropertySerializer::class)
     val nickName: Property<String> = Property(""),
     val userInfo: UserInfo = UserInfo(),
     @Serializable(with = ListPropertySerializer::class)

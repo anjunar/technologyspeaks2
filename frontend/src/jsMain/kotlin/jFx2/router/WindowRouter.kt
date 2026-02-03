@@ -1,25 +1,15 @@
 package jFx2.router
 
-import jFx2.layout.div
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.renderComponent
-import jFx2.core.dsl.style
-import jFx2.core.rendering.foreachAsync
 import jFx2.modals.ViewPort
 import jFx2.modals.WindowConf
-import jFx2.modals.window
 import jFx2.state.JobRegistry
-import jFx2.state.ListProperty
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val routes: List<Route>) : Component<HTMLDivElement>() {
@@ -33,7 +23,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                 val resolveRoutes = resolveRoutes(routes, window.location.pathname)
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!()
-                val page = component as Page
+                val page = component as PageInfo
                 ViewPort.addWindow(WindowConf(page.name, {component}))
             }
 

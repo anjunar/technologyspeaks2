@@ -1,34 +1,22 @@
 package app.pages.security
 
-import app.domain.security.PasswordLogin
-import app.domain.security.WebAuthnLogin
 import app.services.ApplicationService
-import app.services.WebAuthnLoginClient
-import jFx2.client.JsonClient
-import jFx2.client.JsonResponse
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
-import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
-import jFx2.forms.EmailValidator
-import jFx2.forms.SizeValidator
 import jFx2.forms.form
-import jFx2.forms.input
-import jFx2.forms.inputContainer
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
 import kotlinx.browser.window
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLDivElement
 import org.w3c.fetch.RequestInit
 
-class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Logout"
     override val width: Int = -1

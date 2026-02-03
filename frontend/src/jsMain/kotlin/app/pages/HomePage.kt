@@ -12,10 +12,10 @@ import jFx2.forms.editor.plugins.imagePlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.form
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import org.w3c.dom.HTMLDivElement
 
-class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Home"
     override val width: Int = -1

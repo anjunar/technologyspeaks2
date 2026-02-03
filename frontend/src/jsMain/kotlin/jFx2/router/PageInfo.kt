@@ -1,6 +1,6 @@
 package jFx2.router
 
-interface Page {
+interface PageInfo {
 
     val name : String
 

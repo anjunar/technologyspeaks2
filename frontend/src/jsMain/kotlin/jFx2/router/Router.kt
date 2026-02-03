@@ -29,7 +29,7 @@ class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: Lis
             val scope = CoroutineScope(SupervisorJob())
 
             scope.launch {
-                content.set(routeMatch.route.factory!!())
+                content.set(routeMatch.route.factory!!(routeMatch.params))
                 ui.build.flush()
             }
         }

@@ -7,7 +7,7 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.template
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import kotlinx.coroutines.delay
@@ -61,7 +61,7 @@ class DemoRangeProvider(
     }
 }
 
-class VirtualListDemoPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class VirtualListDemoPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Virtual List"
     override val width: Int = -1

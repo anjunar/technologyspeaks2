@@ -1,15 +1,17 @@
 package app.pages.core
 
-import jFx2.controls.text
+import app.domain.core.Data
+import app.domain.core.Table
+import app.domain.core.User
+import jFx2.client.JsonClient
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.template
 import jFx2.layout.div
-import jFx2.router.Page
+import jFx2.router.PageInfo
 import jFx2.state.Property
-import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
 import jFx2.table.LazyTableModel
 import jFx2.table.SortState
@@ -19,21 +21,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.w3c.dom.HTMLDivElement
 
-data class UserRow(val id: Property<Long>, val nick: Property<String>, val email: Property<String>)
-
-class UsersProvider : DataProvider<UserRow> {
+class UsersProvider : DataProvider<Data<User>> {
     override val totalCount = Property<Int?>(100_000)
     override val sortState: Property<SortState?> = Property(null)
 
-    override suspend fun loadRange(offset: Int, limit: Int): List<UserRow> {
-        // TODO: call backend. For now dummy:
-        return (offset until (offset + limit)).map {
-            UserRow(Property(it.toLong()), Property("User$it"), Property("user$it@example.com"))
-        }
+    override suspend fun loadRange(offset: Int, limit: Int): List<Data<User>> {
+        val table = JsonClient.invoke<Table<User>>("/service/core/users")
+
+        totalCount.set(table.size)
+
+        return table
+            .rows
     }
 }
 
-class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), Page {
+class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Users"
     override val width: Int = -1
@@ -53,39 +55,65 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                 className { "users-page-table" }
 
                 tableView(model, rowHeightPx = 28) {
+
                     columnProperty(
                         id = "id",
                         header = "ID",
                         prefWidthPx = 100,
-                        valueProperty = { it.id },
+                        valueProperty = { it.data.id },
                         cellFactory = {
                             val host = scope.create<HTMLDivElement>("div")
                             TextCell(host)
                         }
                     )
                     columnProperty(
-                        id = "nick",
-                        header = "Nick",
+                        id = "nickName",
+                        header = "Nick Name",
                         prefWidthPx = 200,
-                        valueProperty = { it.nick },
+                        valueProperty = { it.data.nickName },
                         cellFactory = {
                             val host = scope.create<HTMLDivElement>("div")
                             TextCell(host)
                         }
                     )
-                    columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
-                        ComponentCell(
-                            outerScope = scope,
-                            node = scope.create("div"),
-                            render = { row, idx, v ->
-                                template {
-                                    div {
-                                        text { v.toString() }
-                                    }
-                                }
-                            }
-                        )
-                    }
+
+                    columnProperty(
+                        id = "firstName",
+                        header = "First Name",
+                        prefWidthPx = 200,
+                        valueProperty = { it.data.userInfo.firstName },
+                        cellFactory = {
+                            val host = scope.create<HTMLDivElement>("div")
+                            TextCell(host)
+                        }
+                    )
+
+                    columnProperty(
+                        id = "lastName",
+                        header = "Last Name",
+                        prefWidthPx = 200,
+                        valueProperty = { it.data.userInfo.lastName },
+                        cellFactory = {
+                            val host = scope.create<HTMLDivElement>("div")
+                            TextCell(host)
+                        }
+                    )
+
+                    /*
+                                        columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
+                                            ComponentCell(
+                                                outerScope = scope,
+                                                node = scope.create("div"),
+                                                render = { row, idx, v ->
+                                                    template {
+                                                        div {
+                                                            text { v.toString() }
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        }
+                    */
                 }
             }
         }
