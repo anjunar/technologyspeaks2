@@ -15,6 +15,7 @@ import jFx2.forms.form
 import jFx2.forms.imageCropper
 import jFx2.forms.input
 import jFx2.forms.inputContainer
+import jFx2.forms.subForm
 import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
@@ -65,21 +66,46 @@ object UserPage {
                         }
                     }
 
-                    inputContainer("First Name") {
-                        input("firstName") {
-                            subscribeBidirectional(model.get().data.info.firstName, valueProperty)
+                    subForm("info") {
+                        inputContainer("First Name") {
+                            input("firstName") {
+                                subscribeBidirectional(model.get().data.info.firstName, valueProperty)
+                            }
+                        }
+
+                        inputContainer("Last Name") {
+                            input("lastName") {
+                                subscribeBidirectional(model.get().data.info.lastName, valueProperty)
+                            }
+                        }
+
+                        inputContainer("Birthdate") {
+                            input("birthdate", "date") {
+                                subscribeBidirectional(model.get().data.info.birthDate, valueProperty)
+                            }
                         }
                     }
 
-                    inputContainer("Last Name") {
-                        input("lastName") {
-                            subscribeBidirectional(model.get().data.info.lastName, valueProperty)
+                    subForm("address") {
+                        inputContainer("Street") {
+                            input("street") {
+                                subscribeBidirectional(model.get().data.address.street, valueProperty)
+                            }
                         }
-                    }
-
-                    inputContainer("Birthdate") {
-                        input("birthdate", "date") {
-                            subscribeBidirectional(model.get().data.info.birthDate, valueProperty)
+                        inputContainer("Number") {
+                            input("number") {
+                                subscribeBidirectional(model.get().data.address.number, valueProperty)
+                            }
+                        }
+                        inputContainer("Zip Code") {
+                            input("zipCode") {
+                                subscribeBidirectional(model.get().data.address.zipCode, valueProperty)
+                            }
+                        }
+                        inputContainer("Country") {
+                            input("country") {
+                                subscribeBidirectional(model.get().data.address.country, valueProperty)
+                            }
                         }
                     }
 

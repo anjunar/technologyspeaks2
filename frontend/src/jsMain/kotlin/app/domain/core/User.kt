@@ -16,11 +16,12 @@ class User(
     @Serializable(with = MediaPropertySerializer::class)
     val image : Property<Media?> = Property(Media()),
     val info: UserInfo = UserInfo(),
+    val address: Address = Address(),
     @Serializable(with = ListPropertySerializer::class)
     val emails: ListProperty<Email> = ListProperty()
 ) {
 
     override fun toString(): String {
-        return "User(nickname=${nickName.get()}, userInfo=${info}), emails=$emails"
+        return "User(id=$id, nickName=$nickName, image=$image, info=$info, address=$address, emails=$emails)"
     }
 }

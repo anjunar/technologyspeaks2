@@ -66,7 +66,6 @@ class ImageCropperDialog(
 
     private var livePending = false
     private val outCanvas: HTMLCanvasElement = document.createElement("canvas").unsafeCast<HTMLCanvasElement>()
-    private val thumbCanvas: HTMLCanvasElement = document.createElement("canvas").unsafeCast<HTMLCanvasElement>()
 
     private lateinit var canvas: HTMLCanvasElement
     private lateinit var applyBtn: HTMLButtonElement
@@ -481,37 +480,21 @@ class ImageCropperDialog(
         val dataUrl = outCanvas.toDataURL(field.outputType, field.outputQuality)
         val data = base64FromDataUrl(dataUrl) ?: dataUrl
 
-        val thumbData = run {
-            val twMax = max(1, field.thumbnailMaxWidth)
-            val thMax = max(1, field.thumbnailMaxHeight)
-
-            val s = min(
-                1.0,
-                min(twMax.toDouble() / outW.toDouble(), thMax.toDouble() / outH.toDouble())
-            )
-
-            val tw = max(1, (outW.toDouble() * s).roundToInt())
-            val th = max(1, (outH.toDouble() * s).roundToInt())
-
-            thumbCanvas.width = tw
-            thumbCanvas.height = th
-
-            val tctx = thumbCanvas.getContext("2d")?.unsafeCast<CanvasRenderingContext2D>() ?: return@run ""
-            tctx.drawImage(outCanvas, 0.0, 0.0, outW.toDouble(), outH.toDouble(), 0.0, 0.0, tw.toDouble(), th.toDouble())
-
-            val url = thumbCanvas.toDataURL(field.outputType, field.outputQuality)
-            base64FromDataUrl(url) ?: url
-        }
+        // Store the cropped image in Thumbnail (used for preview + persistence).
+        val thumbData = data
 
         val name = source.name.get()
         val id = source.id.get()
         val contentType = field.outputType
 
+        val sourceContentType = source.contentType.get().ifBlank { contentType }
+        val sourceData = source.data.get().let { base64FromDataUrl(it) ?: it }
+
         return Media(
             id = Property(id),
             name = Property(name),
-            contentType = Property(contentType),
-            data = Property(data),
+            contentType = Property(sourceContentType),
+            data = Property(sourceData),
             thumbnail = Thumbnail(
                 id = Property(source.thumbnail.id.get()),
                 name = Property(source.thumbnail.name.get().ifBlank { name }),

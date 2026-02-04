@@ -57,12 +57,12 @@ fun form(
         ElementInsertPoint(c.node)
     )
 
+    block(childScope, c)
+
     with(childScope) {
         scope.ui.build.afterBuild { c.initialize() }
     }
 
-
-    block(childScope, c)
     return c
 }
 
@@ -95,6 +95,10 @@ fun subForm(
         registerSubForm(index, c)
     } else {
         registerSubForm(namespace, c)
+    }
+
+    with(childScope) {
+        scope.ui.build.afterBuild { c.initialize() }
     }
 
 

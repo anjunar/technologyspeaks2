@@ -11,6 +11,10 @@ import com.anjunar.json.mapper.schema.VisibilityRule
 import com.anjunar.kotlin.universe.introspector.BeanIntrospector
 import com.anjunar.kotlin.universe.introspector.BeanProperty
 import jakarta.persistence.EntityGraph
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Subgraph
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
@@ -123,17 +127,19 @@ class BeanDeserializer : Deserializer<Any> {
         context: JsonContext,
         oldValue: Any?
     ) {
+        val instance = context.instance!!
         if (node == null) {
-            val collection = property.get(context.instance!!) as MutableCollection<*>
+            val collection = property.get(instance) as MutableCollection<Any?>
             collection.clear()
         } else {
             if (oldValue == null) {
                 throw IllegalStateException("Collection property must be initialized")
             } else {
                 val value = deserializeValue(property, oldValue, context, node)
-                val originalCollection = property.get(context.instance!!) as MutableCollection<Any>
+                val originalCollection = property.get(instance) as MutableCollection<Any>
                 originalCollection.clear()
                 originalCollection.addAll(value as Collection<Any>)
+                synchronizeBidirectionalRelations(instance, property, originalCollection)
             }
         }
     }
@@ -145,18 +151,161 @@ class BeanDeserializer : Deserializer<Any> {
         oldValue: Any?,
         propertyType: KClass<*>
     ) {
+        val instance = context.instance!!
         if (node == null) {
-            property.set(context.instance!!, null)
+            property.set(instance, null)
         } else {
             if (oldValue == null) {
                 val newInstance = propertyType.java.getConstructor().newInstance()
 
                 val value = deserializeValue(property, newInstance, context, node)
-                property.set(context.instance!!, value)
+                property.set(instance, value)
+                synchronizeBidirectionalRelations(instance, property, value)
             } else {
                 val value = deserializeValue(property, oldValue, context, node)
-                property.set(context.instance!!, value)
+                property.set(instance, value)
+                synchronizeBidirectionalRelations(instance, property, value)
             }
+        }
+    }
+
+    private fun synchronizeBidirectionalRelations(owner: Any, property: BeanProperty, value: Any?) {
+        if (value == null) return
+
+        val oneToOne = property.findAnnotation(OneToOne::class.java)
+        if (oneToOne != null) {
+            synchronizeOneToOne(owner, property, value, oneToOne)
+            return
+        }
+
+        val oneToMany = property.findAnnotation(OneToMany::class.java)
+        if (oneToMany != null) {
+            val values = value as? Iterable<*> ?: return
+            synchronizeOneToMany(owner, values, oneToMany)
+            return
+        }
+
+        val manyToOne = property.findAnnotation(ManyToOne::class.java)
+        if (manyToOne != null) {
+            synchronizeManyToOne(owner, property, value)
+            return
+        }
+
+        val manyToMany = property.findAnnotation(ManyToMany::class.java)
+        if (manyToMany != null) {
+            val values = value as? Iterable<*> ?: return
+            synchronizeManyToMany(owner, property, values, manyToMany)
+        }
+    }
+
+    private fun synchronizeOneToOne(owner: Any, property: BeanProperty, value: Any, oneToOne: OneToOne) {
+        val mappedBy = oneToOne.mappedBy
+        val otherModel = BeanIntrospector.createWithType(value.javaClass)
+
+        if (mappedBy.isNotBlank()) {
+            val owningSide = otherModel.findProperty(mappedBy) ?: return
+            setRelationIfNeeded(value, owningSide, owner)
+            return
+        }
+
+        val inverseSide = resolveInverseOneToOne(value, property.name, owner.javaClass) ?: return
+        setRelationIfNeeded(value, inverseSide, owner)
+    }
+
+    private fun synchronizeOneToMany(owner: Any, values: Iterable<*>, oneToMany: OneToMany) {
+        val mappedBy = oneToMany.mappedBy
+        if (mappedBy.isBlank()) return
+
+        for (element in values) {
+            if (element == null) continue
+            val elementModel = BeanIntrospector.createWithType(element.javaClass)
+            val owningSide = elementModel.findProperty(mappedBy) ?: continue
+            setRelationIfNeeded(element, owningSide, owner)
+        }
+    }
+
+    private fun synchronizeManyToOne(owner: Any, property: BeanProperty, value: Any) {
+        val inverseCollection = resolveInverseOneToMany(value, property.name, owner.javaClass) ?: return
+        addToCollectionIfNeeded(value, inverseCollection, owner)
+    }
+
+    private fun synchronizeManyToMany(owner: Any, property: BeanProperty, values: Iterable<*>, manyToMany: ManyToMany) {
+        val mappedBy = manyToMany.mappedBy
+
+        for (element in values) {
+            if (element == null) continue
+            val otherModel = BeanIntrospector.createWithType(element.javaClass)
+
+            val otherSideProperty =
+                if (mappedBy.isNotBlank()) {
+                    otherModel.findProperty(mappedBy)
+                } else {
+                    resolveInverseManyToMany(element, property.name, owner.javaClass)
+                }
+
+            if (otherSideProperty == null) continue
+            addToCollectionIfNeeded(element, otherSideProperty, owner)
+        }
+    }
+
+    private fun setRelationIfNeeded(instance: Any, property: BeanProperty, value: Any) {
+        if (!property.isWriteable) return
+        if (!property.propertyType.raw.isAssignableFrom(value.javaClass)) return
+
+        val existing = try {
+            property.get(instance)
+        } catch (_: Exception) {
+            null
+        }
+
+        if (existing !== value) {
+            property.set(instance, value)
+        }
+    }
+
+    private fun addToCollectionIfNeeded(instance: Any, property: BeanProperty, value: Any) {
+        if (!property.propertyType.kotlin.isSubclassOf(Collection::class)) return
+
+        val elementType = property.propertyType.typeArguments.firstOrNull()?.raw
+        if (elementType != null && !elementType.isAssignableFrom(value.javaClass)) return
+
+        val collection = try {
+            property.get(instance) as? MutableCollection<Any>
+        } catch (_: Exception) {
+            null
+        } ?: return
+
+        if (!collection.contains(value)) {
+            collection.add(value)
+        }
+    }
+
+    private fun resolveInverseOneToOne(target: Any, mappedBy: String, expectedType: Class<*>): BeanProperty? {
+        val targetModel = BeanIntrospector.createWithType(target.javaClass)
+        return targetModel.properties.firstOrNull { candidate ->
+            val annotation = candidate.findAnnotation(OneToOne::class.java) ?: return@firstOrNull false
+            if (annotation.mappedBy != mappedBy) return@firstOrNull false
+            candidate.propertyType.raw.isAssignableFrom(expectedType)
+        }
+    }
+
+    private fun resolveInverseOneToMany(target: Any, mappedBy: String, expectedElementType: Class<*>): BeanProperty? {
+        val targetModel = BeanIntrospector.createWithType(target.javaClass)
+        return targetModel.properties.firstOrNull { candidate ->
+            val annotation = candidate.findAnnotation(OneToMany::class.java) ?: return@firstOrNull false
+            if (annotation.mappedBy != mappedBy) return@firstOrNull false
+            val elementType = candidate.propertyType.typeArguments.firstOrNull()?.raw
+            elementType == null || elementType.isAssignableFrom(expectedElementType)
+        }
+    }
+
+    private fun resolveInverseManyToMany(target: Any, mappedBy: String, expectedElementType: Class<*>): BeanProperty? {
+        val targetModel = BeanIntrospector.createWithType(target.javaClass)
+        return targetModel.properties.firstOrNull { candidate ->
+            val annotation = candidate.findAnnotation(ManyToMany::class.java) ?: return@firstOrNull false
+            if (annotation.mappedBy != mappedBy) return@firstOrNull false
+            val elementType = candidate.propertyType.typeArguments.firstOrNull()?.raw
+            elementType == null || elementType.isAssignableFrom(expectedElementType)
         }
     }
 
