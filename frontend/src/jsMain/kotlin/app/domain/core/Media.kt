@@ -15,4 +15,18 @@ class Media(
     @Serializable(with = StringPropertySerializer::class)
     val data : Property<String> = Property(""),
     val thumbnail: Thumbnail = Thumbnail()
-)
+) {
+
+    fun dataUrl() : String {
+        return "data:${contentType.get()};base64,${data.get()}"
+    }
+
+    fun mediaLink() : String {
+        return "/service/core/media/${id.get()}"
+    }
+
+    fun thumbnailLink() : String {
+        return "/service/core/media/${id.get()}/thumbnail"
+    }
+
+}

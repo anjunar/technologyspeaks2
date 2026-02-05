@@ -15,5 +15,6 @@ class UsersLink(
 ) : Link() {
 
     override val name: String = "Users"
+    override val icon: String = "diversity_3"
 
 }

@@ -8,4 +8,8 @@ interface PageInfo {
 
     val height : Int
 
+    val resizable : Boolean
+    
+    var close : () -> Unit
+
 }

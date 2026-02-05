@@ -13,5 +13,6 @@ class WebAuthnRegisterLink(
     override val method : String = "GET") : Link() {
 
     override val name : String = "Register with WebAuthn"
+    override val icon: String = "how_to_reg"
 
 }

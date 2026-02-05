@@ -14,9 +14,9 @@ class SecurityInterceptor(val identityHolder: IdentityHolder) : HandlerIntercept
 
         return when (handler) {
             is HandlerMethod -> {
-                val rolesAllowed = handler.getMethodAnnotation(RolesAllowed::class.java)
+                val rolesAllowed = handler.getMethodAnnotation(RolesAllowed::class.java) ?: return true
 
-                rolesAllowed?.value?.any { identityHolder.hasRole(it) } ?: false
+                rolesAllowed.value.any { identityHolder.hasRole(it) }
             }
             else -> false
         }

@@ -2,8 +2,10 @@ package app
 
 import app.services.ApplicationService
 import jFx2.controls.link
+import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.dsl.className
+import jFx2.core.dsl.style
 import jFx2.core.rendering.dynamicOutlet
 import jFx2.core.rendering.foreach
 import jFx2.core.rendering.observeRender
@@ -54,13 +56,27 @@ fun main() {
 
                                     foreach(app.links, { key -> key.id }) { link, index ->
                                         link(link.url) {
-                                            text { link.name }
+                                            vbox {
+
+                                                style { alignItems = "center" }
+
+                                                span {
+                                                    className { "material-icons" }
+                                                    style {
+                                                        fontSize = "100px"
+                                                    }
+                                                    text { link.icon }
+                                                }
+                                                span {
+                                                    style { fontSize = "10px" }
+                                                    text {
+                                                        link.name
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
 
-                                    link("/core/virtual-list") {
-                                        text { "Virtual List Demo" }
-                                    }
                                 }
                             }
 

@@ -1,4 +1,4 @@
-@import "./app/Main.css";
+@import "./app/index.css";
 @import "./jFx/index.css";
 
 html[data-theme="light"] {
@@ -128,6 +128,12 @@ html[data-theme="dark"] {
     border: 1px solid var(--glass-border);
     box-shadow: 0 4px 20px var(--glass-shadow);
     border-radius: 1rem;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
 }
 
 * {

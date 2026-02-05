@@ -28,7 +28,9 @@ object UserPage {
         override val name: String = "User"
         override val width: Int = -1
         override val height: Int = -1
-
+        override val resizable: Boolean = false
+        override var close: () -> Unit = {}
+        
         val model = Property(Data(User()))
 
         fun model(data : Data<User>) {

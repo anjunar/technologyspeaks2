@@ -14,4 +14,10 @@ open class Thumbnail(
     val contentType : Property<String> = Property(""),
     @Serializable(with = StringPropertySerializer::class)
     val data : Property<String> = Property("")
-)
+) {
+
+    fun dataUrl() : String {
+        return "data:${contentType.get()};base64,${data.get()}"
+    }
+
+}

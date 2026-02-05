@@ -27,4 +27,20 @@ button {
             color: var(--color-background-primary);
         }
     }
+
+    &.btn-secondary {
+        width: 200px;
+        padding: 10px;
+        border-radius: 6px;
+        background-color: var(--color-background-secondary);
+        border : 1px solid var(--color-background-primary);
+    }
+
+    &.btn-danger {
+        width: 200px;
+        padding: 10px;
+        border-radius: 6px;
+        background-color: var(--color-error);
+        border : 1px solid var(--color-background-primary);
+    }
 }

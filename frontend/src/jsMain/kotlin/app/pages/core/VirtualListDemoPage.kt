@@ -66,6 +66,8 @@ class VirtualListDemoPage(override val node: HTMLDivElement) : Component<HTMLDiv
     override val name: String = "Virtual List"
     override val width: Int = -1
     override val height: Int = -1
+    override val resizable: Boolean = false
+    override var close: () -> Unit = {}
 
     context(scope: NodeScope)
     fun afterBuild() {

@@ -14,5 +14,6 @@ class WebAuthnLoginLink(
     override val method : String = "GET") : Link() {
 
     override val name : String = "Login with WebAuthn"
+    override val icon: String = "fingerprint"
 
 }

@@ -5,9 +5,12 @@ import com.anjunar.technologyspeaks.SpringContext
 import org.springframework.core.convert.TypeDescriptor
 import org.springframework.core.convert.converter.ConditionalGenericConverter
 import org.springframework.core.convert.converter.GenericConverter
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
+@Component
 class EntityConverter : ConditionalGenericConverter {
 
     override fun getConvertibleTypes(): Set<GenericConverter.ConvertiblePair> {
@@ -18,6 +21,7 @@ class EntityConverter : ConditionalGenericConverter {
         return targetType.type.kotlin.isSubclassOf(EntityProvider::class)
     }
 
+    @Transactional
     override fun convert(source: Any?, sourceType: TypeDescriptor, targetType: TypeDescriptor): Any? {
         if (source == null || (source as String).isBlank()) return null
 

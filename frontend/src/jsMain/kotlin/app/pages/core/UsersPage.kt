@@ -4,14 +4,18 @@ import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.core.User
 import jFx2.client.JsonClient
+import jFx2.controls.image
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.style
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
 import jFx2.state.Property
+import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
 import jFx2.table.LazyTableModel
 import jFx2.table.SortState
@@ -42,6 +46,8 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
     override val name: String = "Users"
     override val width: Int = -1
     override val height: Int = -1
+    override val resizable: Boolean = false
+    override var close: () -> Unit = {}
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -56,18 +62,26 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
             div {
                 className { "users-page-table" }
 
-                tableView(model, rowHeightPx = 28) {
+                tableView(model, rowHeightPx = 64) {
 
-                    columnProperty(
-                        id = "id",
-                        header = "ID",
-                        prefWidthPx = 100,
-                        valueProperty = { it.data.id },
-                        cellFactory = {
-                            val host = scope.create<HTMLDivElement>("div")
-                            TextCell(host)
-                        }
-                    )
+                    columnProperty("image", "Image", 160, valueProperty = { it.data.image }) {
+                        ComponentCell(
+                            outerScope = scope,
+                            node = scope.create("div"),
+                            render = { row, idx, v ->
+                                template {
+                                    image {
+                                        style {
+                                            height = "64px"
+                                            width = "64px"
+                                        }
+                                        src = v?.thumbnailLink()!!
+                                    }
+                                }
+                            }
+                        )
+                    }
+
                     columnProperty(
                         id = "nickName",
                         header = "Nick Name",
@@ -100,22 +114,6 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                             TextCell(host)
                         }
                     )
-
-                    /*
-                                        columnProperty("Email", "Email", 160, valueProperty = { it.email }) {
-                                            ComponentCell(
-                                                outerScope = scope,
-                                                node = scope.create("div"),
-                                                render = { row, idx, v ->
-                                                    template {
-                                                        div {
-                                                            text { v.toString() }
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        }
-                    */
 
                     onRowDoubleClick { user, _ ->
                         window.history.pushState(null, "", "/core/users/user/" + user.data.id.get())

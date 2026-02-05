@@ -17,7 +17,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 
 @Configuration
-class WebConfig(val securityInterceptor: SecurityInterceptor) : WebMvcConfigurer {
+class WebConfig(val securityInterceptor: SecurityInterceptor, val entityConverter: EntityConverter) : WebMvcConfigurer {
 
     override fun configureMessageConverters(builder: HttpMessageConverters.ServerBuilder) {
         builder.addCustomConverter(MapperHttpMessageConverter())
@@ -26,12 +26,12 @@ class WebConfig(val securityInterceptor: SecurityInterceptor) : WebMvcConfigurer
     }
 
     override fun addFormatters(registry: FormatterRegistry) {
-        registry.addConverter(EntityConverter())
+        registry.addConverter(entityConverter)
     }
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(securityInterceptor)
-            .addPathPatterns("service/*")
+            .addPathPatterns("/**")
             .order(Ordered.HIGHEST_PRECEDENCE + 10)
     }
 

@@ -15,5 +15,6 @@ class PasswordLoginLink(
 ) : Link() {
 
     override val name: String = "Login with Password"
+    override val icon: String = "login"
 
 }

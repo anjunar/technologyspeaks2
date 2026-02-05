@@ -12,7 +12,6 @@
     border-radius: 1rem;
 
     >.container {
-        padding: 10px;
         height: calc(100% - 54px);
         overflow: auto;
     }

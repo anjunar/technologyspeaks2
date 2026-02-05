@@ -13,11 +13,14 @@ import jFx2.core.dsl.renderFields
 import jFx2.core.rendering.condition
 import jFx2.core.template
 import kotlinx.browser.document
+import kotlinx.browser.window as browserWindow
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.unsafeCast
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class Window(
     override val node: HTMLDivElement,
@@ -30,9 +33,181 @@ class Window(
 
     var title : String = ""
 
+    var centerOnOpen: Boolean = true
+    private var didAutoCenter: Boolean = false
+
+    var rememberPosition: Boolean = true
+    var positionStorageKey: String? = null
+
+    var rememberSize: Boolean = true
+
     private var onClose: (() -> Unit)? = null
 
     fun onClose(block: () -> Unit) { onClose = block }
+
+    private fun resolvedPositionStorageKey(): String? {
+        if (!rememberPosition) return null
+        val raw = positionStorageKey?.trim().takeIf { !it.isNullOrBlank() }
+            ?: title.trim().takeIf { it.isNotBlank() }
+            ?: return null
+        return "jFx2.window.position:$raw"
+    }
+
+    private fun resolvedSizeStorageKey(): String? {
+        if (!rememberSize) return null
+        val raw = positionStorageKey?.trim().takeIf { !it.isNullOrBlank() }
+            ?: title.trim().takeIf { it.isNotBlank() }
+            ?: return null
+        return "jFx2.window.size:$raw"
+    }
+
+    private fun setLeftTopPx(left: Double, top: Double) {
+        val element = node as HTMLElement
+        element.style.left = "${left.roundToInt()}px"
+        element.style.top = "${top.roundToInt()}px"
+        element.style.right = ""
+        element.style.bottom = ""
+    }
+
+    fun restoreSizeFromStorage(force: Boolean = false): Boolean {
+        val key = resolvedSizeStorageKey() ?: return false
+        val element = node as HTMLElement
+
+        val raw = runCatching { browserWindow.localStorage?.getItem(key) }.getOrNull()?.trim()
+        if (raw.isNullOrBlank()) return false
+
+        val parts = raw.split(',')
+        if (parts.size != 2) return false
+
+        val storedWidth = parts[0].trim().toIntOrNull()?.takeIf { it > 0 }
+        val storedHeight = parts[1].trim().toIntOrNull()?.takeIf { it > 0 }
+        if (storedWidth == null && storedHeight == null) return false
+
+        var applied = false
+
+        if (storedWidth != null && (force || element.style.width.isBlank())) {
+            element.style.width = "${storedWidth}px"
+            applied = true
+        }
+
+        if (storedHeight != null && (force || element.style.height.isBlank())) {
+            element.style.height = "${storedHeight}px"
+            applied = true
+        }
+
+        return applied
+    }
+
+    fun restorePositionFromStorage(force: Boolean = false): Boolean {
+        val key = resolvedPositionStorageKey() ?: return false
+
+        val element = node as HTMLElement
+        if (!force) {
+            // Don't override explicitly set inline styles.
+            if (element.style.left.isNotBlank() || element.style.top.isNotBlank()) return false
+        }
+
+        val raw = runCatching { browserWindow.localStorage?.getItem(key) }.getOrNull()?.trim()
+        if (raw.isNullOrBlank()) return false
+
+        val parts = raw.split(',')
+        if (parts.size != 2) return false
+        val storedLeft = parts[0].trim().toIntOrNull() ?: return false
+        val storedTop = parts[1].trim().toIntOrNull() ?: return false
+
+        didAutoCenter = true
+        setLeftTopPx(max(0.0, storedLeft.toDouble()), max(0.0, storedTop.toDouble()))
+
+        fun attempt(triesLeft: Int) {
+            val width = element.offsetWidth
+            val height = element.offsetHeight
+
+            if ((width <= 0 || height <= 0) && triesLeft > 0) {
+                browserWindow.requestAnimationFrame { _ -> attempt(triesLeft - 1) }
+                return
+            }
+
+            val containerWidth = (element.offsetParent as? HTMLElement)?.clientWidth?.takeIf { it > 0 }?.toDouble()
+                ?: browserWindow.innerWidth.toDouble()
+            val containerHeight = (element.offsetParent as? HTMLElement)?.clientHeight?.takeIf { it > 0 }?.toDouble()
+                ?: browserWindow.innerHeight.toDouble()
+
+            val maxLeft = max(0.0, containerWidth - width.toDouble())
+            val maxTop = max(0.0, containerHeight - height.toDouble())
+
+            val left = storedLeft.toDouble().coerceIn(0.0, maxLeft)
+            val top = storedTop.toDouble().coerceIn(0.0, maxTop)
+
+            setLeftTopPx(left, top)
+        }
+
+        browserWindow.requestAnimationFrame { _ -> attempt(5) }
+        return true
+    }
+
+    private fun persistSizeToStorage() {
+        val key = resolvedSizeStorageKey() ?: return
+        val element = node as HTMLElement
+
+        fun pxToInt(value: String): Int? {
+            val v = value.trim()
+            if (v.isBlank()) return null
+            if (!v.endsWith("px")) return null
+            return v.removeSuffix("px").trim().toIntOrNull()
+        }
+
+        val width = pxToInt(element.style.width)
+        val height = pxToInt(element.style.height)
+
+        if (width == null && height == null) return
+
+        val payload = "${width ?: ""},${height ?: ""}"
+        runCatching { browserWindow.localStorage?.setItem(key, payload) }
+    }
+
+    private fun persistPositionToStorage() {
+        val key = resolvedPositionStorageKey() ?: return
+        val element = node as HTMLElement
+        val left = element.offsetLeft
+        val top = element.offsetTop
+        runCatching { browserWindow.localStorage?.setItem(key, "${left},${top}") }
+    }
+
+    private fun persistWindowStateToStorage() {
+        persistPositionToStorage()
+        persistSizeToStorage()
+    }
+
+    fun centerInViewport(force: Boolean = false) {
+        if (!force) {
+            if (!centerOnOpen || didAutoCenter) return
+
+            val element = node as HTMLElement
+            // If user code already positioned the window (inline style), don't override it.
+            if (element.style.left.isNotBlank() || element.style.top.isNotBlank()) return
+        }
+
+        val element = node as HTMLElement
+
+        fun attempt(triesLeft: Int) {
+            val width = element.offsetWidth
+            val height = element.offsetHeight
+
+            if ((width <= 0 || height <= 0) && triesLeft > 0) {
+                browserWindow.requestAnimationFrame { _ -> attempt(triesLeft - 1) }
+                return
+            }
+
+            val left = max(0.0, browserWindow.scrollX + (browserWindow.innerWidth - width) / 2.0)
+            val top = max(0.0, browserWindow.scrollY + (browserWindow.innerHeight - height) / 2.0)
+
+            setLeftTopPx(left, top)
+            didAutoCenter = true
+        }
+
+        browserWindow.requestAnimationFrame { _ -> attempt(5) }
+
+    }
 
     val dragElementMouseDown: (MouseEvent) -> Unit = { event ->
         val element = node as HTMLElement
@@ -63,6 +238,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (!maximizable && draggable) {
@@ -93,6 +269,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -129,6 +306,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -159,6 +337,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -196,6 +375,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -234,6 +414,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -265,6 +446,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -303,6 +485,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -334,6 +517,7 @@ class Window(
         closeDragElement = {
             document.removeEventListener("mouseup", closeDragElement)
             document.removeEventListener("mousemove", elementDrag)
+            persistWindowStateToStorage()
         }
 
         if (resizeable && !maximizable) {
@@ -376,14 +560,19 @@ class Window(
                 renderFields(*components)
             }
 
-            div { className { "se" }; mousedown { e -> seResizeMouseDown(e) } }
-            div { className { "sw" }; mousedown { e -> swResizeMouseDown(e) } }
-            div { className { "nw" }; mousedown { e -> nwResizeMouseDown(e) } }
-            div { className { "ne" }; mousedown { e -> neResizeMouseDown(e) } }
-            div { className { "n"  }; mousedown { e -> nResizeMouseDown(e)  } }
-            div { className { "s"  }; mousedown { e -> sResizeMouseDown(e)  } }
-            div { className { "w"  }; mousedown { e -> wResizeMouseDown(e)  } }
-            div { className { "e"  }; mousedown { e -> eResizeMouseDown(e)  } }
+            condition({resizeable}) {
+                then {
+                    div { className { "se" }; mousedown { e -> seResizeMouseDown(e) } }
+                    div { className { "sw" }; mousedown { e -> swResizeMouseDown(e) } }
+                    div { className { "nw" }; mousedown { e -> nwResizeMouseDown(e) } }
+                    div { className { "ne" }; mousedown { e -> neResizeMouseDown(e) } }
+                    div { className { "n"  }; mousedown { e -> nResizeMouseDown(e)  } }
+                    div { className { "s"  }; mousedown { e -> sResizeMouseDown(e)  } }
+                    div { className { "w"  }; mousedown { e -> wResizeMouseDown(e)  } }
+                    div { className { "e"  }; mousedown { e -> eResizeMouseDown(e)  } }
+                }
+            }
+
         }
     }
 }
@@ -407,6 +596,10 @@ fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
     scope.ui.build.afterBuild {
         with(childScope) {
             c.afterBuild()
+        }
+        c.restoreSizeFromStorage()
+        if (!c.restorePositionFromStorage()) {
+            c.centerInViewport()
         }
     }
 

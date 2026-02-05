@@ -20,6 +20,8 @@ class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), Pag
     override val name: String = "Home"
     override val width: Int = -1
     override val height: Int = -1
+    override val resizable: Boolean = false
+    override var close: () -> Unit = {}
 
     context(scope: NodeScope)
     fun afterBuild() {

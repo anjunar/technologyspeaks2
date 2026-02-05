@@ -24,7 +24,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!(routeMatch.params)
                 val page = component as PageInfo
-                ViewPort.addWindow(WindowConf(page.name, {component}))
+                ViewPort.addWindow(WindowConf(page.name, {component}, resizable = page.resizable))
             }
 
         }

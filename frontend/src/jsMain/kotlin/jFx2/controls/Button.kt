@@ -4,12 +4,18 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.dsl.renderFields
 import jFx2.state.Disposable
 import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.MouseEvent
 
 class Button(override val node: HTMLButtonElement, val ui : UiScope) : Component<HTMLButtonElement>() {
+
+    context(scope: NodeScope)
+    fun afterBuild() {
+        renderFields(*this@Button.children.toTypedArray())
+    }
 
     fun onClick(handler: (MouseEvent) -> Unit) {
         val h: (dynamic) -> Unit = { e ->
@@ -54,6 +60,10 @@ fun button(
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
     block(childScope, c)
+
+    scope.ui.build.afterBuild { with(childScope) {
+        c.afterBuild()
+    } }
 
     return c
 }

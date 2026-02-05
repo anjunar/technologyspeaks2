@@ -4,10 +4,14 @@ import app.domain.security.PasswordRegister
 import jFx2.client.JsonClient
 import jFx2.client.JsonResponse
 import jFx2.controls.button
+import jFx2.controls.heading
+import jFx2.controls.image
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
 import jFx2.forms.EmailValidator
@@ -16,8 +20,10 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 
 class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
@@ -25,6 +31,8 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
     override val name: String = "Register"
     override val width: Int = -1
     override val height: Int = -1
+    override val resizable: Boolean = false
+    override var close: () -> Unit = {}
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -38,42 +46,68 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                     JobRegistry.instance.launch("Password Register") {
                         val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
-                        println(post)
+                        close()
                     }
 
                 }
 
-                inputContainer("Nickname") {
-
-                    input("nickname") {
-                        validatorsProperty.add(SizeValidator(3, 20))
-                        subscribeBidirectional(registerForm.nickName, valueProperty)
+                image {
+                    style {
+                        width = "500px"
                     }
 
+                    src = "/app/security/register.png"
                 }
 
-                inputContainer("Email") {
+                hbox {
 
-                    input("email", "email") {
-                        validatorsProperty.add(EmailValidator())
-                        subscribeBidirectional(registerForm.email, valueProperty)
+                    style {
+                        justifyContent = "center"
                     }
 
-                }
-
-                inputContainer("Password") {
-
-                    input("password", "password") {
-                        validatorsProperty.add(SizeValidator(5, 30))
-                        subscribeBidirectional(registerForm.password, valueProperty)
+                    heading(3) {
+                        text { "Möchtest du dich Registrieren?" }
                     }
-
                 }
 
                 div {
-                    className { "button-container glass-border" }
 
-                    button("Register") { }
+                    style {
+                        padding = "20px"
+                    }
+
+                    inputContainer("Email") {
+
+                        input("email", "email") {
+                            validatorsProperty.add(EmailValidator())
+                            subscribeBidirectional(registerForm.email, valueProperty)
+                        }
+
+                    }
+
+                    inputContainer("Password") {
+
+                        input("password", "password") {
+                            validatorsProperty.add(SizeValidator(5, 30))
+                            subscribeBidirectional(registerForm.password, valueProperty)
+                        }
+
+                    }
+                }
+
+                div {
+                    className { "button-container" }
+
+                    button("Abbrechen") {
+                        onClick {
+                            close()
+                        }
+                        className { "btn-secondary" }
+                    }
+
+                    button("Registrieren") {
+                        className { "btn-danger" }
+                    }
                 }
 
             }

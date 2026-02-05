@@ -13,5 +13,6 @@ class PasswordRegisterLink(
     override val method : String = "GET") : Link() {
 
     override val name : String = "Register with Password"
+    override val icon: String = "app_registration"
 
 }

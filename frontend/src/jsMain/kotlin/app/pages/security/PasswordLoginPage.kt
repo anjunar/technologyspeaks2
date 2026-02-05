@@ -5,10 +5,14 @@ import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.client.JsonResponse
 import jFx2.controls.button
+import jFx2.controls.heading
+import jFx2.controls.image
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
 import jFx2.forms.EmailValidator
@@ -17,8 +21,10 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.state.JobRegistry
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 
 class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
@@ -26,6 +32,8 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
     override val name: String = "Login"
     override val width: Int = -1
     override val height: Int = -1
+    override val resizable: Boolean = false
+    override var close: () -> Unit = {}
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -42,34 +50,68 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                         ApplicationService.invoke()
 
-                        println(post)
+                        close()
                     }
 
                 }
 
-                inputContainer("Email") {
-
-                    input("email", "email") {
-                        validatorsProperty.add(EmailValidator())
-                        subscribeBidirectional(loginForm.email, valueProperty)
+                image {
+                    style {
+                        width = "500px"
                     }
 
+                    src = "/app/security/login.png"
                 }
 
-                inputContainer("Password") {
+                hbox {
 
-                    input("password", "password") {
-                        validatorsProperty.add(SizeValidator(5, 30))
-                        subscribeBidirectional(loginForm.password, valueProperty)
+                    style {
+                        justifyContent = "center"
                     }
 
+                    heading(3) {
+                        text { "Möchtest du dich anmelden?" }
+                    }
                 }
-
 
                 div {
-                    className { "button-container glass-border" }
 
-                    button("Login") { }
+                    style {
+                        padding = "20px"
+                    }
+
+                    inputContainer("Email") {
+
+                        input("email", "email") {
+                            validatorsProperty.add(EmailValidator())
+                            subscribeBidirectional(loginForm.email, valueProperty)
+                        }
+
+                    }
+
+                    inputContainer("Password") {
+
+                        input("password", "password") {
+                            validatorsProperty.add(SizeValidator(5, 30))
+                            subscribeBidirectional(loginForm.password, valueProperty)
+                        }
+
+                    }
+                }
+
+                div {
+                    className { "button-container" }
+
+                    button("Abbrechen") {
+                        onClick {
+                            close()
+                        }
+                        className { "btn-secondary" }
+                    }
+
+                    button("Anmelden") {
+                        className { "btn-danger" }
+                    }
                 }
 
             }

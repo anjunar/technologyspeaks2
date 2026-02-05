@@ -40,35 +40,3 @@ body {
 .users-page-table {
     height: 600px;
 }
-
-.virtual-list-demo {
-    height: 600px;
-    width: 100%;
-}
-
-.virtual-demo-item {
-    padding: 12px 14px;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
-    transition: background-color 120ms ease, transform 120ms ease;
-}
-
-.virtual-demo-item:hover {
-    background-color: rgba(255,255,255,0.06);
-    transform: translateY(-1px);
-}
-
-.virtual-demo-title {
-    font-weight: 600;
-    font-size: 14px;
-    letter-spacing: 0.2px;
-}
-
-.virtual-demo-body {
-    font-size: 12px;
-    opacity: 0.8;
-    line-height: 1.45;
-}

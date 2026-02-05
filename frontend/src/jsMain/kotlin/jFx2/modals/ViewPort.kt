@@ -11,6 +11,7 @@ import jFx2.core.dsl.style
 import jFx2.core.rendering.foreach
 import jFx2.core.template
 import jFx2.layout.div
+import jFx2.router.PageInfo
 import jFx2.state.ListProperty
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
@@ -20,6 +21,7 @@ class WindowConf(
     val title : String,
     val component : context(NodeScope) () -> Component<*>,
     val onClose: (() -> Unit)? = null,
+    val resizable: Boolean = false
 ) {
     val id : String = Uuid.generateV4().toString()
 }
@@ -33,9 +35,15 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
             renderFields(*this@ViewPort.children.toTypedArray())
 
             foreach(windows, { key -> key.id }) { window, index ->
+
+                val field = window.component()
+
+                (field as PageInfo).close = { closeWindowById(window.id) }
+
                 window {
 
                     title = window.title
+                    resizeable = window.resizable
 
                     onClose {
                         window.onClose?.invoke()
@@ -47,7 +55,7 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                             width = "100%"
                             height = "100%"
                         }
-                        renderComponent(window.component())
+                        renderComponent(field)
                     }
                 }
             }

@@ -15,5 +15,5 @@ class LogoutLink(
 ) : Link() {
 
     override val name: String = "Logout"
-
+    override val icon: String = "logout"
 }
