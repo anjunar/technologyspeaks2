@@ -25,7 +25,6 @@ import jFx2.forms.form
 import jFx2.router.PageInfo
 import jFx2.state.ListProperty
 import jFx2.virtual.RangeDataProvider
-import jFx2.virtual.ObservableRangeDataProvider
 import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
 import kotlin.math.min
@@ -35,7 +34,7 @@ object PostsPage {
     class PostRangeProvider(
         private val maxItems: Int = 5000,
         private val pageSize: Int = 50
-    ) : RangeDataProvider<Data<Post>?>, ObservableRangeDataProvider {
+    ) : RangeDataProvider<Data<Post>?> {
         private val items = ListProperty<Data<Post>>()
         private var reachedEnd: Boolean = false
 

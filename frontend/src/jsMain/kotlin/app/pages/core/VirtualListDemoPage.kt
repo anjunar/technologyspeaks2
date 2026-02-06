@@ -8,6 +8,9 @@ import jFx2.core.dsl.className
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
+import jFx2.state.CompositeDisposable
+import jFx2.state.Disposable
+import jFx2.state.ListChange
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import kotlinx.coroutines.delay
@@ -41,6 +44,10 @@ class DemoRangeProvider(
             val (title, body) = demoText(i)
             items += DemoItem(i, title, body)
         }
+    }
+
+    override fun observeChanges(listener: (ListChange<*>) -> Unit): Disposable {
+        return CompositeDisposable()
     }
 
     override fun getOrNull(index: Int): DemoItem = items[index]

@@ -112,7 +112,7 @@ class VirtualListView<T>(
         val resize = windowResizeListener()
         onDispose(resize)
 
-        (dataProvider as? ObservableRangeDataProvider)?.let { observable ->
+        dataProvider.let { observable ->
             val d = observable.observeChanges(::onProviderChange)
             onDispose(d)
         }

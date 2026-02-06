@@ -9,4 +9,6 @@ interface RangeDataProvider<T> {
     suspend fun ensureRange(from: Int, toInclusive: Int)
 
     fun getOrNull(index: Int): T
+
+    fun observeChanges(listener: (jFx2.state.ListChange<*>) -> Unit): jFx2.state.Disposable
 }
