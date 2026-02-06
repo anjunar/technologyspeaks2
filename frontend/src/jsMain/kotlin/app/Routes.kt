@@ -2,6 +2,7 @@ package app
 
 import app.domain.core.Data
 import app.domain.core.User
+import app.domain.time.Post
 import app.pages.Home
 import app.pages.core.UserPage
 import app.pages.core.usersPage
@@ -30,12 +31,20 @@ object Routes {
                     path = "timeline",
                     children = listOf(
                         Route(
-                            path = "post",
-                            factory = { postPage { } }
-                        ),
-                        Route(
                             path = "posts",
-                            factory = { PostsPage.page { } }
+                            factory = { PostsPage.page { } },
+                            children = listOf(
+                                Route(
+                                    path = "post/:id",
+                                    factory = { params ->
+                                        val post =
+                                            JsonClient.invoke<Data<Post>>("/service/timeline/posts/post/" + params["id"]!!)
+                                        postPage {
+                                            model(post)
+                                        }
+                                    }
+                                )
+                            )
                         )
                     )
                 ),

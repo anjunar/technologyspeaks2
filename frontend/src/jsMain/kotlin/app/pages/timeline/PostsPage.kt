@@ -3,6 +3,7 @@ package app.pages.timeline
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
+import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.heading
@@ -36,8 +37,8 @@ import org.w3c.dom.HTMLDivElement
 object PostsPage {
 
     class PostRangeProvider(
-        private val maxItems: Int = 5000,
-        private val pageSize: Int = 50
+        val maxItems: Int = 5000,
+        val pageSize: Int = 50
     ) : RangeDataProvider<Data<Post>> by AppendRangeDataProvider(
         pageSize = pageSize,
         maxItems = maxItems,
@@ -62,6 +63,15 @@ object PostsPage {
 
             val formular = Post()
 
+            onDispose(
+                ApplicationService.messageBus.subscribe { msg ->
+                    when (msg) {
+                        is ApplicationService.Message.PostCreated -> upsertPost(provider, msg.post, isCreated = true)
+                        is ApplicationService.Message.PostUpdated -> upsertPost(provider, msg.post, isCreated = false)
+                    }
+                }
+            )
+
             template {
 
                 form {
@@ -69,6 +79,7 @@ object PostsPage {
                     onSubmit {
 
                         val response : Data<Post> = JsonClient.post("/service/timeline/posts/post", formular)
+                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(response))
 
                     }
 
@@ -116,7 +127,7 @@ object PostsPage {
                                 className { "glass-border" }
 
                                 postHeader {
-                                    subscribeBidirectional(item.data.user!!, model)
+                                    model(item)
                                 }
 
                                 editorView("editor") {
@@ -143,6 +154,34 @@ object PostsPage {
             }
         }
 
+    }
+
+    private fun upsertPost(
+        provider: PostRangeProvider,
+        post: Data<Post>,
+        isCreated: Boolean
+    ) {
+        val id = post.data.id?.get() ?: return
+
+        val items = provider.items
+        val existingIndex = items.indexOfFirst { it.data.id?.get() == id }
+        if (existingIndex >= 0) {
+            items[existingIndex] = post
+            return
+        }
+
+        if (!isCreated) return
+
+        items.add(0, post)
+
+        provider.totalCount.get()?.let { current ->
+            val next = if (current < provider.maxItems) current + 1 else current
+            provider.totalCount.set(next)
+        }
+
+        provider.totalCount.get()?.let { max ->
+            while (items.size > max) items.removeAt(items.lastIndex)
+        }
     }
 
     context(scope: NodeScope)

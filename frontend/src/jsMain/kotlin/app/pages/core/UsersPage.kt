@@ -14,6 +14,8 @@ import jFx2.core.dsl.style
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
+import jFx2.router.navigate
+import jFx2.router.navigateByRel
 import jFx2.state.Property
 import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
@@ -116,8 +118,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                     )
 
                     onRowDoubleClick { user, _ ->
-                        window.history.pushState(null, "", "/core/users/user/" + user.data.id.get())
-                        window.dispatchEvent(CustomEvent("popstate"))
+                        navigateByRel("read", user.links) { navigate -> navigate() }
                     }
                 }
             }

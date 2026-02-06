@@ -1,5 +1,6 @@
 package jFx2.router
 
+import app.domain.core.Link
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
@@ -10,6 +11,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.w3c.dom.CustomEvent
 import org.w3c.dom.HTMLDivElement
 
 class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route>) :
@@ -64,3 +66,16 @@ fun router(routes: List<Route>, block: context(NodeScope) Router.() -> Unit = {}
 
     return c
 }
+
+fun navigateByRel(rel : String, links : List<Link>, body : (() -> Unit) -> Unit) {
+    val find = links.find { it.rel == rel }
+    if (find != null) {
+        body { navigate(find.url) }
+    }
+}
+
+fun navigate(url: String) {
+    window.history.pushState(null, "", url)
+    window.dispatchEvent(CustomEvent("popstate"))
+}
+

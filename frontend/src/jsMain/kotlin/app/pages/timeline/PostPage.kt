@@ -35,7 +35,11 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
     override val resizable: Boolean = true
     override var close: () -> Unit = {}
 
-    val model = Data(Post(user = Property(ApplicationService.app.get().user)))
+    private val model = Property(Data(Post(user = Property(ApplicationService.app.get().user))))
+
+    fun model(value : Data<Post>) {
+        model.set(value)
+    }
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -45,11 +49,13 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
             form {
 
                 onSubmit {
-                    if (model.data.id == null) {
-                        JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", model.data)
+                    if (model.get().data.id == null) {
+                        val saved = JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", model.get().data)
+                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(saved))
                         close()
                     } else {
-                        JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", model.data)
+                        val saved = JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", model.get().data)
+                        ApplicationService.messageBus.publish(ApplicationService.Message.PostUpdated(saved))
                         close()
                     }
                 }
@@ -61,7 +67,7 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                 vbox {
                     postHeader {
-                        subscribeBidirectional(this@PostPage.model.data.user!!, model)
+                        model(model.get())
                     }
 
                     editor("editor") {
@@ -75,7 +81,7 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                         linkPlugin { }
                         imagePlugin { }
 
-                        subscribeBidirectional(model.data.editor, valueProperty)
+                        subscribeBidirectional(model.get().data.editor, valueProperty)
                     }
 
                     button("Senden") {
