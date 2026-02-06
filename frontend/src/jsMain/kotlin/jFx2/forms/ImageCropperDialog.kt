@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package jFx2.forms
 
 import app.domain.core.Media
@@ -21,6 +23,8 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 private data class CropRect(
     val x: Double,
@@ -484,19 +488,19 @@ class ImageCropperDialog(
         val thumbData = data
 
         val name = source.name.get()
-        val id = source.id.get()
+        val id = source.id?.get()
         val contentType = field.outputType
 
         val sourceContentType = source.contentType.get().ifBlank { contentType }
         val sourceData = source.data.get().let { base64FromDataUrl(it) ?: it }
 
         return Media(
-            id = Property(id),
+            id = Property(id?: Uuid.generateV4().toString()),
             name = Property(name),
             contentType = Property(sourceContentType),
             data = Property(sourceData),
             thumbnail = Thumbnail(
-                id = Property(source.thumbnail.id.get()),
+                id = Property(source.thumbnail.id?.get() ?: Uuid.generateV4().toString()),
                 name = Property(source.thumbnail.name.get().ifBlank { name }),
                 contentType = Property(contentType),
                 data = Property(thumbData),

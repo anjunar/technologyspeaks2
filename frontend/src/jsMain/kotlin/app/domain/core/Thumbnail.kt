@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 open class Thumbnail(
     @Serializable(with = PropertySerializer::class)
-    val id : Property<String> = Property(""),
+    val id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val name : Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)

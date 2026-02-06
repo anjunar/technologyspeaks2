@@ -3,7 +3,6 @@ package app.pages.timeline
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
-import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.heading
@@ -28,27 +27,60 @@ import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
-import jFx2.virtual.AppendRangeDataProvider
 import jFx2.virtual.RangeDataProvider
-import jFx2.virtual.RangePage
 import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
+import kotlin.math.min
 
 object PostsPage {
 
     class PostRangeProvider(
-        val maxItems: Int = 5000,
-        val pageSize: Int = 50
-    ) : RangeDataProvider<Data<Post>> by AppendRangeDataProvider(
-        pageSize = pageSize,
-        maxItems = maxItems,
-        fetch = { index, limit ->
-            val table = JsonClient.invoke<Table<Post>>(
-                "/service/timeline/posts?index=$index&limit=$limit&sort=created:desc"
-            )
-            RangePage(rows = table.rows, totalCount = table.size)
+        private val maxItems: Int = 5000,
+        private val pageSize: Int = 50
+    ) : RangeDataProvider<Data<Post>> {
+        private val items = ArrayList<Data<Post>>()
+        private var reachedEnd: Boolean = false
+
+        override val hasKnownCount: Boolean = false
+        override val knownCount: Int = 0
+
+        override val endReached: Boolean
+            get() = reachedEnd || items.size >= maxItems
+
+        override val loadedCount: Int
+            get() = items.size
+
+        override suspend fun ensureRange(from: Int, toInclusive: Int) {
+            if (endReached) return
+            if (toInclusive < 0) return
+            if (toInclusive < items.size) return
+
+            val target = min(toInclusive, maxItems - 1)
+
+            while (items.size <= target && !reachedEnd) {
+                val remaining = target - items.size + 1
+                val limit = min(pageSize, remaining)
+                if (limit <= 0) return
+
+                val table = JsonClient.invoke<Table<Post>>("/service/timeline/posts?index=${items.size}&limit=$limit&sort=created:desc")
+
+                if (table.rows.isEmpty()) {
+                    reachedEnd = true
+                    return
+                }
+
+                items += table.rows
+
+                if (table.rows.size < limit) {
+                    reachedEnd = true
+                    return
+                }
+            }
         }
-    )
+
+        override fun getOrNull(index: Int): Data<Post> = items[index]
+
+    }
 
     class Page(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
         override val name: String = "Posts"
@@ -63,15 +95,6 @@ object PostsPage {
 
             val formular = Post()
 
-            onDispose(
-                ApplicationService.messageBus.subscribe { msg ->
-                    when (msg) {
-                        is ApplicationService.Message.PostCreated -> upsertPost(provider, msg.post, isCreated = true)
-                        is ApplicationService.Message.PostUpdated -> upsertPost(provider, msg.post, isCreated = false)
-                    }
-                }
-            )
-
             template {
 
                 form {
@@ -79,7 +102,6 @@ object PostsPage {
                     onSubmit {
 
                         val response : Data<Post> = JsonClient.post("/service/timeline/posts/post", formular)
-                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(response))
 
                     }
 
@@ -110,15 +132,6 @@ object PostsPage {
                     overscanPx = 240,
                     prefetchItems = 80,
                     renderer = { item, index ->
-                        if (item == null) {
-                            template {
-                                div {
-                                    className { "glass-border" }
-                                    text("Loading...")
-                                }
-                            }
-                            return@virtualList
-                        }
 
                         template {
 
@@ -154,34 +167,6 @@ object PostsPage {
             }
         }
 
-    }
-
-    private fun upsertPost(
-        provider: PostRangeProvider,
-        post: Data<Post>,
-        isCreated: Boolean
-    ) {
-        val id = post.data.id?.get() ?: return
-
-        val items = provider.items
-        val existingIndex = items.indexOfFirst { it.data.id?.get() == id }
-        if (existingIndex >= 0) {
-            items[existingIndex] = post
-            return
-        }
-
-        if (!isCreated) return
-
-        items.add(0, post)
-
-        provider.totalCount.get()?.let { current ->
-            val next = if (current < provider.maxItems) current + 1 else current
-            provider.totalCount.set(next)
-        }
-
-        provider.totalCount.get()?.let { max ->
-            while (items.size > max) items.removeAt(items.lastIndex)
-        }
     }
 
     context(scope: NodeScope)

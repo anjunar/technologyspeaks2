@@ -61,11 +61,13 @@ internal class VirtualTableFlow<R>(
             val vp = col.valueProperty
             if (vp != null) {
                 val prop = vp(rowItem)
-                val d = prop.observe { v ->
-                    currentValue = v
-                    cell.update(rowItem, rowIndex, v, false, selected, focused)
+                if (prop != null) {
+                    val d = prop.observe { v ->
+                        currentValue = v
+                        cell.update(rowItem, rowIndex, v, false, selected, focused)
+                    }
+                    bindings.add(d)
                 }
-                bindings.add(d)
             } else {
                 @Suppress("UNCHECKED_CAST")
                 val vf = col.value as (R) -> V

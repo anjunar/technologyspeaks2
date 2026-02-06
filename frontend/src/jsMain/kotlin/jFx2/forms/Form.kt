@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalJsReflectionCreateInstance::class)
+
 package jFx2.forms
 
 import jFx2.core.Component
@@ -9,6 +11,8 @@ import jFx2.core.dsl.registerSubForm
 import jFx2.core.dsl.renderFields
 import jFx2.state.JobRegistry
 import org.w3c.dom.HTMLFormElement
+import kotlin.reflect.KClass
+import kotlin.reflect.createInstance
 
 class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), Formular {
 
@@ -74,29 +78,36 @@ fun form(
 }
 
 context(scope: NodeScope)
-fun subForm(
+fun <E : Any>subForm(
     namespace: String = "",
     index : Int = -1,
-    block: context(NodeScope) Form.() -> Unit
+    model : E?,
+    clazz : KClass<E>,
+    block: context(NodeScope) Form.(E) -> Unit
 ): Form {
     val el = scope.create<HTMLFormElement>("fieldset")
+
+    val newModel = if (model == null) {
+        el.setAttribute("disabled", "true")
+        clazz.createInstance()
+    } else {
+        model
+    }
+
 
     val c = Form(el)
     scope.attach(c)
 
-    val formContextParent = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
-    val formContext = FormContext(formContextParent, if (index > -1) index.toString() else namespace)
     val childScope = scope.fork(
         parent = c.node,
         owner = c,
         ctx = scope.ctx.fork().also {
-            it.set(FormContextKey, formContext)
             it.set(FormOwnerKey, c)
         },
         ElementInsertPoint(c.node)
     )
 
-    block(childScope, c)
+    block(childScope, c, newModel)
 
     if (index > -1) {
         registerSubForm(index, c)

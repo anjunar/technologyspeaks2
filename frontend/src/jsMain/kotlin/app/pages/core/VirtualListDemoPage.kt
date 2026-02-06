@@ -8,38 +8,42 @@ import jFx2.core.dsl.className
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
-import jFx2.state.ListProperty
-import jFx2.state.Property
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import kotlinx.coroutines.delay
 import org.w3c.dom.HTMLDivElement
-import kotlin.math.min
 
 data class DemoItem(val id: Int, val title: String, val body: String)
 
 class DemoRangeProvider(
     private val maxItems: Int = 5000
 ) : RangeDataProvider<DemoItem> {
-    override val items: ListProperty<DemoItem> = ListProperty()
-    override val totalCount: Property<Int?> = Property(maxItems)
+    private val items = ArrayList<DemoItem>()
+
+    override val hasKnownCount: Boolean = false
+    override val knownCount: Int = 0
+
+    override val endReached: Boolean
+        get() = items.size >= maxItems
+
+    override val loadedCount: Int
+        get() = items.size
 
     override suspend fun ensureRange(from: Int, toInclusive: Int) {
+        if (endReached) return
         if (toInclusive < 0) return
+        if (toInclusive < items.size) return
 
-        val target = min(toInclusive, maxItems - 1)
-        if (target < items.size) return
-
+        val target = kotlin.math.min(toInclusive, maxItems - 1)
         delay(30)
 
-        val start = items.size
-        val batch = ArrayList<DemoItem>(target - start + 1)
-        for (i in start..target) {
+        for (i in items.size..target) {
             val (title, body) = demoText(i)
-            batch += DemoItem(i, title, body)
+            items += DemoItem(i, title, body)
         }
-        items.addAll(batch)
     }
+
+    override fun getOrNull(index: Int): DemoItem = items[index]
 
     private fun demoText(i: Int): Pair<String, String> {
         val title = "Item #$i"

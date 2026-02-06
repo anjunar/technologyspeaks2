@@ -1,7 +1,9 @@
 package app.pages.core
 
+import app.domain.core.Address
 import app.domain.core.Data
 import app.domain.core.User
+import app.domain.core.UserInfo
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
@@ -9,6 +11,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.rendering.condition
 import jFx2.core.template
 import jFx2.forms.NotBlankValidator
 import jFx2.forms.form
@@ -68,45 +71,45 @@ object UserPage {
                         }
                     }
 
-                    subForm("info") {
+                    subForm("info", model = model.get().data.info, clazz = UserInfo::class) { form ->
                         inputContainer("First Name") {
                             input("firstName") {
-                                subscribeBidirectional(model.get().data.info.firstName, valueProperty)
+                                subscribeBidirectional(form.firstName, valueProperty)
                             }
                         }
 
                         inputContainer("Last Name") {
                             input("lastName") {
-                                subscribeBidirectional(model.get().data.info.lastName, valueProperty)
+                                subscribeBidirectional(form.lastName, valueProperty)
                             }
                         }
 
                         inputContainer("Birthdate") {
                             input("birthdate", "date") {
-                                subscribeBidirectional(model.get().data.info.birthDate, valueProperty)
+                                subscribeBidirectional(form.birthDate, valueProperty)
                             }
                         }
                     }
 
-                    subForm("address") {
+                    subForm("address", model = model.get().data.address, clazz = Address::class) { form ->
                         inputContainer("Street") {
                             input("street") {
-                                subscribeBidirectional(model.get().data.address.street, valueProperty)
+                                subscribeBidirectional(form.street, valueProperty)
                             }
                         }
                         inputContainer("Number") {
                             input("number") {
-                                subscribeBidirectional(model.get().data.address.number, valueProperty)
+                                subscribeBidirectional(form.number, valueProperty)
                             }
                         }
                         inputContainer("Zip Code") {
                             input("zipCode") {
-                                subscribeBidirectional(model.get().data.address.zipCode, valueProperty)
+                                subscribeBidirectional(form.zipCode, valueProperty)
                             }
                         }
                         inputContainer("Country") {
                             input("country") {
-                                subscribeBidirectional(model.get().data.address.country, valueProperty)
+                                subscribeBidirectional(form.country, valueProperty)
                             }
                         }
                     }

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Media(
     @Serializable(with = PropertySerializer::class)
-    val id : Property<String> = Property(""),
+    val id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val name : Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
@@ -23,11 +23,11 @@ class Media(
     }
 
     fun mediaLink() : String {
-        return "/service/core/media/${id.get()}"
+        return "/service/core/media/${id?.get()}"
     }
 
     fun thumbnailLink() : String {
-        return "/service/core/media/${id.get()}/thumbnail"
+        return "/service/core/media/${id?.get()}/thumbnail"
     }
 
 }

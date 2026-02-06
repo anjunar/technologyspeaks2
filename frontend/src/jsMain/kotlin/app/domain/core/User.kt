@@ -10,13 +10,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 class User(
     @Serializable(with = PropertySerializer::class)
-    val id : Property<String> = Property(""),
+    val id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val nickName: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
     val image : Property<Media?> = Property(Media()),
-    val info: UserInfo = UserInfo(),
-    val address: Address = Address(),
+    val info: UserInfo? = null,
+    val address: Address? = null,
     @Serializable(with = ListPropertySerializer::class)
     val emails: ListProperty<Email> = ListProperty()
 ) {

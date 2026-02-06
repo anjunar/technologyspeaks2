@@ -12,7 +12,7 @@ class Column<R, V>(
     val prefWidthPx: Int = 160,
 
     val value: ((R) -> V)? = null,
-    val valueProperty: ((R) -> ReadOnlyProperty<V>)? = null,
+    val valueProperty: ((R) -> ReadOnlyProperty<V>?)? = null,
 
     val sortable: Boolean = true,
     val cellFactory: context(NodeScope) () -> TableCell<R, V>
