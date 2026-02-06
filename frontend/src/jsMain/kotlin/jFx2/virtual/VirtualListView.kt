@@ -6,6 +6,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.state.Disposable
+import jFx2.state.ListChange
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -111,6 +112,11 @@ class VirtualListView<T>(
         val resize = windowResizeListener()
         onDispose(resize)
 
+        (dataProvider as? ObservableRangeDataProvider)?.let { observable ->
+            val d = observable.observeChanges(::onProviderChange)
+            onDispose(d)
+        }
+
         scheduleRender()
         // Initial prefetch
         requestRange(from = 0, toInclusiveRaw = prefetchItems)
@@ -177,6 +183,40 @@ class VirtualListView<T>(
             // maintain prefix invariant: prefix size == heights size + 1
             prefix.add(prefix.last() + estimateHeightPx)
         }
+    }
+
+    private fun resetMeasurements() {
+        heights.clear()
+        prefix.clear()
+        prefix.add(0)
+        prefixDirtyFrom = Int.MAX_VALUE
+    }
+
+    private fun invalidateSlots() {
+        slots.forEach { slot ->
+            slot.boundIndex = -1
+            slot.loaded = false
+        }
+    }
+
+    private fun onProviderChange(change: ListChange<*>) {
+        if (disposed) return
+
+        // Keep measurements on append-only changes; reset when indices can shift.
+        val reset = when (change) {
+            is ListChange.Add -> change.fromIndex < heights.size
+            is ListChange.Remove -> true
+            is ListChange.Replace -> false
+            is ListChange.Clear -> true
+            is ListChange.SetAll -> true
+        }
+
+        if (reset) resetMeasurements()
+
+        // Ensure re-render when an existing index may now point to a different item.
+        if (reset || change is ListChange.Replace) invalidateSlots()
+
+        scheduleRender()
     }
 
     /**

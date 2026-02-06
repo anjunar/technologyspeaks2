@@ -3,10 +3,9 @@ package app.pages.timeline
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
+import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
-import jFx2.controls.heading
-import jFx2.controls.image
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -23,11 +22,10 @@ import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.editorView
 import jFx2.forms.form
-import jFx2.layout.div
-import jFx2.layout.hbox
-import jFx2.layout.vbox
 import jFx2.router.PageInfo
+import jFx2.state.ListProperty
 import jFx2.virtual.RangeDataProvider
+import jFx2.virtual.ObservableRangeDataProvider
 import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
 import kotlin.math.min
@@ -37,8 +35,8 @@ object PostsPage {
     class PostRangeProvider(
         private val maxItems: Int = 5000,
         private val pageSize: Int = 50
-    ) : RangeDataProvider<Data<Post>> {
-        private val items = ArrayList<Data<Post>>()
+    ) : RangeDataProvider<Data<Post>?>, ObservableRangeDataProvider {
+        private val items = ListProperty<Data<Post>>()
         private var reachedEnd: Boolean = false
 
         override val hasKnownCount: Boolean = false
@@ -78,7 +76,21 @@ object PostsPage {
             }
         }
 
-        override fun getOrNull(index: Int): Data<Post> = items[index]
+        override fun getOrNull(index: Int): Data<Post>? = items.getOrNull(index)
+
+        override fun observeChanges(listener: (jFx2.state.ListChange<*>) -> Unit): jFx2.state.Disposable =
+            items.observeChanges { listener(it) }
+
+        fun upsert(post: Data<Post>) {
+            val id = post.data.id?.get()
+            if (id == null) {
+                items.add(0, post)
+                return
+            }
+
+            val index = items.indexOfFirst { it.data.id?.get() == id }
+            if (index >= 0) items[index] = post else items.add(0, post)
+        }
 
     }
 
@@ -92,6 +104,14 @@ object PostsPage {
         context(scope: NodeScope)
         fun afterBuild() {
             val provider = PostRangeProvider()
+            scope.dispose.register(
+                ApplicationService.messageBus.subscribe { message ->
+                    when (message) {
+                        is ApplicationService.Message.PostCreated -> provider.upsert(message.post)
+                        is ApplicationService.Message.PostUpdated -> provider.upsert(message.post)
+                    }
+                }
+            )
 
             val formular = Post()
 
@@ -101,7 +121,9 @@ object PostsPage {
 
                     onSubmit {
 
-                        val response : Data<Post> = JsonClient.post("/service/timeline/posts/post", formular)
+                        val response: Data<Post> = JsonClient.post("/service/timeline/posts/post", formular)
+                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(response))
+                        formular.editor.set("")
 
                     }
 
@@ -139,24 +161,28 @@ object PostsPage {
 
                                 className { "glass-border" }
 
-                                postHeader {
-                                    model(item)
-                                }
-
-                                editorView("editor") {
-                                    style {
-                                        height = "100%"
-                                        width = "100%"
+                                if (item == null) {
+                                    text("Loading...")
+                                } else {
+                                    postHeader {
+                                        model(item)
                                     }
 
-                                    basePlugin { }
-                                    headingPlugin { }
-                                    listPlugin { }
-                                    linkPlugin { }
-                                    imagePlugin { }
+                                    editorView("editor") {
+                                        style {
+                                            height = "100%"
+                                            width = "100%"
+                                        }
 
-                                    subscribeBidirectional(item.data.editor, valueProperty)
+                                        basePlugin { }
+                                        headingPlugin { }
+                                        listPlugin { }
+                                        linkPlugin { }
+                                        imagePlugin { }
 
+                                        subscribeBidirectional(item.data.editor, valueProperty)
+
+                                    }
                                 }
 
                             }
