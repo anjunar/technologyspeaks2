@@ -45,14 +45,11 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                 onSubmit {
 
-                    JobRegistry.instance.launch("Password Login") {
-                        val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
+                    val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
 
-                        ApplicationService.invoke()
+                    ApplicationService.invoke()
 
-                        close()
-                    }
-
+                    close()
                 }
 
                 image {

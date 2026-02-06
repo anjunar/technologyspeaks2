@@ -37,15 +37,11 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
             form {
 
                 onSubmit {
+                    window.fetch("/service/security/logout", RequestInit("POST")).await()
 
-                    JobRegistry.instance.launch("Logout"){
-                        window.fetch("/service/security/logout", RequestInit("POST")).await()
+                    ApplicationService.invoke()
 
-                        ApplicationService.invoke()
-
-                        close()
-                    }
-
+                    close()
                 }
 
                 image {

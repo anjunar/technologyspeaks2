@@ -1,6 +1,5 @@
 package app.domain.core
 
-import app.domain.core.Link
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,7 +11,7 @@ class UsersLink(
     override val rel: String,
     override val url: String,
     override val method: String = "GET"
-) : Link() {
+) : AbstractLink() {
 
     override val name: String = "Users"
     override val icon: String = "diversity_3"

@@ -1,6 +1,7 @@
 package com.anjunar.technologyspeaks.core
 
 import com.anjunar.technologyspeaks.hibernate.search.HibernateSearch
+import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
@@ -16,6 +17,7 @@ class UsersController(val query: HibernateSearch) {
     @GetMapping(value = ["/core/users"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @Transactional
+    @EntityGraph("User.full")
     fun list(search: UserSearch): Table<UserRow> {
 
         val searchContext = query.searchContext(search)

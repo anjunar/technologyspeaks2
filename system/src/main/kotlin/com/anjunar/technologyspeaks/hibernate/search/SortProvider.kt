@@ -1,9 +1,9 @@
 package com.anjunar.technologyspeaks.hibernate.search
 
-import org.hibernate.query.Order
+import jakarta.persistence.criteria.Order
 
 interface SortProvider<V, E> {
 
-    fun sort(context : Context<V, E>): MutableList<Order<E>>
+    fun sort(context : Context<V, E>): MutableList<Order>
 
 }

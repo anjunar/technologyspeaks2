@@ -2,9 +2,9 @@ package com.anjunar.technologyspeaks.hibernate.search
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Order
 import jakarta.persistence.criteria.Predicate
 import org.hibernate.Session
-import org.hibernate.query.Order
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
 import org.hibernate.query.criteria.JpaCriteriaQuery
 import org.hibernate.query.criteria.JpaRoot
@@ -38,7 +38,7 @@ class HibernateSearch(
                 root: JpaRoot<C>,
                 predicates: MutableList<Predicate>,
                 selection: MutableList<Expression<*>>
-            ): MutableList<Order<C>> {
+            ): MutableList<Order> {
                 return SearchBeanReader.order(search, session, builder, root, query, predicates, selection, sortProvider as ObjectProvider<SortProvider<Any, C>>)
             }
         }
@@ -59,7 +59,9 @@ class HibernateSearch(
 
         val (selection, predicates, parameters) = context.apply(session, builder, query, from)
 
-        select(query, from, selection, builder).where(predicates)
+        val order = context.sort(session, builder, query, from, predicates, selection)
+
+        select(query, from, selection, builder).where(predicates).orderBy(order)
 
         val results = session.createQuery(query)
             .setFirstResult(index)

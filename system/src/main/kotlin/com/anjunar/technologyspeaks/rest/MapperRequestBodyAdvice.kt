@@ -1,5 +1,6 @@
 package com.anjunar.technologyspeaks.rest
 
+import com.anjunar.json.mapper.EntityLoader
 import com.anjunar.json.mapper.JsonMapper
 import com.anjunar.json.mapper.intermediate.JsonParser
 import com.anjunar.json.mapper.intermediate.model.JsonObject
@@ -52,13 +53,31 @@ class MapperRequestBodyAdvice(val entityManager: EntityManager) : RequestBodyAdv
 
                         val resolvedClass = TypeResolver.resolve(targetType)
 
-                        val idNode = jsonNode.value["id"] ?: throw IllegalArgumentException("missing property id")
+                        val idNode = jsonNode.value["id"]
 
-                        val entityGraph = entityManager.getEntityGraph("User.full")
+                        val instance = if (idNode == null) {
+                            resolvedClass.raw.getConstructor().newInstance()
+                        } else {
+                            val primaryKey = UUID.fromString(idNode.value.toString())
 
-                        val instance = entityManager.find(resolvedClass.raw, UUID.fromString(idNode.value.toString()))
+                            entityManager.find(resolvedClass.raw, primaryKey)
+                        }
 
-                        JsonMapper.deserialize(jsonNode, instance, resolvedClass, entityGraph)
+                        val annotation = parameter.getMethodAnnotation(EntityGraph::class.java)
+
+                        val entityGraph = if (annotation == null) {
+                            null
+                        } else {
+                            entityManager.getEntityGraph(annotation.value)
+                        }
+
+                        val loader = object : EntityLoader {
+                            override fun load(id: UUID, clazz: Class<*>): Any? {
+                                return entityManager.find(clazz, id)
+                            }
+                        }
+
+                        JsonMapper.deserialize(jsonNode, instance, resolvedClass, entityGraph, loader)
 
                     }
 

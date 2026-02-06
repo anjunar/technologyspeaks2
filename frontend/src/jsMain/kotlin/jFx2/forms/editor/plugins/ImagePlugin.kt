@@ -231,7 +231,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
 
             button("image") {
                 className { "material-icons" }
-
+                type("button")
                 onClick { openFromSelection() }
             }
 

@@ -1,3 +1,5 @@
+@file:Suppress("UnsafeCastFromDynamic")
+
 package app
 
 import app.services.ApplicationService
@@ -24,7 +26,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import kotlin.js.Promise
 import org.w3c.dom.HTMLDivElement
 
 fun main() {
@@ -32,78 +36,76 @@ fun main() {
 
     val jobs = JobRegistry.instance
 
-    jobs.launch(label = "ApplicationService.invoke", owner = "app") {
+    val initAppJob = jobs.launch(label = "ApplicationService.invoke", owner = "app") {
         ApplicationService.invoke()
     }
 
-    window.addEventListener("load", {
+    val fontsLoaded = document.asDynamic().fonts.load("24px 'Material Icons'") as Promise<*>
 
-        document.asDynamic().fonts.load("24px 'Material Icons'")
-            .then {
-                component(root) {
-                    vbox {
+    jobs.scope.launch {
+        fontsLoaded.await()
+        initAppJob.join()
 
-                        hbox {
-                            className { "app-header-bar" }
-                        }
+        component(root) {
+            vbox {
 
+                hbox {
+                    className { "app-header-bar" }
+                }
+
+                div {
+                    className { "app-shell-body" }
+
+                    observeRender(ApplicationService.app) { app ->
                         div {
-                            className { "app-shell-body" }
+                            className { "glass app-shell-nav" }
 
-                            observeRender(ApplicationService.app) { app ->
-                                div {
-                                    className { "glass app-shell-nav" }
+                            foreach(app.links, { key -> key.id }) { link, index ->
+                                link(link.url) {
+                                    vbox {
 
-                                    foreach(app.links, { key -> key.id }) { link, index ->
-                                        link(link.url) {
-                                            vbox {
+                                        style { alignItems = "center" }
 
-                                                style { alignItems = "center" }
-
-                                                span {
-                                                    className { "material-icons" }
-                                                    style {
-                                                        fontSize = "100px"
-                                                    }
-                                                    text { link.icon }
-                                                }
-                                                span {
-                                                    style { fontSize = "10px" }
-                                                    text {
-                                                        link.name
-                                                    }
-                                                }
+                                        span {
+                                            className { "material-icons" }
+                                            style {
+                                                fontSize = "100px"
+                                            }
+                                            text { link.icon }
+                                        }
+                                        span {
+                                            style { fontSize = "10px" }
+                                            text {
+                                                link.name
                                             }
                                         }
                                     }
-
                                 }
-                            }
 
-                            viewport {
-                                windowRouter(Routes.routes) { }
                             }
                         }
 
+                    }
 
-                        hbox {
-                            className { "app-footer-bar" }
+                    viewport {
+                        windowRouter(Routes.routes) { }
+                    }
+                }
 
-                            foreach(jobs.entries, { key -> key.id }) { job, index ->
-                                div {
-                                    text {
-                                        job.label
-                                    }
-                                }
+                hbox {
+                    className { "app-footer-bar" }
+
+                    foreach(jobs.entries, { key -> key.id }) { job, index ->
+                        div {
+                            text {
+                                job.label
                             }
                         }
                     }
-
                 }
+
             }
-
-
-    })
-
+        }
+    }
 
 }

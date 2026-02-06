@@ -8,5 +8,5 @@ interface RangeDataProvider<T> {
 
     suspend fun ensureRange(from: Int, toInclusive: Int)
 
-    fun getOrNull(index: Int): T?
+    fun getOrNull(index: Int): T
 }

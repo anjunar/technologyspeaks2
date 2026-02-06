@@ -139,7 +139,7 @@ fun usersPage(block: context(NodeScope) UsersPage.() -> Unit = {}): UsersPage {
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
 
     with(childScope) {
-        c.afterBuild()
+        scope.ui.build.afterBuild { c.afterBuild() }
     }
 
     block(childScope, c)

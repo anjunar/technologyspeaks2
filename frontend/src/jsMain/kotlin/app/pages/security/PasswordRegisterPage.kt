@@ -44,10 +44,8 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                 onSubmit {
 
-                    JobRegistry.instance.launch("Password Register") {
-                        val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
-                        close()
-                    }
+                    val post : JsonResponse = JsonClient.post("/service/security/register", registerForm)
+                    close()
 
                 }
 

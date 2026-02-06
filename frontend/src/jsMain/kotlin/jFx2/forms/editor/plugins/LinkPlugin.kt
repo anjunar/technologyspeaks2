@@ -223,6 +223,7 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         template {
             button("link") {
                 className { "material-icons" }
+                type("button")
                 onClick { openFromSelection() }
             }.also { linkBtn = it }
         }

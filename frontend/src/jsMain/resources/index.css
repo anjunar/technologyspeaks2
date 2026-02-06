@@ -128,12 +128,18 @@ html[data-theme="dark"] {
     border: 1px solid var(--glass-border);
     box-shadow: 0 4px 20px var(--glass-shadow);
     border-radius: 1rem;
+    padding: 10px;
+    margin: 10px;
 }
 
 .button-container {
     display: flex;
     justify-content: space-between;
     padding: 10px;
+}
+
+.container {
+    height: 100%;
 }
 
 * {

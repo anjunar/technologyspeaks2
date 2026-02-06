@@ -4,10 +4,13 @@ import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.JsonContext
 import com.anjunar.json.mapper.annotations.UseConverter
 import com.anjunar.json.mapper.intermediate.model.JsonNode
+import com.anjunar.json.mapper.intermediate.model.JsonNull
 import com.anjunar.json.mapper.intermediate.model.JsonObject
 import com.anjunar.json.mapper.intermediate.model.JsonString
 import com.anjunar.json.mapper.schema.SchemaProvider
 import com.anjunar.json.mapper.schema.VisibilityRule
+import com.anjunar.kotlin.universe.ResolvedClass
+import com.anjunar.kotlin.universe.TypeResolver
 import com.anjunar.kotlin.universe.introspector.BeanIntrospector
 import com.anjunar.kotlin.universe.introspector.BeanProperty
 import jakarta.persistence.EntityGraph
@@ -16,6 +19,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Subgraph
+import java.lang.reflect.InvocationTargetException
+import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubclassOf
@@ -40,7 +45,7 @@ class BeanDeserializer : Deserializer<Any> {
 
                     if (context.instance is EntityProvider && context.instance.version > -1L) {
                         if (property.name != "links" && context.type.kotlin.isSubclassOf(EntityProvider::class)) {
-                            if (! isSelectedByGraph(context, property)) {
+                            if (context.graph != null && ! isSelectedByGraph(context, property)) {
                                 continue
                             }
                         }
@@ -62,8 +67,12 @@ class BeanDeserializer : Deserializer<Any> {
 
                     val oldValue = try {
                         property.get(context.instance!!)
-                    } catch (e: Exception) {
-                        null
+                    } catch (e: InvocationTargetException) {
+                        if (e.cause !is UninitializedPropertyAccessException) {
+                            throw e.cause!!
+                        } else {
+                            null
+                        }
                     }
 
                     val node = json.value[property.name]
@@ -99,18 +108,21 @@ class BeanDeserializer : Deserializer<Any> {
         if (node == null) {
             property.set(context.instance!!, null)
         } else {
-            val value = deserializeValue(property, oldValue, context, node)
 
             val converterAnnotation = property.findAnnotation(UseConverter::class.java)
 
             if (converterAnnotation == null) {
+                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
+
                 property.set(context.instance!!, value)
             } else {
-                if (value is JsonString) {
+                val value = deserializeValue(TypeResolver.resolve(String::class.java), property.name, oldValue, context, node)
+
+                if (value is String) {
 
                     val converter = converterAnnotation.value.primaryConstructor?.call()
 
-                    val convertedValue = converter?.toJava(value.value, property.propertyType)
+                    val convertedValue = converter?.toJava(value, property.propertyType)
 
                     property.set(context.instance!!, convertedValue)
 
@@ -135,7 +147,7 @@ class BeanDeserializer : Deserializer<Any> {
             if (oldValue == null) {
                 throw IllegalStateException("Collection property must be initialized")
             } else {
-                val value = deserializeValue(property, oldValue, context, node)
+                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
                 val originalCollection = property.get(instance) as MutableCollection<Any>
                 originalCollection.clear()
                 originalCollection.addAll(value as Collection<Any>)
@@ -152,21 +164,36 @@ class BeanDeserializer : Deserializer<Any> {
         propertyType: KClass<*>
     ) {
         val instance = context.instance!!
-        if (node == null) {
-            property.set(instance, null)
-        } else {
-            if (oldValue == null) {
-                val newInstance = propertyType.java.getConstructor().newInstance()
 
-                val value = deserializeValue(property, newInstance, context, node)
-                property.set(instance, value)
-                synchronizeBidirectionalRelations(instance, property, value)
-            } else {
-                val value = deserializeValue(property, oldValue, context, node)
-                property.set(instance, value)
-                synchronizeBidirectionalRelations(instance, property, value)
+        when(node) {
+            null -> {}
+            is JsonNull -> {
+                property.set(instance, null)
+            }
+            else -> {
+                if (oldValue == null) {
+                    val jsonObject = node as JsonObject
+                    val jsonId = jsonObject.value["id"]
+                    val id = UUID.fromString(jsonId!!.value.toString())
+
+                    val entity = context.loader.load(id, propertyType.java)
+
+                    if (entity == null) {
+                        val newInstance = propertyType.java.getConstructor().newInstance()
+                        val value = deserializeValue(property.propertyType, property.name, newInstance, context, node)
+                        property.set(instance, value)
+                        synchronizeBidirectionalRelations(instance, property, value)
+                    } else {
+                        property.set(instance, entity)
+                    }
+                } else {
+                    val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
+                    property.set(instance, value)
+                    synchronizeBidirectionalRelations(instance, property, value)
+                }
             }
         }
+
     }
 
     private fun synchronizeBidirectionalRelations(owner: Any, property: BeanProperty, value: Any?) {
@@ -310,13 +337,14 @@ class BeanDeserializer : Deserializer<Any> {
     }
 
     private fun deserializeValue(
-        property: BeanProperty,
+        propertyType: ResolvedClass,
+        name : String,
         existingInstance: Any?,
         context: JsonContext,
         node: JsonNode
     ) : Any {
-        val deserializer = DeserializerRegistry.findDeserializer(property.propertyType.raw)
-        val jsonContext = JsonContext(property.propertyType, existingInstance, context.graph, context, property.name)
+        val deserializer = DeserializerRegistry.findDeserializer(propertyType.raw)
+        val jsonContext = JsonContext(propertyType, existingInstance, context.graph, context.loader,context, name)
         return deserializer.deserialize(node, jsonContext)
     }
 

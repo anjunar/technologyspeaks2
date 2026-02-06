@@ -31,7 +31,13 @@ class MapperResponseBodyAdvice(val entityManager: EntityManager) : ResponseBodyA
 
         val resolvedClass = TypeResolver.resolve(returnType.genericParameterType)
 
-        val entityGraph = entityManager.getEntityGraph("User.full")
+        val annotation = returnType.getMethodAnnotation(EntityGraph::class.java)
+
+        val entityGraph = if (annotation == null) {
+            null
+        } else {
+            entityManager.getEntityGraph(annotation.value)
+        }
 
         val serialize = JsonMapper.serialize(body!!, resolvedClass, entityGraph)
 

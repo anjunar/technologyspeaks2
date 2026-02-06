@@ -34,7 +34,7 @@ class BeanSerializer : Serializer<Any> {
         for (property in beanModel.properties) {
 
             if (property.name != "links" && context.type.kotlin.isSubclassOf(EntityProvider::class)) {
-                if (!isSelectedByGraph(context, property)) {
+                if (context.graph != null &&  !isSelectedByGraph(context, property)) {
                     continue
                 }
             }
@@ -80,8 +80,6 @@ class BeanSerializer : Serializer<Any> {
             property.name
         }
 
-        val serializer = SerializerRegistry.find(property.propertyType.raw) as Serializer<Any>
-
         val propertyType = if (property.propertyType.kotlin.isSubclassOf(Collection::class)) {
             property.propertyType
         } else {
@@ -97,14 +95,15 @@ class BeanSerializer : Serializer<Any> {
 
         val converterAnnotation = property.findAnnotation(UseConverter::class.java)
 
-        val newValue = if (converterAnnotation == null) {
-            value
+        val jsonNode = if (converterAnnotation == null) {
+            val serializer = SerializerRegistry.find(property.propertyType.raw) as Serializer<Any>
+            serializer.serialize(value, javaContext)
         } else {
             val converter = converterAnnotation.value.primaryConstructor?.call()
-            converter?.toJson(value, property.propertyType)
+            val toJson = converter?.toJson(value, property.propertyType)
+            val serializer = SerializerRegistry.find(String::class.java) as Serializer<Any>
+            serializer.serialize(toJson!!, javaContext)
         }
-
-        val jsonNode = serializer.serialize(newValue!!, javaContext)
 
         if (jsonNode is JsonObject) {
             if (jsonNode.value.isNotEmpty()) {

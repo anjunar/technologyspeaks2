@@ -2,7 +2,7 @@ package jFx2.state
 
 import kotlinx.serialization.Serializable
 
-@Serializable
+@Serializable(with = PropertyAsValueSerializer::class)
 class Property<T>(var value: T) : ReadOnlyProperty<T> {
     private val listeners = LinkedHashMap<Int, (T) -> Unit>()
     private var nextId = 1

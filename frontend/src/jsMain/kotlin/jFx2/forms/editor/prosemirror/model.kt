@@ -22,6 +22,7 @@ external class Node {
     val attrs: dynamic
 
     val marks: Array<Mark>
+    val content: Fragment
 
     fun nodeAt(pos: Int): Node?
 

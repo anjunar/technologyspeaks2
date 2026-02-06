@@ -2,6 +2,7 @@
 
 package jFx2.modals
 
+import app.pages.timeline.PostsPage
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
@@ -36,10 +37,6 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
 
             foreach(windows, { key -> key.id }) { window, index ->
 
-                val field = window.component()
-
-                (field as PageInfo).close = { closeWindowById(window.id) }
-
                 window {
 
                     title = window.title
@@ -55,6 +52,12 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                             width = "100%"
                             height = "100%"
                         }
+                        val field = window.component()
+
+                        if (field is PageInfo) {
+                            (field as PageInfo).close = { closeWindowById(window.id) }
+                        }
+
                         renderComponent(field)
                     }
                 }

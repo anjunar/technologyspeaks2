@@ -12,14 +12,14 @@ import jakarta.persistence.EntityGraph
 @Suppress("UNCHECKED_CAST")
 object JsonMapper {
 
-    fun deserialize(jsonNode: JsonNode, instance : Any, type: ResolvedClass, graph : EntityGraph<*>) : Any {
+    fun deserialize(jsonNode: JsonNode, instance : Any, type: ResolvedClass, graph : EntityGraph<*>?, loader : EntityLoader) : Any {
         val deserializer = DeserializerRegistry.findDeserializer(type.raw)
 
-        return deserializer.deserialize(jsonNode, JsonContext(type, instance, graph, null, null))
+        return deserializer.deserialize(jsonNode, JsonContext(type, instance, graph, loader, null, null))
 
     }
 
-    fun serialize(instance : Any, type : ResolvedClass, graph : EntityGraph<*>) : String {
+    fun serialize(instance : Any, type : ResolvedClass, graph : EntityGraph<*>?) : String {
 
         val serializer = SerializerRegistry.find(type.raw) as Serializer<Any>
 

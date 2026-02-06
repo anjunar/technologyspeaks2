@@ -1,5 +1,6 @@
 package com.anjunar.technologyspeaks.core
 
+import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import jakarta.annotation.security.RolesAllowed
@@ -17,6 +18,7 @@ class UserController {
     @GetMapping(value = ["/core/users/user/{id}"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @Transactional
+    @EntityGraph("User.full")
     fun read(@PathVariable("id") user : User): Data<User> {
 
         val form = Data(user, User.schema())
@@ -35,6 +37,7 @@ class UserController {
     @PutMapping(value = ["/core/users/user"], produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @Transactional
+    @EntityGraph("User.full")
     fun update(@RequestBody user : User): Data<User> {
         val form = Data(user.merge(), User.schema())
 

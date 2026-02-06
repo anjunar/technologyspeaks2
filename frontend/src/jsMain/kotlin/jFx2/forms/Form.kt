@@ -7,6 +7,7 @@ import jFx2.core.capabitities.FormOwnerKey
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerSubForm
 import jFx2.core.dsl.renderFields
+import jFx2.state.JobRegistry
 import org.w3c.dom.HTMLFormElement
 
 class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), Formular {
@@ -14,15 +15,21 @@ class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), F
     val fields: MutableMap<String, FormField<*, *>> = LinkedHashMap()
     val subForms: MutableMap<String, Form> = LinkedHashMap()
 
-    var submitHandler: (() -> Unit)? = null
+    var submitHandler: (suspend () -> Unit)? = null
 
-    fun onSubmit(handler: () -> Unit) { submitHandler = handler }
+    fun onSubmit(handler: suspend () -> Unit) { submitHandler = handler }
 
     context(scope: NodeScope)
     fun initialize() {
         renderFields(*this@Form.children.toTypedArray())
 
-        node.addEventListener("submit", { event -> event.preventDefault(); submitHandler?.invoke() })
+        node.addEventListener("submit", {
+            event -> event.preventDefault();
+
+            JobRegistry.instance.launch("Form", "Form") {
+                submitHandler?.invoke()
+            }
+        })
     }
 
     internal fun registerField(name: String, field: FormField<*, *>) {

@@ -1,14 +1,15 @@
 package app.domain.core
 
 import jFx2.state.Property
-import jFx2.state.StringPropertySerializer
+import jFx2.state.PropertySerializer
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 @Serializable
 class Email(
-    @Serializable(with = StringPropertySerializer::class)
+    @Serializable(with = PropertySerializer::class)
     val id : Property<String> = Property(""),
-    @Serializable(with = StringPropertySerializer::class)
+    @Serializable(with = PropertySerializer::class)
     val value: Property<String> = Property("")
 ) {
 

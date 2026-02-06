@@ -101,6 +101,7 @@ class ListPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         template {
             bulletBtn = button("format_list_bulleted") {
                 className { "material-icons" }
+                type("button")
                 onClick { toggleBulletList() }
             }
         }

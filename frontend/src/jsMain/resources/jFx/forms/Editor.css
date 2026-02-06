@@ -1,35 +1,9 @@
 /*@import "prosemirror-view/style/prosemirror.css";*/
 /*@import "prosemirror-example-setup/style/style.css";*/
 
-as-editor {
+.editor {
     display: flex;
     flex-direction: column;
-    height: 100%;
-
-    a {
-        color: var(--color-selected) !important;
-        text-decoration: none;
-    }
-
-    .toolbar {
-        display: flex;
-        align-items: center;
-    }
-
-    div.renderer {
-        overflow: auto;
-        width: 100%;
-        height: 100%;
-        flex: 1;
-    }
-
-    div.container {
-        height: calc(100% - 40px);
-        flex: 1;
-
-
-    }
-
 }
 
 .ProseMirror {

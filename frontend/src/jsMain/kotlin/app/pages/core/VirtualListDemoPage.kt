@@ -43,8 +43,7 @@ class DemoRangeProvider(
         }
     }
 
-    override fun getOrNull(index: Int): DemoItem? =
-        if (index in items.indices) items[index] else null
+    override fun getOrNull(index: Int): DemoItem = items[index]
 
     private fun demoText(i: Int): Pair<String, String> {
         val title = "Item #$i"

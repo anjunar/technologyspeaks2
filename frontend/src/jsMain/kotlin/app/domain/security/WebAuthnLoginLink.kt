@@ -1,6 +1,6 @@
 package app.domain.security
 
-import app.domain.core.Link
+import app.domain.core.AbstractLink
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,7 +11,7 @@ class WebAuthnLoginLink(
     override val id: String,
     override val rel: String,
     override val url: String,
-    override val method : String = "GET") : Link() {
+    override val method : String = "GET") : AbstractLink() {
 
     override val name : String = "Login with WebAuthn"
     override val icon: String = "fingerprint"

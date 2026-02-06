@@ -46,13 +46,11 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
                     val email = registerForm.email.get()
                     val nickname = registerForm.nickName.get()
 
-                    JobRegistry.instance.launch("WebAuthn Register") {
-                        try {
-                            val resp = WebAuthnRegistrationClient.register(email, nickname)
-                            close()
-                        } catch (t: Throwable) {
-                            console.error("WebAuthn registration failed", t)
-                        }
+                    try {
+                        val resp = WebAuthnRegistrationClient.register(email, nickname)
+                        close()
+                    } catch (t: Throwable) {
+                        console.error("WebAuthn registration failed", t)
                     }
 
                 }

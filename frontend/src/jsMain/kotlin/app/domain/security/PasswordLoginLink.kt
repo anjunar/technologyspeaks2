@@ -1,6 +1,6 @@
 package app.domain.security
 
-import app.domain.core.Link
+import app.domain.core.AbstractLink
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,7 +12,7 @@ class PasswordLoginLink(
     override val rel: String,
     override val url: String,
     override val method: String = "GET"
-) : Link() {
+) : AbstractLink() {
 
     override val name: String = "Login with Password"
     override val icon: String = "login"

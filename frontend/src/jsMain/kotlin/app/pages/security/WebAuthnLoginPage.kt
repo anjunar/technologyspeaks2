@@ -44,16 +44,14 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                 onSubmit {
 
-                    JobRegistry.instance.launch("WebAuthn Login") {
-                        try {
-                            val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
+                    try {
+                        val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
 
-                            ApplicationService.invoke()
+                        ApplicationService.invoke()
 
-                            close()
-                        } catch (t: Throwable) {
-                            console.error("WebAuthn login failed", t)
-                        }
+                        close()
+                    } catch (t: Throwable) {
+                        console.error("WebAuthn login failed", t)
                     }
 
                 }

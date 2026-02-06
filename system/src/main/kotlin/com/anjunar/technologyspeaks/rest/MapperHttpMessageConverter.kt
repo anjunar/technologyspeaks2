@@ -1,6 +1,8 @@
 package com.anjunar.technologyspeaks.rest
 
 import com.anjunar.json.mapper.intermediate.model.JsonNode
+import com.anjunar.technologyspeaks.rest.types.DTO
+import com.anjunar.technologyspeaks.rest.types.Table
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpOutputMessage
 import org.springframework.http.MediaType
@@ -10,7 +12,7 @@ import kotlin.reflect.full.isSubclassOf
 class MapperHttpMessageConverter : AbstractHttpMessageConverter<Any>(MediaType.APPLICATION_JSON) {
 
     override fun supports(clazz: Class<*>): Boolean {
-        return ! clazz.kotlin.isSubclassOf(JsonNode::class)
+        return clazz.kotlin.isSubclassOf(DTO::class)
     }
 
     override fun readInternal(clazz: Class<*>, inputMessage: HttpInputMessage): Any {

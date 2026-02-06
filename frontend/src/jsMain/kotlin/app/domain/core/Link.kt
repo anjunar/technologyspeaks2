@@ -1,18 +1,10 @@
 package app.domain.core
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonClassDiscriminator
 
-@OptIn(ExperimentalSerializationApi::class)
-@JsonClassDiscriminator("id")
 @Serializable
-abstract class Link() {
-    abstract val id : String
-    abstract val rel : String
-    abstract val url : String
-    abstract val method : String
-
-    abstract val name : String
-    abstract val icon : String
-}
+class Link(
+    val rel: String,
+    val url: String,
+    val method: String
+)

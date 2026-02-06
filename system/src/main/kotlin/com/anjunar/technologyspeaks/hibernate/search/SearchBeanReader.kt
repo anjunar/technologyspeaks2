@@ -4,9 +4,9 @@ import com.anjunar.kotlin.universe.introspector.BeanIntrospector
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestPredicate
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestSort
 import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Order
 import jakarta.persistence.criteria.Predicate
 import org.hibernate.Session
-import org.hibernate.query.Order
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
 import org.hibernate.query.criteria.JpaCriteriaQuery
 import org.hibernate.query.criteria.JpaRoot
@@ -75,7 +75,7 @@ object SearchBeanReader {
         predicates: MutableList<Predicate>,
         selection: MutableList<Expression<*>>,
         instances: ObjectProvider<SortProvider<Any, E>>
-    ): MutableList<Order<E>> {
+    ): MutableList<Order> {
 
         val beanModel = BeanIntrospector.createWithType(searchBean::class.java)
 

@@ -8,7 +8,7 @@ fun <T> virtualList(
     estimateHeightPx: Int = 44,
     overscanPx: Int = 240,
     prefetchItems: Int = 80,
-    renderer: context(NodeScope) (item: T?, index: Int) -> Unit
+    renderer: context(NodeScope) (item: T, index: Int) -> Unit
 ): VirtualListView<T> {
     val view = VirtualListView(
         dataProvider = dataProvider,

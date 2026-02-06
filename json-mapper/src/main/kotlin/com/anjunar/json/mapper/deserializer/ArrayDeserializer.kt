@@ -1,5 +1,6 @@
 package com.anjunar.json.mapper.deserializer
 
+import com.anjunar.json.mapper.EntityLoader
 import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.JsonContext
 import com.anjunar.json.mapper.intermediate.model.JsonArray
@@ -35,7 +36,7 @@ class ArrayDeserializer : Deserializer<Collection<*>> {
 
                             val entity = entityCollection.find { it.id == entityId } ?: elementResolvedClass.raw.getConstructor().newInstance()
 
-                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context, context.name)
+                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context, context.name)
 
                             collection.add(DeserializerRegistry
                                 .findDeserializer(elementResolvedClass.raw)

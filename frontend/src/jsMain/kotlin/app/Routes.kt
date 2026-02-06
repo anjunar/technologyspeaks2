@@ -14,6 +14,8 @@ import app.pages.security.passwordLoginPage
 import app.pages.security.passwordRegisterPage
 import app.pages.security.webAuthnLoginPage
 import app.pages.security.webAuthnRegisterPage
+import app.pages.timeline.PostsPage
+import app.pages.timeline.postPage
 import jFx2.client.JsonClient
 import jFx2.router.Route
 
@@ -24,6 +26,19 @@ object Routes {
             path = "/",
             factory = { homePage {} },
             children = listOf(
+                Route(
+                    path = "timeline",
+                    children = listOf(
+                        Route(
+                            path = "post",
+                            factory = { postPage { } }
+                        ),
+                        Route(
+                            path = "posts",
+                            factory = { PostsPage.page { } }
+                        )
+                    )
+                ),
                 Route(
                     path = "security",
                     children = listOf(
@@ -44,7 +59,8 @@ object Routes {
                                 Route(
                                     path = "user/:id",
                                     factory = { params ->
-                                        val user = JsonClient.invoke<Data<User>>("/service/core/users/user/" + params["id"]!!)
+                                        val user =
+                                            JsonClient.invoke<Data<User>>("/service/core/users/user/" + params["id"]!!)
                                         UserPage.page {
                                             model(user)
                                         }

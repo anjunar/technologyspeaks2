@@ -12,7 +12,7 @@
     border-radius: 1rem;
 
     >.container {
-        height: calc(100% - 54px);
+        height: calc(100% - 32px);
         overflow: auto;
     }
 

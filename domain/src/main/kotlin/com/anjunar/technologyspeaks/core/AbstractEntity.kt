@@ -1,13 +1,14 @@
 package com.anjunar.technologyspeaks.core
 
 import com.anjunar.json.mapper.provider.EntityProvider
+import com.anjunar.technologyspeaks.rest.types.DTO
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
 
 @MappedSuperclass
-abstract class AbstractEntity : EntityProvider {
+abstract class AbstractEntity : EntityProvider, DTO {
 
     @Id
     @JsonbProperty
@@ -29,6 +30,7 @@ abstract class AbstractEntity : EntityProvider {
     @PrePersist
     fun prePersist() {
         created = LocalDateTime.now()
+        modified = LocalDateTime.now()
     }
 
     fun isNew(): Boolean = version == -1L

@@ -2,18 +2,18 @@ package app.domain.core
 
 import jFx2.state.ListProperty
 import jFx2.state.ListPropertySerializer
-import jFx2.state.MediaPropertySerializer
 import jFx2.state.Property
-import jFx2.state.StringPropertySerializer
+import jFx2.state.PropertySerializer
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 @Serializable
 class User(
-    @Serializable(with = StringPropertySerializer::class)
+    @Serializable(with = PropertySerializer::class)
     val id : Property<String> = Property(""),
-    @Serializable(with = StringPropertySerializer::class)
+    @Serializable(with = PropertySerializer::class)
     val nickName: Property<String> = Property(""),
-    @Serializable(with = MediaPropertySerializer::class)
+    @Serializable(with = PropertySerializer::class)
     val image : Property<Media?> = Property(Media()),
     val info: UserInfo = UserInfo(),
     val address: Address = Address(),

@@ -7,8 +7,11 @@ import jakarta.persistence.EntityGraph
 class JsonContext(val type : ResolvedClass,
                   val instance : Any?,
                   val graph : EntityGraph<*>?,
+                  val loader : EntityLoader,
                   val parent : JsonContext?,
                   val name : String?) {
+
+    var doNotUpdateFields = false
 
     fun path() : List<String> {
         val parentPath = emptyList<String>()

@@ -144,21 +144,25 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
             hbox {
 
                 boldBtn = button("format_bold") {
+                    type("button")
                     className { "material-icons" }
                     onClick { toggleMarkCommand("strong") }
                 }
 
                 italicBtn = button("format_italic") {
+                    type("button")
                     className { "material-icons" }
                     onClick { toggleMarkCommand("em") }
                 }
 
                 undoBtn = button("undo") {
+                    type("button")
                     className { "material-icons" }
                     onClick { undoCommand() }
                 }
 
                 redoBtn = button("redo") {
+                    type("button")
                     className { "material-icons" }
                     onClick { redoCommand() }
                 }
