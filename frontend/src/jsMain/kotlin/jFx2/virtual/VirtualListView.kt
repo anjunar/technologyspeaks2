@@ -6,6 +6,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.state.Disposable
+import jFx2.state.ListChange
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -18,23 +19,22 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Virtualized infinite list with:
- * - absolute-positioned cell pool (bounded)
- * - variable row heights (measured)
+ * Virtualized list with:
+ * - bounded, absolutely-positioned cell pool
+ * - variable row heights (measured & cached)
  * - overscan rendering
- * - prefetch via RangeDataProvider.ensureRange(from, toInclusive)
+ * - range prefetch via [RangeDataProvider.ensureRange]
  *
- * Guardrails:
- * - cells do NOT return Components
- * - each cell render happens in a cell-local NodeScope with its own DisposeScope
- * - dispose on recycle to avoid append-only leaks
+ * Notes:
+ * - `renderer` receives `item = null` for not-yet-loaded rows.
+ * - `dataProvider.items` changes are observed and reflected in the UI.
  */
 class VirtualListView<T>(
     private val dataProvider: RangeDataProvider<T>,
     private val estimateHeightPx: Int = 44,
     private val overscanPx: Int = 240,
     private val prefetchItems: Int = 80,
-    private val renderer: context(NodeScope) (item: T, index: Int) -> Unit
+    private val renderer: context(NodeScope) (item: T?, index: Int) -> Unit
 ) : Component<HTMLDivElement>() {
 
     override val node: HTMLDivElement = document.createElement("div") as HTMLDivElement
@@ -48,17 +48,17 @@ class VirtualListView<T>(
     private val cs = CoroutineScope(job)
 
     private var loadingJob: Job? = null
-    private var pendingTargetTo = -1
-    private var pendingTargetFrom = -1
+    private var pendingTargetTo: Int? = null
+    private var pendingTargetFrom: Int? = null
 
     /**
-     * When count is unknown and end not reached we add tail padding (in *items*)
-     * to allow scrolling further while data loads.
+     * When [RangeDataProvider.totalCount] is unknown we add tail padding (in items)
+     * so the user can scroll further while data loads.
      */
     private var tailPaddingItems = prefetchItems * 3
 
     /**
-     * Heights known for loaded indices. For indices beyond, estimateHeightPx is used.
+     * Heights known for loaded indices. For indices beyond, [estimateHeightPx] is used.
      *
      * prefix[i] = sum(heights[0..i-1])  => prefix size == heights.size + 1, prefix[0] = 0
      */
@@ -71,7 +71,7 @@ class VirtualListView<T>(
     private data class Slot(
         val node: HTMLDivElement,
         var boundIndex: Int = -1,
-        var loaded: Boolean = false,
+        var boundItem: Any? = null,
         var dispose: DisposeScope? = null
     )
 
@@ -110,6 +110,36 @@ class VirtualListView<T>(
 
         val resize = windowResizeListener()
         onDispose(resize)
+
+        // React to data changes (append / replace / clear ...)
+        onDispose(
+            dataProvider.items.observeChanges { ch ->
+                if (disposed) return@observeChanges
+
+                // If indices shift (insert/remove), our height cache becomes meaningless.
+                when (ch) {
+                    is ListChange.Add -> if (ch.fromIndex != dataProvider.items.size - ch.items.size) resetMeasurements()
+                    is ListChange.Remove,
+                    is ListChange.Clear,
+                    is ListChange.SetAll -> resetMeasurements()
+                    is ListChange.Replace -> { /* keep measurements */ }
+                }
+
+                scheduleRender()
+            }
+        )
+
+        // React to totalCount changes (e.g. Table.size)
+        onDispose(
+            dataProvider.totalCount.observe { count ->
+                if (disposed) return@observe
+
+                tailPaddingItems = if (count == null) prefetchItems * 3 else 0
+                trimMeasurementsToCount(count)
+                updateContentHeight()
+                scheduleRender()
+            }
+        )
 
         scheduleRender()
         // Initial prefetch
@@ -153,7 +183,7 @@ class VirtualListView<T>(
             var changed = false
             slots.forEach { slot ->
                 val idx = slot.boundIndex
-                if (idx >= 0 && slot.loaded) {
+                if (idx >= 0) {
                     val h = slot.node.offsetHeight
                     if (h > 0 && updateHeight(idx, h)) {
                         changed = true
@@ -177,6 +207,30 @@ class VirtualListView<T>(
             // maintain prefix invariant: prefix size == heights size + 1
             prefix.add(prefix.last() + estimateHeightPx)
         }
+    }
+
+    private fun resetMeasurements() {
+        heights.clear()
+        prefix.clear()
+        prefix.add(0)
+        prefixDirtyFrom = Int.MAX_VALUE
+
+        // Force slots to re-render at their next use.
+        slots.forEach { slot ->
+            slot.boundIndex = -1
+            slot.boundItem = null
+        }
+    }
+
+    private fun trimMeasurementsToCount(count: Int?) {
+        if (count == null) return
+        if (count < 0) return
+        if (heights.size <= count) return
+
+        while (heights.size > count) heights.removeAt(heights.lastIndex)
+        while (prefix.size > heights.size + 1) prefix.removeAt(prefix.lastIndex)
+        prefixDirtyFrom = 1
+        rebuildPrefixIfDirty()
     }
 
     /**
@@ -237,16 +291,15 @@ class VirtualListView<T>(
         if (index in heights.indices) heights[index] else estimateHeightPx
 
     private fun updateContentHeight() {
-        val knownCount = if (dataProvider.hasKnownCount) dataProvider.knownCount else null
+        val knownCount = dataProvider.totalCount.get()
         val base = prefix.last()
 
-        val extra = when {
-            dataProvider.endReached -> 0
-            knownCount != null -> max(0, knownCount - heights.size) * estimateHeightPx
-            else -> tailPaddingItems * estimateHeightPx
+        val extraItems = when (knownCount) {
+            null -> tailPaddingItems
+            else -> max(0, knownCount - heights.size)
         }
 
-        content.style.height = "${base + extra}px"
+        content.style.height = "${base + extraItems * estimateHeightPx}px"
     }
 
     /**
@@ -273,7 +326,7 @@ class VirtualListView<T>(
         }
     }
 
-    private fun renderSlot(slot: Slot, item: T, index: Int) {
+    private fun renderSlot(slot: Slot, item: T?, index: Int) {
         slot.dispose?.dispose()
         uiScope.dom.clear(slot.node)
 
@@ -300,37 +353,38 @@ class VirtualListView<T>(
      */
     private fun requestRange(from: Int, toInclusiveRaw: Int) {
         if (disposed) return
-        if (dataProvider.endReached) return
 
-        val knownCount = if (dataProvider.hasKnownCount) dataProvider.knownCount else null
+        val knownCount = dataProvider.totalCount.get()
+        val endReached = knownCount != null && dataProvider.items.size >= knownCount
+        if (endReached) return
+
         val toInclusive = if (knownCount != null) min(toInclusiveRaw, knownCount - 1) else toInclusiveRaw
         if (toInclusive < 0) return
         if (from > toInclusive) return
 
-        // if already loaded enough (best-effort, depends on provider semantics)
-        // We only skip if the requested "to" is inside loadedCount and provider is append-ish.
-        if (toInclusive < dataProvider.loadedCount && from <= dataProvider.loadedCount - 1) return
+        // append-ish: if the requested tail is already inside the loaded prefix, nothing to do
+        if (toInclusive < dataProvider.items.size) return
 
         if (loadingJob?.isActive == true) {
-            pendingTargetFrom = if (pendingTargetFrom < 0) from else min(pendingTargetFrom, from)
-            pendingTargetTo = max(pendingTargetTo, toInclusive)
+            pendingTargetFrom = pendingTargetFrom?.let { min(it, from) } ?: from
+            pendingTargetTo = pendingTargetTo?.let { max(it, toInclusive) } ?: toInclusive
             return
         }
 
         loadingJob = cs.launch {
             dataProvider.ensureRange(from, toInclusive)
-            ensureHeightsSize(dataProvider.loadedCount)
+            ensureHeightsSize(dataProvider.items.size)
 
-            if (dataProvider.endReached) tailPaddingItems = 0
+            if (dataProvider.totalCount.get() != null) tailPaddingItems = 0
             rebuildPrefixIfDirty()
             updateContentHeight()
             scheduleRender()
 
             val pf = pendingTargetFrom
             val pt = pendingTargetTo
-            pendingTargetFrom = -1
-            pendingTargetTo = -1
-            if (pf >= 0 && pt >= 0) requestRange(pf, pt)
+            pendingTargetFrom = null
+            pendingTargetTo = null
+            if (pf != null && pt != null) requestRange(pf, pt)
         }
     }
 
@@ -339,7 +393,7 @@ class VirtualListView<T>(
         val viewportH = viewport.clientHeight
         if (viewportH <= 0) return
 
-        ensureHeightsSize(dataProvider.loadedCount)
+        ensureHeightsSize(dataProvider.items.size)
         rebuildPrefixIfDirty()
         updateContentHeight()
 
@@ -347,12 +401,9 @@ class VirtualListView<T>(
         val startOffset = max(0, scrollTop - overscanPx)
         val endOffset = scrollTop + viewportH + overscanPx
 
-        val knownCount = if (dataProvider.hasKnownCount) dataProvider.knownCount else null
-        val maxCount = when {
-            knownCount != null -> knownCount
-            dataProvider.endReached -> dataProvider.loadedCount
-            else -> Int.MAX_VALUE
-        }
+        val knownCount = dataProvider.totalCount.get()
+        val maxCount = knownCount ?: (dataProvider.items.size + tailPaddingItems)
+        if (maxCount <= 0) return
 
         val maxSlots = maxSlotsForViewport(viewportH)
 
@@ -382,16 +433,14 @@ class VirtualListView<T>(
             slot.node.style.top = "${topPx}px"
             slot.node.classList.remove("is-hidden")
 
-            val item = dataProvider.getOrNull(idx)
-            val loaded = item != null
-
-            if (slot.boundIndex != idx || slot.loaded != loaded) {
+            val item: T? = dataProvider.items.getOrNull(idx)
+            if (slot.boundIndex != idx || slot.boundItem != item) {
                 renderSlot(slot, item, idx)
                 anyRendered = true
             }
 
             slot.boundIndex = idx
-            slot.loaded = loaded
+            slot.boundItem = item
         }
 
         // Hide unused slots (keep pool bounded by maxSlots anyway)
@@ -399,7 +448,7 @@ class VirtualListView<T>(
             val slot = slots[i]
             slot.node.classList.add("is-hidden")
             slot.boundIndex = -1
-            slot.loaded = false
+            slot.boundItem = null
         }
 
         if (anyRendered) {
@@ -408,7 +457,7 @@ class VirtualListView<T>(
         }
 
         // Prefetch logic based on current window, not always 0..N.
-        if (!dataProvider.endReached && maxCount > 0) {
+        run {
             val startIndex = visible.first().first
             val endIndex = visible.last().first
 
@@ -416,9 +465,9 @@ class VirtualListView<T>(
             val to = min(endIndex + prefetchItems, maxCount - 1)
 
             // For unknown count, extend tail padding if we scroll near its end.
-            if (knownCount == null && !dataProvider.endReached) {
-                val projectedEnd = heights.size + tailPaddingItems - 1
-                if (to > projectedEnd) {
+            if (knownCount == null) {
+                val projectedEnd = dataProvider.items.size + tailPaddingItems - 1
+                if (to >= projectedEnd - prefetchItems) {
                     tailPaddingItems += prefetchItems * 2
                     updateContentHeight()
                 }

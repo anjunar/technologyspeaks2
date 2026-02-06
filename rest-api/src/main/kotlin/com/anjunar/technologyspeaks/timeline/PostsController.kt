@@ -36,7 +36,7 @@ class PostsController(val query: HibernateSearch, val identityHolder: IdentityHo
             { query, root, expressions, builder -> query.select(builder.construct(PostRow::class.java, root)) }
         )
 
-        val count = query.count(User::class, searchContext)
+        val count = query.count(Post::class, searchContext)
 
         for (post in entities) {
             post.addLinks(
