@@ -41,11 +41,11 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
         val loginForm = PasswordLogin()
 
         template {
-            form {
+            form(model = loginForm, clazz = PasswordLogin::class) { form ->
 
                 onSubmit {
 
-                    val post : JsonResponse = JsonClient.post("/service/security/login", loginForm)
+                    val post : JsonResponse = JsonClient.post("/service/security/login", form)
 
                     ApplicationService.invoke()
 
@@ -81,7 +81,7 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                         input("email", "email") {
                             validatorsProperty.add(EmailValidator())
-                            subscribeBidirectional(loginForm.email, valueProperty)
+                            subscribeBidirectional(form.email, valueProperty)
                         }
 
                     }
@@ -90,7 +90,7 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                         input("password", "password") {
                             validatorsProperty.add(SizeValidator(5, 30))
-                            subscribeBidirectional(loginForm.password, valueProperty)
+                            subscribeBidirectional(form.password, valueProperty)
                         }
 
                     }

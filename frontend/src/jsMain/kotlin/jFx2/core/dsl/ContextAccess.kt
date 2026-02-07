@@ -21,7 +21,7 @@ fun registerField(name: String, field: FormField<*, *>) {
 }
 
 context(scope: NodeScope)
-fun registerSubForm(name: String, form: Form) {
+fun registerSubForm(name: String, form: Form<*>) {
     val formContext = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
     formContext?.registerSubForm(name, form)
 
@@ -34,11 +34,10 @@ fun registerSubForm(name: String, form: Form) {
             formOwner.subForms.remove(name)
         }
     }
-
 }
 
 context(scope: NodeScope)
-fun registerSubForm(index: Int, form: Form) {
+fun registerSubForm(index: Int, form: Form<*>) {
     val formContext = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
     formContext?.registerSubForm(index.toString(), form)
 

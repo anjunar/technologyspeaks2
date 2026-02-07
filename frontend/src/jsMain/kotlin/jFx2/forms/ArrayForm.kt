@@ -9,13 +9,13 @@ import org.w3c.dom.HTMLFieldSetElement
 
 class ArrayForm(override val node: HTMLFieldSetElement) : Component<HTMLFieldSetElement>(), Formular {
 
-    val subForms: MutableList<Form> = mutableListOf()
+    val subForms: MutableList<Form<*>> = mutableListOf()
 
-    internal fun registerSubForm(index : Int, form: Form) {
+    internal fun registerSubForm(index : Int, form: Form<*>) {
         subForms.add(index, form)
     }
 
-    internal fun unregisterSubForm(form: Form) {
+    internal fun unregisterSubForm(form: Form<*>) {
         subForms.remove(form)
     }
 

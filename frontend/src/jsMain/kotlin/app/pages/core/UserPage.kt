@@ -43,12 +43,12 @@ object UserPage {
         context(scope: NodeScope)
         fun afterBuild() {
             template {
-                form {
+                form(model = model.get().data, clazz = User::class) { form ->
 
                     onSubmit {
 
                         JobRegistry.instance.launch("Save User") {
-                            JsonClient.put("/service/core/users/user", model.get().data)
+                            JsonClient.put("/service/core/users/user", form)
                         }
 
                     }
@@ -62,16 +62,16 @@ object UserPage {
 
                         validatorsProperty.add(NotBlankValidator())
 
-                        subscribeBidirectional(model.get().data.image, valueProperty)
+                        subscribeBidirectional(form.image, valueProperty)
                     }
 
                     inputContainer("Nick Name") {
                         input("nickName") {
-                            subscribeBidirectional(model.get().data.nickName, valueProperty)
+                            subscribeBidirectional(form.nickName, valueProperty)
                         }
                     }
 
-                    subForm("info", model = model.get().data.info, clazz = UserInfo::class) { form ->
+                    subForm("info", model = form.info, clazz = UserInfo::class) { form ->
                         inputContainer("First Name") {
                             input("firstName") {
                                 subscribeBidirectional(form.firstName, valueProperty)
@@ -91,7 +91,7 @@ object UserPage {
                         }
                     }
 
-                    subForm("address", model = model.get().data.address, clazz = Address::class) { form ->
+                    subForm("address", model = form.address, clazz = Address::class) { form ->
                         inputContainer("Street") {
                             input("street") {
                                 subscribeBidirectional(form.street, valueProperty)

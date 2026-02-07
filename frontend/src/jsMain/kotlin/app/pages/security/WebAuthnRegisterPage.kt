@@ -39,12 +39,12 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
         val registerForm = WebAuthnRegister()
 
         template {
-            form {
+            form(model = registerForm, clazz = WebAuthnRegister::class) { form ->
 
                 onSubmit {
 
-                    val email = registerForm.email.get()
-                    val nickname = registerForm.nickName.get()
+                    val email = form.email.get()
+                    val nickname = form.nickName.get()
 
                     try {
                         val resp = WebAuthnRegistrationClient.register(email, nickname)
@@ -84,7 +84,7 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                         input("email", "email") {
                             validatorsProperty.add(EmailValidator())
-                            subscribeBidirectional(registerForm.email, valueProperty)
+                            subscribeBidirectional(form.email, valueProperty)
                         }
 
                     }

@@ -40,12 +40,12 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
         val loginForm = WebAuthnLogin()
 
         template {
-            form {
+            form(model = loginForm, clazz = WebAuthnLogin::class) { form ->
 
                 onSubmit {
 
                     try {
-                        val finishResponseText = WebAuthnLoginClient.login(loginForm.email.get())
+                        val finishResponseText = WebAuthnLoginClient.login(form.email.get())
 
                         ApplicationService.invoke()
 
@@ -85,7 +85,7 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                         input("email", "email") {
                             validatorsProperty.add(EmailValidator())
-                            subscribeBidirectional(loginForm.email, valueProperty)
+                            subscribeBidirectional(form.email, valueProperty)
                         }
 
                     }

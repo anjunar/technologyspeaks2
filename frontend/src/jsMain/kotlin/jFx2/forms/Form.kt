@@ -14,10 +14,10 @@ import org.w3c.dom.HTMLFormElement
 import kotlin.reflect.KClass
 import kotlin.reflect.createInstance
 
-class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), Formular {
+class Form<E : Any>(override val node: HTMLFormElement, model : E?, clazz : KClass<E>) : Component<HTMLFormElement>(), Formular {
 
     val fields: MutableMap<String, FormField<*, *>> = LinkedHashMap()
-    val subForms: MutableMap<String, Form> = LinkedHashMap()
+    val subForms: MutableMap<String, Form<*>> = LinkedHashMap()
 
     var submitHandler: (suspend () -> Unit)? = null
 
@@ -42,21 +42,32 @@ class Form(override val node: HTMLFormElement) : Component<HTMLFormElement>(), F
 
     internal fun unregisterField(name: String) { fields.remove(name) }
 
-    internal fun registerSubForm(namespace: String, sub: Form) {
+    internal fun registerSubForm(namespace: String, sub: Form<*>) {
         subForms[namespace] = sub
     }
 
     internal fun unregisterSubForm(namespace: String) { subForms.remove(namespace) }
 }
 
+class FormNoop
+
 context(scope: NodeScope)
-fun form(
+fun <E : Any>form(
     namespace: String? = null,
-    block: context(NodeScope) Form.() -> Unit
-): Form {
+    model : E? = FormNoop() as E?,
+    clazz : KClass<E> = FormNoop::class as KClass<E>,
+    block: context(NodeScope) Form<E>.(E) -> Unit
+): Form<*> {
     val el = scope.create<HTMLFormElement>("form")
 
-    val c = Form(el)
+    val newModel = if (model == null) {
+        el.setAttribute("disabled", "true")
+        clazz.createInstance()
+    } else {
+        model
+    }
+
+    val c = Form(el, newModel, clazz)
     scope.attach(c)
 
     val childScope = scope.fork(
@@ -68,7 +79,7 @@ fun form(
         ElementInsertPoint(c.node)
     )
 
-    block(childScope, c)
+    block(childScope, c, newModel)
 
     with(childScope) {
         scope.ui.build.afterBuild { c.initialize() }
@@ -83,8 +94,8 @@ fun <E : Any>subForm(
     index : Int = -1,
     model : E?,
     clazz : KClass<E>,
-    block: context(NodeScope) Form.(E) -> Unit
-): Form {
+    block: context(NodeScope) Form<E>.(E) -> Unit
+): Form<E> {
     val el = scope.create<HTMLFormElement>("fieldset")
 
     val newModel = if (model == null) {
@@ -95,7 +106,7 @@ fun <E : Any>subForm(
     }
 
 
-    val c = Form(el)
+    val c = Form(el, newModel, clazz)
     scope.attach(c)
 
     val childScope = scope.fork(

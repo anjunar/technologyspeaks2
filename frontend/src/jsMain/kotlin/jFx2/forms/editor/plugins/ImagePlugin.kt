@@ -48,11 +48,11 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
             "Add Image",
             {
 
-                form {
+                form(model = dimensions, clazz = Dimensions::class) { form ->
                     var myImage : Image? = null
 
                     onSubmit {
-                        insertImage(myImage!!.src, dimensions.width.value.toInt(), dimensions.height.value.toInt())
+                        insertImage(myImage!!.src, form.width.value.toInt(), form.height.value.toInt())
                     }
 
                     div {
@@ -73,8 +73,8 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                             }
 
                             window.setTimeout({
-                                dimensions.width.set(myImage!!.node.width.toDouble())
-                                dimensions.height.set(myImage!!.node.height.toDouble())
+                                form.width.set(myImage!!.node.width.toDouble())
+                                form.height.set(myImage!!.node.height.toDouble())
                             }, 100)
 
                         }
@@ -106,12 +106,12 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                     hbox {
                         input("width", "number") {
                             placeholder = "Width"
-                            subscribeBidirectional(dimensions.width, valueAsNumberProperty)
+                            subscribeBidirectional(form.width, valueAsNumberProperty)
                         }
 
                         input("height", "number") {
                             placeholder = "Height"
-                            subscribeBidirectional(dimensions.height, valueAsNumberProperty)
+                            subscribeBidirectional(form.height, valueAsNumberProperty)
                         }
                     }
 

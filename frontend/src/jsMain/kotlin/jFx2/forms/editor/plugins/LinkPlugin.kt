@@ -7,6 +7,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.style
+import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
 import jFx2.forms.Input
 import jFx2.forms.editor.prosemirror.EditorState
@@ -25,10 +26,13 @@ import jFx2.forms.jsObject
 import jFx2.layout.hbox
 import jFx2.modals.ViewPort
 import jFx2.modals.WindowConf
+import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import kotlin.js.json
+
+class LinkDescriptor(val href : Property<String> = Property(""), val title : Property<String> = Property(""))
 
 class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
@@ -39,17 +43,18 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     override val name: String = "link"
 
     var onOpenLink: ((attrs: dynamic) -> Unit)? = { attrs ->
+
+        val formular = LinkDescriptor()
+
         ViewPort.addWindow(
             WindowConf(
                 "Add Link",
                 {
-                    var hrefInput: Input? = null
-                    var titleInput: Input? = null
 
-                    form {
+                    form(model = formular, clazz = LinkDescriptor::class) { form ->
                         onSubmit {
-                            val href = hrefInput?.read()?.trim().orEmpty()
-                            val title = titleInput?.read()?.trim().orEmpty()
+                            val href = form.href.get().trim().orEmpty()
+                            val title = form.href.get().trim().orEmpty()
                             if (href.isBlank()) {
                                 removeLink()
                             } else {
@@ -57,18 +62,22 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                             }
                         }
 
-                        hrefInput = input("href") {
+                        input("href") {
                             placeholder = "https://example.com"
                             if (attrs["href"] != null) {
                                 valueProperty.set(attrs["href"] as String)
                             }
+
+                            subscribeBidirectional(form.href, valueProperty)
                         }
 
-                        titleInput = input("title") {
+                        input("title") {
                             placeholder = "Title (optional)"
                             if (attrs["title"] != null) {
                                 valueProperty.set(attrs["title"] as String)
                             }
+
+                            subscribeBidirectional(form.title, valueProperty)
                         }
 
                         hbox {

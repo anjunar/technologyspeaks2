@@ -31,28 +31,6 @@ class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), Pag
                 height = "100%"
                 width = "100%"
             }
-
-
-            form {
-                style {
-                    height = "100%"
-                    width = "100%"
-                }
-
-                editor("test") {
-                    style {
-                        height = "100%"
-                        width = "100%"
-                    }
-
-                    basePlugin { }
-                    headingPlugin { }
-                    listPlugin { }
-                    linkPlugin { }
-                    imagePlugin { }
-                }
-            }
-
         }
 
 

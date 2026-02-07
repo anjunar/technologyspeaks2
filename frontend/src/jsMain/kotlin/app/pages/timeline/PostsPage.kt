@@ -118,7 +118,7 @@ object PostsPage {
 
             template {
 
-                form {
+                form(model = formular, clazz = Post::class) { form ->
 
                     input("post") {
 
@@ -150,7 +150,7 @@ object PostsPage {
 
                         template {
 
-                            form {
+                            form(model = item?.data, clazz = Post::class) { form ->
 
                                 className { "glass-border" }
 
@@ -173,7 +173,7 @@ object PostsPage {
                                         linkPlugin { }
                                         imagePlugin { }
 
-                                        subscribeBidirectional(item.data.editor, valueProperty)
+                                        subscribeBidirectional(form.editor, valueProperty)
 
                                     }
                                 }

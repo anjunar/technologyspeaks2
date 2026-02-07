@@ -5,7 +5,7 @@ class FormContext(
     private val namespace: String?
 ) {
     private val fields: MutableMap<String, FormField<*, *>> = LinkedHashMap()
-    private val subForms: MutableMap<String, Form> = LinkedHashMap()
+    private val subForms: MutableMap<String, Form<*>> = LinkedHashMap()
 
     private fun qualify(name: String): String =
         if (namespace.isNullOrBlank()) name else "$namespace.$name"
@@ -24,13 +24,13 @@ class FormContext(
         parent?.unregisterField(qualified, field)
     }
 
-    fun registerSubForm(name: String, form: Form) {
+    fun registerSubForm(name: String, form: Form<*>) {
         val qualified = qualify(name)
         subForms[qualified] = form
         parent?.registerSubForm(qualified, form)
     }
 
-    fun unregisterSubForm(name: String, form: Form) {
+    fun unregisterSubForm(name: String, form: Form<*>) {
         val qualified = qualify(name)
         if (subForms[qualified] === form) {
             subForms.remove(qualified)

@@ -34,7 +34,7 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     fun afterBuild() {
 
         template {
-            form {
+            form<Any> {
 
                 onSubmit {
                     window.fetch("/service/security/logout", RequestInit("POST")).await()
