@@ -22,7 +22,9 @@ import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.editorView
 import jFx2.forms.form
+import jFx2.forms.input
 import jFx2.router.PageInfo
+import jFx2.router.navigate
 import jFx2.state.ListProperty
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
@@ -118,30 +120,22 @@ object PostsPage {
 
                 form {
 
-                    onSubmit {
+                    input("post") {
 
-                        val response: Data<Post> = JsonClient.post("/service/timeline/posts/post", formular)
-                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(response))
-                        formular.editor.set("")
-
-                    }
-
-                    editor("editor") {
                         style {
-                            height = "300px"
-                            width = "100%"
+                            margin = "12px"
+                            padding = "12px"
+                            width = "calc(100% - 48px)"
+                            backgroundColor = "var(--color-background-secondary)"
+                            fontSize = "24px"
+                            borderRadius = "8px"
                         }
 
-                        basePlugin { }
-                        headingPlugin { }
-                        listPlugin { }
-                        linkPlugin { }
-                        imagePlugin { }
+                        placeholder = "Nach was ist dir heute?"
 
-                        subscribeBidirectional(formular.editor, valueProperty)
-                    }
-
-                    button("Posten") {
+                        onClick {
+                            navigate("/timeline/posts/post")
+                        }
 
                     }
 

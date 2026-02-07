@@ -35,6 +35,12 @@ object Routes {
                             factory = { PostsPage.page { } },
                             children = listOf(
                                 Route(
+                                    path = "post",
+                                    factory = {
+                                        postPage {}
+                                    }
+                                ),
+                                Route(
                                     path = "post/:id",
                                     factory = { params ->
                                         val post =

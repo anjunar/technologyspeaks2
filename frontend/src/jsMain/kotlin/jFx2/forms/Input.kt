@@ -55,6 +55,10 @@ class Input(
         node.onchange = callback
     }
 
+    fun onClick(callback: (Event) -> Unit) {
+        node.onclick = callback
+    }
+
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
     fun initialize() {

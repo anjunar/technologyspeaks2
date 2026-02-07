@@ -4,6 +4,7 @@ import com.anjunar.json.mapper.schema.Link
 import com.anjunar.technologyspeaks.SpringContext
 import com.anjunar.technologyspeaks.toKebabCase
 import jakarta.annotation.security.RolesAllowed
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -68,6 +69,7 @@ class LinkBuilder(val href : String?, var rel : String?, val method : String?, v
                     is GetMapping -> return LinkBuilder(annotation.value.first(), function.name, "GET", function)
                     is PostMapping -> return LinkBuilder(annotation.value.first(), function.name, "POST", function)
                     is PutMapping -> return LinkBuilder(annotation.value.first(), function.name, "PUT", function)
+                    is DeleteMapping -> return LinkBuilder(annotation.value.first(), function.name, "DELETE", function)
                     else -> null
                 }
             }
