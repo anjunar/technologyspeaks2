@@ -48,11 +48,11 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
             "Add Image",
             {
 
-                form(model = dimensions, clazz = Dimensions::class) { form ->
+                form(model = dimensions, clazz = Dimensions::class) {
                     var myImage : Image? = null
 
                     onSubmit {
-                        insertImage(myImage!!.src, form.width.value.toInt(), form.height.value.toInt())
+                        insertImage(myImage!!.src, this@form.model.width.value.toInt(), this@form.model.height.value.toInt())
                     }
 
                     div {
@@ -73,8 +73,8 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                             }
 
                             window.setTimeout({
-                                form.width.set(myImage!!.node.width.toDouble())
-                                form.height.set(myImage!!.node.height.toDouble())
+                                this@form.model.width.set(myImage!!.node.width.toDouble())
+                                this@form.model.height.set(myImage!!.node.height.toDouble())
                             }, 100)
 
                         }
@@ -106,12 +106,12 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                     hbox {
                         input("width", "number") {
                             placeholder = "Width"
-                            subscribeBidirectional(form.width, valueAsNumberProperty)
+                            subscribeBidirectional(this@form.model.width, valueAsNumberProperty)
                         }
 
                         input("height", "number") {
                             placeholder = "Height"
-                            subscribeBidirectional(form.height, valueAsNumberProperty)
+                            subscribeBidirectional(this@form.model.height, valueAsNumberProperty)
                         }
                     }
 

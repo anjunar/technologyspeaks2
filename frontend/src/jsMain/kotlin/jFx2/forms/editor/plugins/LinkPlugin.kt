@@ -51,10 +51,10 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                 "Add Link",
                 {
 
-                    form(model = formular, clazz = LinkDescriptor::class) { form ->
+                    form(model = formular, clazz = LinkDescriptor::class) {
                         onSubmit {
-                            val href = form.href.get().trim().orEmpty()
-                            val title = form.href.get().trim().orEmpty()
+                            val href = this@form.model.href.get().trim().orEmpty()
+                            val title = this@form.model.href.get().trim().orEmpty()
                             if (href.isBlank()) {
                                 removeLink()
                             } else {
@@ -68,7 +68,7 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                                 valueProperty.set(attrs["href"] as String)
                             }
 
-                            subscribeBidirectional(form.href, valueProperty)
+                            subscribeBidirectional(this@form.model.href, valueProperty)
                         }
 
                         input("title") {
@@ -77,7 +77,7 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                                 valueProperty.set(attrs["title"] as String)
                             }
 
-                            subscribeBidirectional(form.title, valueProperty)
+                            subscribeBidirectional(this@form.model.title, valueProperty)
                         }
 
                         hbox {

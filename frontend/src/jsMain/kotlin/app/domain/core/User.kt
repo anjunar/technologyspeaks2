@@ -15,8 +15,8 @@ class User(
     val nickName: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
     val image : Property<Media?> = Property(Media()),
-    val info: UserInfo? = null,
-    val address: Address? = null,
+    var info: UserInfo? = null,
+    var address: Address? = null,
     @Serializable(with = ListPropertySerializer::class)
     val emails: ListProperty<Email> = ListProperty()
 ) {

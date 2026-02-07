@@ -14,7 +14,7 @@ import org.w3c.dom.HTMLFormElement
 import kotlin.reflect.KClass
 import kotlin.reflect.createInstance
 
-class Form<E : Any>(override val node: HTMLFormElement, model : E?, clazz : KClass<E>) : Component<HTMLFormElement>(), Formular {
+class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz : KClass<E>) : Component<HTMLFormElement>(), Formular {
 
     val fields: MutableMap<String, FormField<*, *>> = LinkedHashMap()
     val subForms: MutableMap<String, Form<*>> = LinkedHashMap()
@@ -22,6 +22,10 @@ class Form<E : Any>(override val node: HTMLFormElement, model : E?, clazz : KCla
     var submitHandler: (suspend () -> Unit)? = null
 
     fun onSubmit(handler: suspend () -> Unit) { submitHandler = handler }
+
+    var disabled : Boolean
+        get() = node.hasAttribute("disabled")
+        set(v) { node.setAttribute("disabled", v.toString()) }
 
     context(scope: NodeScope)
     fun initialize() {
@@ -56,7 +60,7 @@ fun <E : Any>form(
     namespace: String? = null,
     model : E? = FormNoop() as E?,
     clazz : KClass<E> = FormNoop::class as KClass<E>,
-    block: context(NodeScope) Form<E>.(E) -> Unit
+    block: context(NodeScope) Form<E>.() -> Unit
 ): Form<*> {
     val el = scope.create<HTMLFormElement>("form")
 
@@ -79,7 +83,7 @@ fun <E : Any>form(
         ElementInsertPoint(c.node)
     )
 
-    block(childScope, c, newModel)
+    block(childScope, c)
 
     with(childScope) {
         scope.ui.build.afterBuild { c.initialize() }
@@ -94,7 +98,7 @@ fun <E : Any>subForm(
     index : Int = -1,
     model : E?,
     clazz : KClass<E>,
-    block: context(NodeScope) Form<E>.(E) -> Unit
+    block: context(NodeScope) Form<E>.() -> Unit
 ): Form<E> {
     val el = scope.create<HTMLFormElement>("fieldset")
 
@@ -118,7 +122,7 @@ fun <E : Any>subForm(
         ElementInsertPoint(c.node)
     )
 
-    block(childScope, c, newModel)
+    block(childScope, c)
 
     if (index > -1) {
         registerSubForm(index, c)

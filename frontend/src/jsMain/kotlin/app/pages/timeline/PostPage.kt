@@ -46,15 +46,15 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
         template {
 
-            form(model = model.get().data, clazz = Post::class) { form ->
+            form(model = model.get().data, clazz = Post::class) {
 
                 onSubmit {
-                    if (model.get().data.id == null) {
-                        val saved = JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", form)
+                    if (model.id == null) {
+                        val saved = JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
                         ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(saved))
                         close()
                     } else {
-                        val saved = JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", form)
+                        val saved = JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
                         ApplicationService.messageBus.publish(ApplicationService.Message.PostUpdated(saved))
                         close()
                     }
@@ -81,7 +81,7 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                         linkPlugin { }
                         imagePlugin { }
 
-                        subscribeBidirectional(form.editor, valueProperty)
+                        subscribeBidirectional(this@form.model.editor, valueProperty)
                     }
 
                     button("Senden") {

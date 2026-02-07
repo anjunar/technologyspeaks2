@@ -9,6 +9,7 @@ import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
@@ -43,12 +44,12 @@ object UserPage {
         context(scope: NodeScope)
         fun afterBuild() {
             template {
-                form(model = model.get().data, clazz = User::class) { form ->
+                form(model = model.get().data, clazz = User::class) {
 
                     onSubmit {
 
                         JobRegistry.instance.launch("Save User") {
-                            JsonClient.put("/service/core/users/user", form)
+                            JsonClient.put("/service/core/users/user", this@form.model)
                         }
 
                     }
@@ -62,54 +63,55 @@ object UserPage {
 
                         validatorsProperty.add(NotBlankValidator())
 
-                        subscribeBidirectional(form.image, valueProperty)
+                        subscribeBidirectional(this@form.model.image, valueProperty)
                     }
 
                     inputContainer("Nick Name") {
                         input("nickName") {
-                            subscribeBidirectional(form.nickName, valueProperty)
+                            subscribeBidirectional(this@form.model.nickName, valueProperty)
                         }
                     }
 
-                    subForm("info", model = form.info, clazz = UserInfo::class) { form ->
+                    subForm("info", model = this@form.model.info, clazz = UserInfo::class) {
+
                         inputContainer("First Name") {
                             input("firstName") {
-                                subscribeBidirectional(form.firstName, valueProperty)
+                                subscribeBidirectional(this@subForm.model.firstName, valueProperty)
                             }
                         }
 
                         inputContainer("Last Name") {
                             input("lastName") {
-                                subscribeBidirectional(form.lastName, valueProperty)
+                                subscribeBidirectional(this@subForm.model.lastName, valueProperty)
                             }
                         }
 
                         inputContainer("Birthdate") {
                             input("birthdate", "date") {
-                                subscribeBidirectional(form.birthDate, valueProperty)
+                                subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
                             }
                         }
                     }
 
-                    subForm("address", model = form.address, clazz = Address::class) { form ->
+                    subForm("address", model = this@form.model.address, clazz = Address::class) {
                         inputContainer("Street") {
                             input("street") {
-                                subscribeBidirectional(form.street, valueProperty)
+                                subscribeBidirectional(this@subForm.model.street, valueProperty)
                             }
                         }
                         inputContainer("Number") {
                             input("number") {
-                                subscribeBidirectional(form.number, valueProperty)
+                                subscribeBidirectional(this@subForm.model.number, valueProperty)
                             }
                         }
                         inputContainer("Zip Code") {
                             input("zipCode") {
-                                subscribeBidirectional(form.zipCode, valueProperty)
+                                subscribeBidirectional(this@subForm.model.zipCode, valueProperty)
                             }
                         }
                         inputContainer("Country") {
                             input("country") {
-                                subscribeBidirectional(form.country, valueProperty)
+                                subscribeBidirectional(this@subForm.model.country, valueProperty)
                             }
                         }
                     }

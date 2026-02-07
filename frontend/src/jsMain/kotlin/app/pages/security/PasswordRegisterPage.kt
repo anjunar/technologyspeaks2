@@ -40,11 +40,11 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
         val registerForm = PasswordRegister()
 
         template {
-            form(model = registerForm, clazz = PasswordRegister::class) { form ->
+            form(model = registerForm, clazz = PasswordRegister::class) {
 
                 onSubmit {
 
-                    val post : JsonResponse = JsonClient.post("/service/security/register", form)
+                    val post : JsonResponse = JsonClient.post("/service/security/register", this@form.model)
                     close()
 
                 }
@@ -78,7 +78,7 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                         input("email", "email") {
                             validatorsProperty.add(EmailValidator())
-                            subscribeBidirectional(form.email, valueProperty)
+                            subscribeBidirectional(this@form.model.email, valueProperty)
                         }
 
                     }
@@ -87,7 +87,7 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                         input("password", "password") {
                             validatorsProperty.add(SizeValidator(5, 30))
-                            subscribeBidirectional(form.password, valueProperty)
+                            subscribeBidirectional(this@form.model.password, valueProperty)
                         }
 
                     }
