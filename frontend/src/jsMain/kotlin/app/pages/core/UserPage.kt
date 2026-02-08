@@ -13,7 +13,9 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
+import jFx2.core.rendering.observeRender
 import jFx2.core.template
+import jFx2.forms.Form
 import jFx2.forms.NotBlankValidator
 import jFx2.forms.form
 import jFx2.forms.imageCropper
@@ -36,9 +38,13 @@ object UserPage {
         override var close: () -> Unit = {}
         
         val model = Property(Data(User()))
+        val infoDisabled = Property(true)
+        val addressDisabled = Property(true)
 
         fun model(data : Data<User>) {
             model.set(data)
+            if (data.data.info != null) infoDisabled.set(false)
+            if (data.data.address != null) addressDisabled.set(false)
         }
 
         context(scope: NodeScope)
@@ -72,49 +78,108 @@ object UserPage {
                         }
                     }
 
-                    subForm("info", model = this@form.model.info, clazz = UserInfo::class) {
+                    hbox {
 
-                        inputContainer("First Name") {
-                            input("firstName") {
-                                subscribeBidirectional(this@subForm.model.firstName, valueProperty)
+                        style {
+                            alignItems = "flex-start"
+                        }
+
+                        observeRender(infoDisabled) { value ->
+                            subForm("info", model = this@form.model.info, clazz = UserInfo::class) {
+
+                                style {
+                                    flex = "1"
+                                }
+
+                                disabled = value
+
+                                inputContainer("First Name") {
+                                    input("firstName") {
+                                        subscribeBidirectional(this@subForm.model.firstName, valueProperty)
+                                    }
+                                }
+
+                                inputContainer("Last Name") {
+                                    input("lastName") {
+                                        subscribeBidirectional(this@subForm.model.lastName, valueProperty)
+                                    }
+                                }
+
+                                inputContainer("Birthdate") {
+                                    input("birthdate", "date") {
+                                        subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
+                                    }
+                                }
                             }
                         }
 
-                        inputContainer("Last Name") {
-                            input("lastName") {
-                                subscribeBidirectional(this@subForm.model.lastName, valueProperty)
-                            }
-                        }
-
-                        inputContainer("Birthdate") {
-                            input("birthdate", "date") {
-                                subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
+                        button("close") {
+                            type("button")
+                            className { "material-icons" }
+                            onClick {
+                                if (infoDisabled.get()) {
+                                    this@form.model.info = this@form.subForms["info"]!!.model as UserInfo
+                                    infoDisabled.set(false)
+                                } else {
+                                    this@form.model.info = null
+                                    infoDisabled.set(true)
+                                }
                             }
                         }
                     }
 
-                    subForm("address", model = this@form.model.address, clazz = Address::class) {
-                        inputContainer("Street") {
-                            input("street") {
-                                subscribeBidirectional(this@subForm.model.street, valueProperty)
+                    hbox {
+                        style {
+                            alignItems = "flex-start"
+                        }
+
+                        observeRender(addressDisabled) { value ->
+                            subForm("address", model = this@form.model.address, clazz = Address::class) {
+
+                                style {
+                                    flex = "1"
+                                }
+
+                                disabled = value
+
+                                inputContainer("Street") {
+                                    input("street") {
+                                        subscribeBidirectional(this@subForm.model.street, valueProperty)
+                                    }
+                                }
+                                inputContainer("Number") {
+                                    input("number") {
+                                        subscribeBidirectional(this@subForm.model.number, valueProperty)
+                                    }
+                                }
+                                inputContainer("Zip Code") {
+                                    input("zipCode") {
+                                        subscribeBidirectional(this@subForm.model.zipCode, valueProperty)
+                                    }
+                                }
+                                inputContainer("Country") {
+                                    input("country") {
+                                        subscribeBidirectional(this@subForm.model.country, valueProperty)
+                                    }
+                                }
                             }
                         }
-                        inputContainer("Number") {
-                            input("number") {
-                                subscribeBidirectional(this@subForm.model.number, valueProperty)
-                            }
-                        }
-                        inputContainer("Zip Code") {
-                            input("zipCode") {
-                                subscribeBidirectional(this@subForm.model.zipCode, valueProperty)
-                            }
-                        }
-                        inputContainer("Country") {
-                            input("country") {
-                                subscribeBidirectional(this@subForm.model.country, valueProperty)
+
+                        button("close") {
+                            type("button")
+                            className { "material-icons" }
+                            onClick {
+                                if (addressDisabled.get()) {
+                                    this@form.model.address = this@form.subForms["address"]!!.model as Address
+                                    addressDisabled.set(false)
+                                } else {
+                                    this@form.model.address = null
+                                    addressDisabled.set(true)
+                                }
                             }
                         }
                     }
+
 
                     hbox {
 

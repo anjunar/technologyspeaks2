@@ -25,7 +25,9 @@ class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz
 
     var disabled : Boolean
         get() = node.hasAttribute("disabled")
-        set(v) { node.setAttribute("disabled", v.toString()) }
+        set(v) {
+            if (v) node.setAttribute("disabled", "true") else node.removeAttribute("disabled")
+        }
 
     context(scope: NodeScope)
     fun initialize() {

@@ -67,7 +67,7 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                 vbox {
                     postHeader {
-                        model(model.get())
+                        model(this@PostPage.model.get())
                     }
 
                     editor("editor") {
