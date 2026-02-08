@@ -407,7 +407,22 @@ class VirtualListView<T>(
             index += 1
         }
 
-        if (visible.isEmpty()) return
+        if (visible.isEmpty()) {
+            // IMPORTANT: cleanup previously rendered slots (e.g. stale "Loading..." placeholders)
+            for (i in 0 until slots.size) {
+                val slot = slots[i]
+                slot.node.classList.add("is-hidden")
+                slot.boundIndex = -1
+                slot.loaded = false
+                // optional: clear content so it doesn't flash if shown later
+                uiScope.dom.clear(slot.node)
+                slot.dispose?.dispose()
+                slot.dispose = null
+            }
+            // keep height consistent
+            updateContentHeight()
+            return
+        }
 
         val needed = visible.size
         ensureSlotCount(needed)
