@@ -1,6 +1,7 @@
 package app.pages.timeline
 
 import app.components.likeable.likeButton
+import app.components.commentable.commentsSection
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
@@ -181,6 +182,12 @@ object PostsPage {
                                     likeButton {
                                         model(
                                             likes = this@form.model.likes,
+                                            links = item.links
+                                        )
+                                    }
+
+                                    commentsSection {
+                                        model(
                                             links = item.links
                                         )
                                     }

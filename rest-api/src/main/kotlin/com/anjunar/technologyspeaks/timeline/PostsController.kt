@@ -51,6 +51,15 @@ class PostsController(val query: HibernateSearch, val identityHolder: IdentityHo
                     .build()
             )
 
+            post.addLinks(
+                LinkBuilder.create(PostController::comments)
+                    .withVariable("id", post.data.id)
+                    .build(),
+                LinkBuilder.create(PostController::comment)
+                    .withVariable("id", post.data.id)
+                    .build()
+            )
+
             if (identityHolder.user == post.data.user) {
                 post.addLinks(
                     LinkBuilder.create(PostController::update)
