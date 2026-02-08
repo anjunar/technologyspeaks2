@@ -1,5 +1,6 @@
 package app.pages.timeline
 
+import app.components.likeable.likeButton
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
@@ -175,6 +176,13 @@ object PostsPage {
 
                                         subscribeBidirectional(this@form.model.editor, valueProperty)
 
+                                    }
+
+                                    likeButton {
+                                        model(
+                                            likes = this@form.model.likes,
+                                            links = item.links
+                                        )
                                     }
                                 }
 

@@ -14,6 +14,7 @@ import com.anjunar.technologyspeaks.hibernate.RepositoryContext
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
 import com.anjunar.technologyspeaks.shared.likeable.Like
+import com.anjunar.technologyspeaks.shared.likeable.LikeableEntity
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -54,7 +55,7 @@ import org.hibernate.annotations.Type
         )
     ]
 )
-class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider {
+class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider, LikeableEntity {
 
     @ManyToOne(optional = false)
     @JsonbProperty
@@ -68,7 +69,7 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider {
 
     @OneToMany(cascade = [CascadeType.ALL])
     @JsonbProperty
-    val likes : MutableSet<Like> = HashSet()
+    override val likes : MutableSet<Like> = HashSet()
 
     override fun owner(): EntityProvider = user
 
