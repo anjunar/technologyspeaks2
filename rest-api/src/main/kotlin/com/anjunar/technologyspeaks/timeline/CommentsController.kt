@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CommentsController(val query: HibernateSearch) {
 
-    @GetMapping(value = ["/timeline/posts/post/{id}/comments"], produces = ["application/json"])
+    @GetMapping(value = ["/timeline/posts/post/{post}/comments"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @Transactional
-    fun comments(@ModelAttribute search: CommentSearch): Table<CommentRow> {
+    fun comments(search: CommentSearch): Table<CommentRow> {
         val searchContext = query.searchContext(search)
 
         val entities = query.entities(
@@ -32,6 +32,16 @@ class CommentsController(val query: HibernateSearch) {
         )
 
         val count = query.count(Comment::class, searchContext)
+
+        for (row in entities) {
+
+            row.addLinks(
+                LinkBuilder.create(CommentController::comment)
+                    .withVariable("id", search.post.id)
+                    .build()
+            )
+
+        }
 
         return Table(entities, count, Post.schema())
     }

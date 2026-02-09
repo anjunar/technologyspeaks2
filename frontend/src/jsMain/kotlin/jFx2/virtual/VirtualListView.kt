@@ -1,5 +1,7 @@
 package jFx2.virtual
 
+import app.domain.core.AbstractEntity
+import app.domain.core.Data
 import jFx2.core.Component
 import jFx2.core.capabilities.DisposeScope
 import jFx2.core.capabilities.NodeScope
@@ -30,7 +32,7 @@ import kotlin.math.min
  * - each cell render happens in a cell-local NodeScope with its own DisposeScope
  * - dispose on recycle to avoid append-only leaks
  */
-class VirtualListView<T>(
+class VirtualListView<T : Data<out AbstractEntity>>(
     private val dataProvider: RangeDataProvider<T>,
     private val estimateHeightPx: Int = 44,
     private val overscanPx: Int = 240,

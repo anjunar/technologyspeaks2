@@ -1,11 +1,18 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package app.pages.timeline
 
 import app.components.commentable.commentsSection
+import app.domain.core.AbstractEntity
 import app.domain.core.Data
+import app.domain.core.Table
+import app.domain.shared.Comment
 import app.domain.time.Post
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
+import jFx2.controls.image
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
@@ -13,7 +20,6 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
-import jFx2.forms.editor
 import jFx2.forms.editor.plugins.basePlugin
 import jFx2.forms.editor.plugins.headingPlugin
 import jFx2.forms.editor.plugins.imagePlugin
@@ -21,10 +27,30 @@ import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.editorView
 import jFx2.forms.form
+import jFx2.layout.div
+import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.state.Property
+import jFx2.virtual.RangeDataProvider
+import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
+
+private class RangeProvider(
+    private val listUrl: String,
+    override val maxItems: Int = 5000,
+    override val pageSize: Int = 50
+) : RangeDataProvider<Data<out AbstractEntity>>() {
+
+    override suspend fun fetch(index: Int, limit: Int): Table<out Data<out AbstractEntity>> =
+        JsonClient.invoke<Table<Data<Comment>>>(
+            "${listUrl}?index=${index - 1}&limit=$limit&sort=created:asc"
+        )
+
+}
+
+private fun serviceUrl(url: String): String =
+    if (url.startsWith("/service/")) url else "/service$url"
 
 class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
@@ -43,41 +69,126 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
+        val listLink = model.get().links.firstOrNull { it.rel == "comments" } ?: return
+        val provider = RangeProvider(serviceUrl(listLink.url))
+        provider.upsert(model.get())
+
         template {
 
-            form(model = model.get().data, clazz = Post::class) {
+            virtualList(
+                dataProvider = provider,
+                estimateHeightPx = 44,
+                overscanPx = 120,
+                prefetchItems = 40,
+                renderer = { item, _ ->
 
-                style {
-                    padding = "10px"
-                    height = "calc(100% - 20px)"
-                }
+                    template {
+                        if (item == null) {
+                            text("Loading...")
+                        } else {
 
-                vbox {
-                    postHeader {
-                        model(this@PostViewPage.model.get())
-                    }
 
-                    editorView("editor") {
-                        basePlugin { }
-                        headingPlugin { }
-                        listPlugin { }
-                        linkPlugin { }
-                        imagePlugin { }
+                            when(item.data) {
+                                is Post -> {
+                                    form(model = item.data, clazz = Post::class) {
 
-                        subscribeBidirectional(this@form.model.editor, valueProperty)
-                    }
+                                        style {
+                                            padding = "10px"
+                                            height = "calc(100% - 20px)"
+                                        }
 
-                    commentsSection {
-                        style {
-                            flex = "1"
-                            minHeight = "0px"
+                                        vbox {
+                                            postHeader {
+                                                model(item as Data<Post>)
+                                            }
+
+                                            editorView("editor") {
+                                                basePlugin { }
+                                                headingPlugin { }
+                                                listPlugin { }
+                                                linkPlugin { }
+                                                imagePlugin { }
+
+                                                subscribeBidirectional(this@form.model.editor, valueProperty)
+                                            }
+                                        }
+                                    }
+                                }
+                                is Comment -> {
+                                    vbox {
+
+                                        className { "glass-border" }
+
+                                        hbox {
+                                            style {
+                                                columnGap = "8px"
+                                                alignItems = "center"
+                                            }
+
+                                            val user = item.data.user!!.get()
+                                            val img = user.image.get()?.thumbnailLink()
+                                            if (img == null) {
+                                                div {
+                                                    text("user")
+                                                    className { "material-icons" }
+                                                    style {
+                                                        fontSize = "48px"
+                                                    }
+                                                }
+                                            } else {
+                                                image {
+                                                    style {
+                                                        height = "48px"
+                                                        width = "48px"
+                                                    }
+                                                    src = img
+                                                }
+                                            }
+
+                                            div {
+                                                style {
+                                                    flex = "1"
+                                                }
+                                                text(user.nickName.get())
+                                            }
+
+                                            button("delete") {
+                                                type("button")
+                                                className { "material-icons" }
+                                                onClick {
+
+                                                }
+                                            }
+
+                                        }
+
+                                        editorView("editor") {
+                                            basePlugin { }
+                                            headingPlugin { }
+                                            listPlugin { }
+                                            linkPlugin { }
+                                            imagePlugin { }
+
+                                            subscribeBidirectional(item.data.editor, valueProperty)
+                                        }
+
+                                        commentsSection {
+                                            model(item.links)
+                                        }
+
+                                    }
+                                }
+                            }
+
                         }
-                        model(this@PostViewPage.model.get().links)
+
+
                     }
 
-                }
 
-            }
+
+                }
+            )
 
         }
 

@@ -4,17 +4,23 @@ import com.anjunar.technologyspeaks.hibernate.search.AbstractSearch
 import com.anjunar.technologyspeaks.hibernate.search.Context
 import com.anjunar.technologyspeaks.hibernate.search.PredicateProvider
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestPredicate
+import com.anjunar.technologyspeaks.hibernate.search.annotations.RestSort
 import com.anjunar.technologyspeaks.timeline.Post
 import jakarta.json.bind.annotation.JsonbProperty
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
-class CommentSearch : AbstractSearch() {
-
+class CommentSearch(
     @JsonbProperty
+    @PathVariable("post")
     @RestPredicate(PostPredicate::class)
-    lateinit var post: Post
+    val post: Post,
+    sort: MutableList<String>,
+    index: Int = 0,
+    limit: Int = 5
+) : AbstractSearch(sort, index, limit) {
 
     companion object {
 

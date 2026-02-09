@@ -1,11 +1,13 @@
 package jFx2.virtual
 
+import app.domain.core.AbstractEntity
+import app.domain.core.Data
 import app.domain.core.Table
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
 
-abstract class RangeDataProvider<T> {
+abstract class RangeDataProvider<T : Data<out AbstractEntity>> {
 
     open val maxItems: Int = 5000
     open val pageSize: Int = 50
@@ -23,7 +25,7 @@ abstract class RangeDataProvider<T> {
 
     fun getOrNull(index: Int): T? = items.getOrNull(index)
 
-    abstract suspend fun fetch(index : Int, limit: Int): Table<T>
+    abstract suspend fun fetch(index : Int, limit: Int): Table<out T>
 
     suspend fun ensureRange(from: Int, toInclusive: Int) {
         if (endReached) return
@@ -55,5 +57,16 @@ abstract class RangeDataProvider<T> {
 
     fun observeChanges(listener: (ListChange<*>) -> Unit): Disposable =
         items.observeChanges { listener(it) }
+
+    fun upsert(entity: T) {
+        val id = entity.data.id?.get()
+        if (id == null) {
+            items.add(entity)
+            return
+        }
+
+        val index = items.indexOfFirst { it.data.id?.get() == id }
+        if (index >= 0) items[index] = entity else items.add(entity)
+    }
 
 }

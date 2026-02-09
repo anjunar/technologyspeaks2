@@ -8,10 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Email(
     @Serializable(with = PropertySerializer::class)
-    val id : Property<String>? = null,
+    override val id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val value: Property<String> = Property("")
-) {
+)  : AbstractEntity {
 
     override fun toString(): String {
         return "Email(value=${value.get()})"

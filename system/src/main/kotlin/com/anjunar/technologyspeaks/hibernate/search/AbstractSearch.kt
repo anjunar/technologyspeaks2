@@ -2,17 +2,20 @@ package com.anjunar.technologyspeaks.hibernate.search
 
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestSort
 import jakarta.json.bind.annotation.JsonbProperty
+import org.springframework.web.bind.annotation.RequestParam
 
-open class AbstractSearch {
-
+open class AbstractSearch(
     @JsonbProperty
     @RestSort
-    var sort : MutableList<String> = mutableListOf()
+    @RequestParam
+    val sort: MutableList<String> = mutableListOf(),
 
     @JsonbProperty
-    var index : Int = 0
+    @RequestParam
+    val index: Int = 0,
 
     @JsonbProperty
-    var limit : Int = 5
+    @RequestParam
+    val limit: Int = 5
 
-}
+)

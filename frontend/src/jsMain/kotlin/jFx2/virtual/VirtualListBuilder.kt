@@ -1,9 +1,11 @@
 package jFx2.virtual
 
+import app.domain.core.AbstractEntity
+import app.domain.core.Data
 import jFx2.core.capabilities.NodeScope
 
 context(scope: NodeScope)
-fun <T> virtualList(
+fun <T : Data<out AbstractEntity>> virtualList(
     dataProvider: RangeDataProvider<T>,
     estimateHeightPx: Int = 44,
     overscanPx: Int = 240,

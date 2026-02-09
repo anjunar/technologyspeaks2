@@ -33,7 +33,7 @@ class PostController(val identityHolder: IdentityHolder) {
 
         data.addLinks(
             LinkBuilder.create(CommentsController::comments)
-                .withVariable("id", post.id)
+                .withVariable("post", post.id)
                 .build(),
             LinkBuilder.create(CommentController::comment)
                 .withVariable("id", post.id)

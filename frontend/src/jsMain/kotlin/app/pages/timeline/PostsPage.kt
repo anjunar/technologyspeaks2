@@ -37,18 +37,6 @@ object PostsPage {
         override suspend fun fetch(index: Int, limit: Int): Table<Data<Post>> {
             return JsonClient.invoke<Table<Data<Post>>>("/service/timeline/posts?index=${items.size}&limit=$limit&sort=created:desc")
         }
-
-        fun upsert(post: Data<Post>) {
-            val id = post.data.id?.get()
-            if (id == null) {
-                items.add(0, post)
-                return
-            }
-
-            val index = items.indexOfFirst { it.data.id?.get() == id }
-            if (index >= 0) items[index] = post else items.add(0, post)
-        }
-
     }
 
     class Page(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {

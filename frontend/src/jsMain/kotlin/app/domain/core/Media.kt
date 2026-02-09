@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Media(
     @Serializable(with = PropertySerializer::class)
-    val id : Property<String>? = null,
+    override val id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val name : Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
@@ -16,7 +16,7 @@ class Media(
     @Serializable(with = PropertySerializer::class)
     val data : Property<String> = Property(""),
     val thumbnail: Thumbnail = Thumbnail()
-) {
+) : AbstractEntity {
 
     fun dataUrl() : String {
         return "data:${contentType.get()};base64,${data.get()}"

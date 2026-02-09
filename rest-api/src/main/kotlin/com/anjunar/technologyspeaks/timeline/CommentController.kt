@@ -16,10 +16,7 @@ class CommentController(val identityHolder: IdentityHolder) {
     @PostMapping(value = ["/timeline/posts/post/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @Transactional
-    fun comment(
-        @PathVariable("id") post: Post,
-        @RequestBody body: Comment
-    ): Data<Comment> {
+    fun comment(@PathVariable("id") post: Post, @RequestBody body: Comment): Data<Comment> {
 
         body.user = identityHolder.user
         body.persist()
