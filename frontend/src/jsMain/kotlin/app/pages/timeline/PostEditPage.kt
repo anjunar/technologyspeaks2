@@ -2,7 +2,6 @@ package app.pages.timeline
 
 import app.domain.core.Data
 import app.domain.time.Post
-import app.pages.timeline.PostsPage.Page
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
@@ -20,14 +19,12 @@ import jFx2.forms.editor.plugins.imagePlugin
 import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.form
-import jFx2.layout.div
-import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 
-class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
+class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Posts"
     override val width: Int = - 1
@@ -67,7 +64,7 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                 vbox {
                     postHeader {
-                        model(this@PostPage.model.get())
+                        model(this@PostEditPage.model.get())
                     }
 
                     editor("editor") {
@@ -100,11 +97,11 @@ class PostPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 }
 
 context(scope: NodeScope)
-fun postPage(block: context(NodeScope) PostPage.() -> Unit = {}): PostPage {
+fun postEditPage(block: context(NodeScope) PostEditPage.() -> Unit = {}): PostEditPage {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("post-page")
     el.classList.add("container")
-    val c = PostPage(el)
+    val c = PostEditPage(el)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))

@@ -360,7 +360,6 @@ class ImageCropperDialog(
                         DragMode.ResizeNE -> { anchorX = r0.x; anchorY = r0.y + r0.h; cornerX = p.x; cornerY = p.y }
                         DragMode.ResizeSW -> { anchorX = r0.x + r0.w; anchorY = r0.y; cornerX = p.x; cornerY = p.y }
                         DragMode.ResizeSE -> { anchorX = r0.x; anchorY = r0.y; cornerX = p.x; cornerY = p.y }
-                        else -> return@onMouseMove
                     }
 
                     val dx = cornerX - anchorX

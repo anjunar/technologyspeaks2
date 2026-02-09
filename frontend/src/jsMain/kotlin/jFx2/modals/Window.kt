@@ -73,7 +73,7 @@ class Window(
         val key = resolvedSizeStorageKey() ?: return false
         val element = node as HTMLElement
 
-        val raw = runCatching { browserWindow.localStorage?.getItem(key) }.getOrNull()?.trim()
+        val raw = runCatching { browserWindow.localStorage.getItem(key) }.getOrNull()?.trim()
         if (raw.isNullOrBlank()) return false
 
         val parts = raw.split(',')
@@ -107,7 +107,7 @@ class Window(
             if (element.style.left.isNotBlank() || element.style.top.isNotBlank()) return false
         }
 
-        val raw = runCatching { browserWindow.localStorage?.getItem(key) }.getOrNull()?.trim()
+        val raw = runCatching { browserWindow.localStorage.getItem(key) }.getOrNull()?.trim()
         if (raw.isNullOrBlank()) return false
 
         val parts = raw.split(',')
@@ -162,7 +162,7 @@ class Window(
         if (width == null && height == null) return
 
         val payload = "${width ?: ""},${height ?: ""}"
-        runCatching { browserWindow.localStorage?.setItem(key, payload) }
+        runCatching { browserWindow.localStorage.setItem(key, payload) }
     }
 
     private fun persistPositionToStorage() {
@@ -170,7 +170,7 @@ class Window(
         val element = node as HTMLElement
         val left = element.offsetLeft
         val top = element.offsetTop
-        runCatching { browserWindow.localStorage?.setItem(key, "${left},${top}") }
+        runCatching { browserWindow.localStorage.setItem(key, "${left},${top}") }
     }
 
     private fun persistWindowStateToStorage() {

@@ -1,7 +1,6 @@
 package app.pages.timeline
 
 import app.components.likeable.likeButton
-import app.components.commentable.commentsSection
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
@@ -16,15 +15,11 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
-import jFx2.forms.editor
-import jFx2.forms.editor.plugins.basePlugin
-import jFx2.forms.editor.plugins.headingPlugin
-import jFx2.forms.editor.plugins.imagePlugin
-import jFx2.forms.editor.plugins.linkPlugin
-import jFx2.forms.editor.plugins.listPlugin
+import jFx2.forms.editor.plugins.*
 import jFx2.forms.editorView
 import jFx2.forms.form
 import jFx2.forms.input
+import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.router.navigate
 import jFx2.state.ListProperty
@@ -36,53 +31,12 @@ import kotlin.math.min
 object PostsPage {
 
     class PostRangeProvider(
-        private val maxItems: Int = 5000,
-        private val pageSize: Int = 50
-    ) : RangeDataProvider<Data<Post>?> {
-        private val items = ListProperty<Data<Post>>()
-        private var reachedEnd: Boolean = false
+        override val maxItems: Int = 5000, override val pageSize: Int = 50
+    ) : RangeDataProvider<Data<Post>>() {
 
-        override val hasKnownCount: Boolean = false
-        override val knownCount: Int = 0
-
-        override val endReached: Boolean
-            get() = reachedEnd || items.size >= maxItems
-
-        override val loadedCount: Int
-            get() = items.size
-
-        override suspend fun ensureRange(from: Int, toInclusive: Int) {
-            if (endReached) return
-            if (toInclusive < 0) return
-            if (toInclusive < items.size) return
-
-            val target = min(toInclusive, maxItems - 1)
-
-            while (items.size <= target && !reachedEnd) {
-                val remaining = target - items.size + 1
-                val limit = min(pageSize, remaining)
-                if (limit <= 0) return
-
-                val table = JsonClient.invoke<Table<Post>>("/service/timeline/posts?index=${items.size}&limit=$limit&sort=created:desc")
-
-                if (table.rows.isEmpty()) {
-                    reachedEnd = true
-                    return
-                }
-
-                items += table.rows
-
-                if (table.rows.size < limit) {
-                    reachedEnd = true
-                    return
-                }
-            }
+        override suspend fun fetch(index: Int, limit: Int): Table<Data<Post>> {
+            return JsonClient.invoke<Table<Data<Post>>>("/service/timeline/posts?index=${items.size}&limit=$limit&sort=created:desc")
         }
-
-        override fun getOrNull(index: Int): Data<Post>? = items.getOrNull(index)
-
-        override fun observeChanges(listener: (jFx2.state.ListChange<*>) -> Unit): jFx2.state.Disposable =
-            items.observeChanges { listener(it) }
 
         fun upsert(post: Data<Post>) {
             val id = post.data.id?.get()
@@ -113,8 +67,7 @@ object PostsPage {
                         is ApplicationService.Message.PostCreated -> provider.upsert(message.post)
                         is ApplicationService.Message.PostUpdated -> provider.upsert(message.post)
                     }
-                }
-            )
+                })
 
             val formular = Post()
 
@@ -179,25 +132,43 @@ object PostsPage {
 
                                     }
 
-                                    likeButton {
-                                        model(
-                                            likes = this@form.model.likes,
-                                            links = item.links
-                                        )
+
+                                    hbox {
+                                        style {
+                                            columnGap = "8px"
+                                            alignItems = "center"
+                                        }
+
+                                        likeButton {
+                                            model(
+                                                likes = this@form.model.likes, links = item.links
+                                            )
+                                        }
+
+                                        input("comment") {
+                                            style {
+                                                flex = "1"
+                                                padding = "8px"
+                                                borderRadius = "6px"
+                                                backgroundColor = "var(--color-background-secondary)"
+                                                border = "1px solid var(--color-background-primary)"
+                                            }
+                                            placeholder = "Kommentar schreiben..."
+
+                                            onClick {
+                                                navigate("/timeline/posts/post/${item.data.id?.get()}/view")
+                                            }
+
+                                        }
                                     }
 
-                                    commentsSection {
-                                        model(
-                                            links = item.links
-                                        )
-                                    }
+
                                 }
 
                             }
 
                         }
-                    }
-                )
+                    })
             }
         }
 

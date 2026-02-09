@@ -16,11 +16,11 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
+import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
-import jFx2.state.JobRegistry
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import jFx2.virtual.RangeDataProvider
@@ -48,55 +48,13 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
     private class CommentRangeProvider(
         private val listUrl: String,
-        private val maxItems: Int = 5000,
-        private val pageSize: Int = 50
-    ) : RangeDataProvider<Data<Comment>?> {
-        private val items = ListProperty<Data<Comment>>()
-        private var reachedEnd: Boolean = false
+        override val maxItems: Int = 5000,
+        override val pageSize: Int = 50
+    ) : RangeDataProvider<Data<Comment>>() {
 
-        override val hasKnownCount: Boolean = false
-        override val knownCount: Int = 0
-
-        override val endReached: Boolean
-            get() = reachedEnd || items.size >= maxItems
-
-        override val loadedCount: Int
-            get() = items.size
-
-        override suspend fun ensureRange(from: Int, toInclusive: Int) {
-            if (endReached) return
-            if (toInclusive < 0) return
-            if (toInclusive < items.size) return
-
-            val target = kotlin.math.min(toInclusive, maxItems - 1)
-
-            while (items.size <= target && !reachedEnd) {
-                val remaining = target - items.size + 1
-                val limit = kotlin.math.min(pageSize, remaining)
-                if (limit <= 0) return
-
-                val table = JsonClient.invoke<Table<Comment>>(
-                    "${listUrl}?index=${items.size}&limit=$limit&sort=created:asc"
-                )
-
-                if (table.rows.isEmpty()) {
-                    reachedEnd = true
-                    return
-                }
-
-                items += table.rows
-
-                if (table.rows.size < limit) {
-                    reachedEnd = true
-                    return
-                }
-            }
-        }
-
-        override fun getOrNull(index: Int): Data<Comment>? = items.getOrNull(index)
-
-        override fun observeChanges(listener: (jFx2.state.ListChange<*>) -> Unit): jFx2.state.Disposable =
-            items.observeChanges { listener(it) }
+        override suspend fun fetch(index : Int, limit: Int): Table<Data<Comment>> = JsonClient.invoke<Table<Data<Comment>>>(
+            "${listUrl}?index=${items.size}&limit=$limit&sort=created:asc"
+        )
 
         fun upsert(comment: Data<Comment>) {
             val id = comment.data.id?.get()
@@ -120,7 +78,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
         val provider = CommentRangeProvider(serviceUrl(listLink.url))
 
         val busy = Property(false)
-        val newText = Property("")
+        val newText = Property(Comment())
 
         template {
             vbox {
@@ -130,48 +88,49 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 hbox {
+
                     style {
                         columnGap = "8px"
                         alignItems = "center"
                     }
 
-                    input("comment") {
-                        style {
-                            flex = "1"
-                            padding = "8px"
-                            borderRadius = "6px"
-                            backgroundColor = "var(--color-background-secondary)"
-                            border = "1px solid var(--color-background-primary)"
-                        }
-                        placeholder = "Kommentar schreiben..."
+                    form(model = newText.get(), clazz = Comment::class) {
 
-                        subscribeBidirectional(newText, valueProperty)
-                    }
+                        onSubmit {
+                            val text = this@form.model.text.get().trim()
 
-                    button("send") {
-                        type("button")
-                        className { "material-icons container hover" }
-
-                        onClick {
-                            val text = newText.get().trim()
-                            if (text.isBlank()) return@onClick
-                            if (busy.get()) return@onClick
-
-                            JobRegistry.instance.launch("Comment", owner = this@CommentsSection) {
-                                busy.set(true)
-                                try {
-                                    val created = JsonClient.post<CommentCreate, Data<Comment>>(
-                                        serviceUrl(createLink.url),
-                                        CommentCreate(text)
-                                    )
-                                    provider.upsert(created)
-                                    newText.set("")
-                                } finally {
-                                    busy.set(false)
-                                }
+                            busy.set(true)
+                            try {
+                                val created = JsonClient.post<CommentCreate, Data<Comment>>(
+                                    serviceUrl(createLink.url),
+                                    CommentCreate(text)
+                                )
+                                provider.upsert(created)
+                                this@form.model.text.set("")
+                            } finally {
+                                busy.set(false)
                             }
                         }
+
+                        input("comment") {
+                            style {
+                                flex = "1"
+                                padding = "8px"
+                                borderRadius = "6px"
+                                backgroundColor = "var(--color-background-secondary)"
+                                border = "1px solid var(--color-background-primary)"
+                            }
+                            placeholder = "Kommentar schreiben..."
+
+                            subscribeBidirectional(this@form.model.text, valueProperty)
+                        }
+
+                        button("send") {
+                            type("button")
+                            className { "material-icons container hover" }
+                        }
                     }
+
                 }
 
                 div {

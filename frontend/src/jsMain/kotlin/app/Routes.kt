@@ -3,20 +3,17 @@ package app
 import app.domain.core.Data
 import app.domain.core.User
 import app.domain.time.Post
-import app.pages.Home
 import app.pages.core.UserPage
 import app.pages.core.usersPage
-import app.pages.core.virtualListDemoPage
 import app.pages.homePage
-import app.pages.security.WebAuthnLoginPage
-import app.pages.security.WebAuthnRegisterPage
 import app.pages.security.logoutPage
 import app.pages.security.passwordLoginPage
 import app.pages.security.passwordRegisterPage
 import app.pages.security.webAuthnLoginPage
 import app.pages.security.webAuthnRegisterPage
 import app.pages.timeline.PostsPage
-import app.pages.timeline.postPage
+import app.pages.timeline.postEditPage
+import app.pages.timeline.postViewPage
 import jFx2.client.JsonClient
 import jFx2.router.Route
 
@@ -37,7 +34,7 @@ object Routes {
                                 Route(
                                     path = "post",
                                     factory = {
-                                        postPage {}
+                                        postEditPage {}
                                     }
                                 ),
                                 Route(
@@ -45,7 +42,17 @@ object Routes {
                                     factory = { params ->
                                         val post =
                                             JsonClient.invoke<Data<Post>>("/service/timeline/posts/post/" + params["id"]!!)
-                                        postPage {
+                                        postEditPage {
+                                            model(post)
+                                        }
+                                    }
+                                ),
+                                Route(
+                                    path = "post/:id/view",
+                                    factory = { params ->
+                                        val post =
+                                            JsonClient.invoke<Data<Post>>("/service/timeline/posts/post/" + params["id"]!!)
+                                        postViewPage {
                                             model(post)
                                         }
                                     }
@@ -82,10 +89,6 @@ object Routes {
                                     }
                                 )
                             )
-                        ),
-                        Route(
-                            path = "virtual-list",
-                            factory = { virtualListDemoPage {} }
                         )
                     )
                 )

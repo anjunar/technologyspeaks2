@@ -35,7 +35,7 @@ class VirtualListView<T>(
     private val estimateHeightPx: Int = 44,
     private val overscanPx: Int = 240,
     private val prefetchItems: Int = 80,
-    private val renderer: context(NodeScope) (item: T, index: Int) -> Unit
+    private val renderer: context(NodeScope) (item: T?, index: Int) -> Unit
 ) : Component<HTMLDivElement>() {
 
     override val node: HTMLDivElement = document.createElement("div") as HTMLDivElement
@@ -313,7 +313,7 @@ class VirtualListView<T>(
         }
     }
 
-    private fun renderSlot(slot: Slot, item: T, index: Int) {
+    private fun renderSlot(slot: Slot, item: T?, index: Int) {
         slot.dispose?.dispose()
         uiScope.dom.clear(slot.node)
 

@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalJsReflectionCreateInstance::class)
+@file:Suppress("UNCHECKED_CAST")
 
 package jFx2.forms
 

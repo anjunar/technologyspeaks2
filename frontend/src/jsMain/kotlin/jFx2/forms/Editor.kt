@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+@file:Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE", "UNCHECKED_CAST")
 
 package jFx2.forms
 

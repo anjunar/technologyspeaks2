@@ -127,7 +127,7 @@ private class ForeachAsyncComponent<T>(
 
         scope.ui.build.afterBuild {
             if (disposed) return@afterBuild
-            val range = ensureRangeCommitted() ?: return@afterBuild
+            val range = ensureRangeCommitted()
 
             // kill all jobs belonging to this foreach instance
             runCatching { jobs.cancelAllFor(foreachOwner) }
@@ -208,7 +208,7 @@ private class ForeachAsyncComponent<T>(
     private fun reconcile(newItems: List<T>, restartJobs: Boolean) {
         if (disposed) return
 
-        val hostRange = ensureRangeCommitted() ?: return
+        val hostRange = ensureRangeCommitted()
         val parent: Node = start.parentNode ?: return
 
         // 1) new key order

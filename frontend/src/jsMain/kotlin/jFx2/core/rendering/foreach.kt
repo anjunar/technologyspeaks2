@@ -115,7 +115,7 @@ private class ForeachComponent<T>(
 
         scope.ui.build.afterBuild {
             if (disposed) return@afterBuild
-            val range = ensureRangeCommitted() ?: return@afterBuild
+            val range = ensureRangeCommitted()
 
             for ((_, im) in mounts) disposeAndRemove(im)
             mounts.clear()
@@ -174,7 +174,7 @@ private class ForeachComponent<T>(
     private fun reconcile(newItems: List<T>) {
         if (disposed) return
 
-        val hostRange = ensureRangeCommitted() ?: return
+        val hostRange = ensureRangeCommitted()
         val parent: Node = start.parentNode ?: return
 
         val newKeys = ArrayList<Any>(newItems.size)
