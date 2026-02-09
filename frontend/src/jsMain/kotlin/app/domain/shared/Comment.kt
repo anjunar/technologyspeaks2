@@ -12,6 +12,6 @@ class Comment(
     @Serializable(with = PropertySerializer::class)
     val user: Property<User>? = null,
     @Serializable(with = PropertySerializer::class)
-    val text: Property<String> = Property("")
+    val editor: Property<String> = Property("")
 )
 

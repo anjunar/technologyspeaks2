@@ -46,16 +46,16 @@ class PostsController(val query: HibernateSearch, val identityHolder: IdentityHo
             )
 
             post.addLinks(
-                LinkBuilder.create(PostController::like)
+                LinkBuilder.create(LikeController::like)
                     .withVariable("id", post.data.id)
                     .build()
             )
 
             post.addLinks(
-                LinkBuilder.create(PostController::comments)
+                LinkBuilder.create(CommentsController::comments)
                     .withVariable("id", post.data.id)
                     .build(),
-                LinkBuilder.create(PostController::comment)
+                LinkBuilder.create(CommentController::comment)
                     .withVariable("id", post.data.id)
                     .build()
             )

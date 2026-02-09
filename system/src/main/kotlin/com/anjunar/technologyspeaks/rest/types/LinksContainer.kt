@@ -15,7 +15,7 @@ object LinksContainer {
         }
     }
 
-    class Trait : Interface {
+    open class Trait : Interface {
 
         override val links: MutableList<Link> = mutableListOf()
 

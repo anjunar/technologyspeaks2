@@ -12,7 +12,7 @@ class LikeService(
 ) {
 
     @Transactional
-    fun toggle(entity: LikeableEntity): Set<Like> {
+    fun toggle(entity: LikeContainer.Interface): Set<Like> {
         val userId = identityHolder.user.id
 
         val existing = entity.likes.filter { it.user.id == userId }

@@ -11,10 +11,13 @@ import com.anjunar.technologyspeaks.core.OwnerRule
 import com.anjunar.technologyspeaks.core.User
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
+import com.anjunar.technologyspeaks.rest.types.LinksContainer
+import com.anjunar.technologyspeaks.shared.commentable.Comment
+import com.anjunar.technologyspeaks.shared.commentable.CommentContainer
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
 import com.anjunar.technologyspeaks.shared.likeable.Like
-import com.anjunar.technologyspeaks.shared.likeable.LikeableEntity
+import com.anjunar.technologyspeaks.shared.likeable.LikeContainer
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -55,7 +58,9 @@ import org.hibernate.annotations.Type
         )
     ]
 )
-class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider, LikeableEntity {
+class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
+    LikeContainer.Interface,
+    CommentContainer.Interface{
 
     @ManyToOne(optional = false)
     @JsonbProperty
@@ -67,9 +72,13 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider, LikeableEntit
     @JsonbProperty
     lateinit var editor: Node
 
-    @OneToMany(cascade = [CascadeType.ALL])
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonbProperty
-    override val likes : MutableSet<Like> = HashSet()
+    override val likes: MutableSet<Like> = mutableSetOf()
+
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonbProperty
+    override val comments: MutableSet<Comment> = mutableSetOf()
 
     override fun owner(): EntityProvider = user
 

@@ -58,10 +58,6 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                     }
 
                     editorView("editor") {
-                        style {
-                            flex = "1"
-                        }
-
                         basePlugin { }
                         headingPlugin { }
                         listPlugin { }
@@ -72,6 +68,10 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                     }
 
                     commentsSection {
+                        style {
+                            flex = "1"
+                            minHeight = "0px"
+                        }
                         model(this@PostViewPage.model.get().links)
                     }
 

@@ -4,7 +4,6 @@ import app.domain.core.Data
 import app.domain.core.Link
 import app.domain.core.Table
 import app.domain.shared.Comment
-import app.domain.shared.CommentCreate
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.image
@@ -16,8 +15,10 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
+import jFx2.forms.editor
+import jFx2.forms.editor.plugins.*
+import jFx2.forms.editorView
 import jFx2.forms.form
-import jFx2.forms.input
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
@@ -52,9 +53,10 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
         override val pageSize: Int = 50
     ) : RangeDataProvider<Data<Comment>>() {
 
-        override suspend fun fetch(index : Int, limit: Int): Table<Data<Comment>> = JsonClient.invoke<Table<Data<Comment>>>(
-            "${listUrl}?index=${items.size}&limit=$limit&sort=created:asc"
-        )
+        override suspend fun fetch(index: Int, limit: Int): Table<Data<Comment>> =
+            JsonClient.invoke<Table<Data<Comment>>>(
+                "${listUrl}?index=${items.size}&limit=$limit&sort=created:asc"
+            )
 
         fun upsert(comment: Data<Comment>) {
             val id = comment.data.id?.get()
@@ -87,55 +89,10 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                     marginTop = "8px"
                 }
 
-                hbox {
-
-                    style {
-                        columnGap = "8px"
-                        alignItems = "center"
-                    }
-
-                    form(model = newText.get(), clazz = Comment::class) {
-
-                        onSubmit {
-                            val text = this@form.model.text.get().trim()
-
-                            busy.set(true)
-                            try {
-                                val created = JsonClient.post<CommentCreate, Data<Comment>>(
-                                    serviceUrl(createLink.url),
-                                    CommentCreate(text)
-                                )
-                                provider.upsert(created)
-                                this@form.model.text.set("")
-                            } finally {
-                                busy.set(false)
-                            }
-                        }
-
-                        input("comment") {
-                            style {
-                                flex = "1"
-                                padding = "8px"
-                                borderRadius = "6px"
-                                backgroundColor = "var(--color-background-secondary)"
-                                border = "1px solid var(--color-background-primary)"
-                            }
-                            placeholder = "Kommentar schreiben..."
-
-                            subscribeBidirectional(this@form.model.text, valueProperty)
-                        }
-
-                        button("send") {
-                            type("button")
-                            className { "material-icons container hover" }
-                        }
-                    }
-
-                }
-
                 div {
                     style {
-                        height = "180px"
+                        flex = "1"
+                        minHeight = "0px"
                     }
 
                     virtualList(
@@ -148,41 +105,93 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 if (item == null) {
                                     text("Loading...")
                                 } else {
-                                    hbox {
-                                        style {
-                                            columnGap = "8px"
-                                            alignItems = "center"
-                                            padding = "6px 0"
-                                        }
 
-                                        val user = item.data.user?.get()
-                                        val img = user?.image?.get()?.thumbnailLink()
-                                        if (img != null) {
-                                            image {
-                                                style {
-                                                    height = "28px"
-                                                    width = "28px"
-                                                    borderRadius = "999px"
-                                                }
-                                                src = img
-                                            }
-                                        }
+                                    vbox {
 
-                                        vbox {
+                                        className { "glass-border" }
+
+                                        hbox {
                                             style {
-                                                setProperty("gap", "2px")
+                                                columnGap = "8px"
+                                                alignItems = "center"
                                             }
-                                            if (user != null) {
+
+                                            val user = item.data.user!!.get()
+                                            val img = user.image.get()?.thumbnailLink()
+                                            if (img == null) {
+                                                div {
+                                                    text("user")
+                                                    className { "material-icons" }
+                                                    style {
+                                                        fontSize = "48px"
+                                                    }
+                                                }
+                                            } else {
+                                                image {
+                                                    style {
+                                                        height = "48px"
+                                                        width = "48px"
+                                                    }
+                                                    src = img
+                                                }
+                                            }
+
+                                            div {
                                                 text(user.nickName.get())
                                             }
-                                            text(item.data.text.get())
+
                                         }
+
+                                        editorView("editor") {
+                                            basePlugin { }
+                                            headingPlugin { }
+                                            listPlugin { }
+                                            linkPlugin { }
+                                            imagePlugin { }
+
+                                            subscribeBidirectional(item.data.editor, valueProperty)
+                                        }
+
                                     }
                                 }
                             }
                         }
                     )
                 }
+
+                form(model = newText.get(), clazz = Comment::class) {
+                    style {
+                        height = "120px"
+                    }
+
+                    onSubmit {
+                        busy.set(true)
+                        try {
+                            val created =
+                                JsonClient.post<Comment, Data<Comment>>(serviceUrl(createLink.url), this@form.model)
+                            provider.upsert(created)
+                            this@form.model.editor.set("")
+                        } finally {
+                            busy.set(false)
+                        }
+                    }
+
+                    editor("editor") {
+                        basePlugin { }
+                        headingPlugin { }
+                        listPlugin { }
+                        linkPlugin { }
+                        imagePlugin { }
+
+                        subscribeBidirectional(this@form.model.editor, valueProperty)
+                    }
+
+
+                    button("send") {
+                        className { "material-icons container hover" }
+                    }
+                }
+
             }
         }
     }

@@ -37,7 +37,12 @@ object SearchBeanReader {
 
                 val provider =
                     instances.find { predicateProvider -> predicateProvider.javaClass == restPredicate.value.java }
-                val value = property.get(searchBean)
+
+                val value = try {
+                    property.get(searchBean)
+                } catch (e: Exception) {
+                    null
+                }
 
                 if (provider != null && value != null) {
 
