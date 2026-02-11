@@ -3,7 +3,6 @@ package com.anjunar.technologyspeaks.timeline
 import com.anjunar.json.mapper.annotations.UseConverter
 import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.provider.OwnerProvider
-import com.anjunar.json.mapper.schema.EntitySchema
 import com.anjunar.json.mapper.schema.SchemaProvider
 import com.anjunar.technologyspeaks.core.AbstractEntity
 import com.anjunar.technologyspeaks.core.AbstractEntitySchema
@@ -11,8 +10,7 @@ import com.anjunar.technologyspeaks.core.OwnerRule
 import com.anjunar.technologyspeaks.core.User
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
-import com.anjunar.technologyspeaks.rest.types.LinksContainer
-import com.anjunar.technologyspeaks.shared.commentable.Comment
+import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import com.anjunar.technologyspeaks.shared.commentable.CommentContainer
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
@@ -68,7 +66,6 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
 
     @Column(columnDefinition = "jsonb")
     @Type(NodeType::class)
-    @UseConverter
     @JsonbProperty
     lateinit var editor: Node
 
@@ -78,7 +75,7 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonbProperty
-    override val comments: MutableSet<Comment> = mutableSetOf()
+    override val comments: MutableSet<FirstComment> = mutableSetOf()
 
     override fun owner(): EntityProvider = user
 

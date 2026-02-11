@@ -1,12 +1,13 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "CAST_NEVER_SUCCEEDS")
 
 package app.pages.timeline
 
 import app.components.commentable.commentsSection
+import app.components.timeline.postHeader
 import app.domain.core.AbstractEntity
 import app.domain.core.Data
 import app.domain.core.Table
-import app.domain.shared.Comment
+import app.domain.shared.FirstComment
 import app.domain.time.Post
 import app.services.ApplicationService
 import jFx2.client.JsonClient
@@ -19,7 +20,9 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
+import jFx2.core.rendering.condition
 import jFx2.core.template
+import jFx2.forms.editor
 import jFx2.forms.editor.plugins.basePlugin
 import jFx2.forms.editor.plugins.headingPlugin
 import jFx2.forms.editor.plugins.imagePlugin
@@ -43,7 +46,7 @@ private class RangeProvider(
 ) : RangeDataProvider<Data<out AbstractEntity>>() {
 
     override suspend fun fetch(index: Int, limit: Int): Table<out Data<out AbstractEntity>> =
-        JsonClient.invoke<Table<Data<Comment>>>(
+        JsonClient.invoke<Table<Data<FirstComment>>>(
             "${listUrl}?index=${index - 1}&limit=$limit&sort=created:asc"
         )
 
@@ -60,6 +63,8 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
     override val resizable: Boolean = true
     override var close: () -> Unit = {}
 
+    private var createRel: String = "save"
+
     private val model = Property(Data(Post(user = Property(ApplicationService.app.get().user))))
 
     fun model(value : Data<Post>) {
@@ -69,126 +74,172 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
+        val createLink = model.get().links.get().firstOrNull { it.rel == createRel } ?: return
         val listLink = model.get().links.firstOrNull { it.rel == "comments" } ?: return
         val provider = RangeProvider(serviceUrl(listLink.url))
         provider.upsert(model.get())
 
         template {
 
-            virtualList(
-                dataProvider = provider,
-                estimateHeightPx = 44,
-                overscanPx = 120,
-                prefetchItems = 40,
-                renderer = { item, _ ->
+            vbox {
 
-                    template {
-                        if (item == null) {
-                            text("Loading...")
-                        } else {
+                div {
+
+                    style {
+                        flex = "1"
+                    }
+
+                    virtualList(
+                        dataProvider = provider,
+                        estimateHeightPx = 44,
+                        overscanPx = 120,
+                        prefetchItems = 40,
+                        renderer = { item, _ ->
+
+                            template {
+                                if (item == null) {
+                                    text("Loading...")
+                                } else {
 
 
-                            when(item.data) {
-                                is Post -> {
-                                    form(model = item.data, clazz = Post::class) {
+                                    when(item.data) {
+                                        is Post -> {
+                                            form(model = item.data, clazz = Post::class) {
 
-                                        style {
-                                            padding = "10px"
-                                            height = "calc(100% - 20px)"
-                                        }
-
-                                        vbox {
-                                            postHeader {
-                                                model(item as Data<Post>)
-                                            }
-
-                                            editorView("editor") {
-                                                basePlugin { }
-                                                headingPlugin { }
-                                                listPlugin { }
-                                                linkPlugin { }
-                                                imagePlugin { }
-
-                                                subscribeBidirectional(this@form.model.editor, valueProperty)
-                                            }
-                                        }
-                                    }
-                                }
-                                is Comment -> {
-                                    vbox {
-
-                                        className { "glass-border" }
-
-                                        hbox {
-                                            style {
-                                                columnGap = "8px"
-                                                alignItems = "center"
-                                            }
-
-                                            val user = item.data.user!!.get()
-                                            val img = user.image.get()?.thumbnailLink()
-                                            if (img == null) {
-                                                div {
-                                                    text("user")
-                                                    className { "material-icons" }
-                                                    style {
-                                                        fontSize = "48px"
-                                                    }
-                                                }
-                                            } else {
-                                                image {
-                                                    style {
-                                                        height = "48px"
-                                                        width = "48px"
-                                                    }
-                                                    src = img
-                                                }
-                                            }
-
-                                            div {
                                                 style {
-                                                    flex = "1"
+                                                    padding = "10px"
+                                                    height = "calc(100% - 20px)"
                                                 }
-                                                text(user.nickName.get())
-                                            }
 
-                                            button("delete") {
-                                                type("button")
-                                                className { "material-icons" }
-                                                onClick {
+                                                vbox {
+                                                    postHeader {
+                                                        model(item as Data<Post>)
+                                                    }
 
+                                                    editorView("editor") {
+                                                        basePlugin { }
+                                                        headingPlugin { }
+                                                        listPlugin { }
+                                                        linkPlugin { }
+                                                        imagePlugin { }
+
+                                                        subscribeBidirectional(this@form.model.editor, valueProperty)
+                                                    }
                                                 }
                                             }
-
                                         }
+                                        is FirstComment -> {
+                                            vbox {
 
-                                        editorView("editor") {
-                                            basePlugin { }
-                                            headingPlugin { }
-                                            listPlugin { }
-                                            linkPlugin { }
-                                            imagePlugin { }
+                                                className { "glass-border" }
 
-                                            subscribeBidirectional(item.data.editor, valueProperty)
+                                                hbox {
+                                                    style {
+                                                        columnGap = "8px"
+                                                        alignItems = "center"
+                                                    }
+
+                                                    val user = item.data.user!!.get()
+                                                    val img = user.image.get()?.thumbnailLink()
+                                                    if (img == null) {
+                                                        div {
+                                                            text("user")
+                                                            className { "material-icons" }
+                                                            style {
+                                                                fontSize = "48px"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        image {
+                                                            style {
+                                                                height = "48px"
+                                                                width = "48px"
+                                                            }
+                                                            src = img
+                                                        }
+                                                    }
+
+                                                    div {
+                                                        style {
+                                                            flex = "1"
+                                                        }
+                                                        text(user.nickName.get())
+                                                    }
+
+                                                    button("delete") {
+                                                        type("button")
+                                                        className { "material-icons" }
+                                                        onClick {
+
+                                                        }
+                                                    }
+
+                                                }
+
+                                                condition(item.data.editable) {
+                                                    then {
+                                                        form(model = item.data, clazz = FirstComment::class) {
+                                                            onSubmit {
+                                                                val created = JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
+                                                                this@form.model.editable.set(false)
+                                                            }
+
+                                                            editor("editor") {
+
+                                                                style {
+                                                                    height = "300px"
+                                                                }
+
+                                                                basePlugin { }
+                                                                headingPlugin { }
+                                                                listPlugin { }
+                                                                linkPlugin { }
+                                                                imagePlugin { }
+
+                                                                subscribeBidirectional(this@form.model.editor, valueProperty)
+                                                            }
+
+                                                            button("send") {}
+                                                        }
+
+                                                    }
+                                                    elseDo {
+                                                        editorView("editor") {
+                                                            basePlugin { }
+                                                            headingPlugin { }
+                                                            listPlugin { }
+                                                            linkPlugin { }
+                                                            imagePlugin { }
+
+                                                            subscribeBidirectional(item.data.editor, valueProperty)
+                                                        }
+                                                    }
+                                                }
+
+                                                commentsSection {
+                                                    model(item as Data<FirstComment>)
+                                                }
+
+                                            }
                                         }
-
-                                        commentsSection {
-                                            model(item.links)
-                                        }
-
                                     }
                                 }
                             }
-
                         }
-
-
-                    }
-
-
-
+                    )
                 }
-            )
+
+                button("Neuer Kommentar") {
+                    type("button")
+                    onClick {
+                        val firstComment = FirstComment()
+                        firstComment.editable.set(true)
+                        firstComment.user = Property(ApplicationService.app.get().user)
+                        provider.upsert(Data(firstComment))
+                    }
+                }
+            }
+
 
         }
 

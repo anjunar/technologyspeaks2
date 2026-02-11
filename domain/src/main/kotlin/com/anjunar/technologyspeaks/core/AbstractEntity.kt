@@ -1,7 +1,7 @@
 package com.anjunar.technologyspeaks.core
 
 import com.anjunar.json.mapper.provider.EntityProvider
-import com.anjunar.technologyspeaks.rest.types.DTO
+import com.anjunar.json.mapper.provider.DTO
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.*
 import java.time.LocalDateTime

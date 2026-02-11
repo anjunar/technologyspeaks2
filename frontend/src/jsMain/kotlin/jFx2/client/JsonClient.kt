@@ -25,6 +25,8 @@ object JsonClient {
     suspend inline fun <reified O> invoke(url: String, requestInit: RequestInit = RequestInit()): O {
         val response = window.fetch(url, requestInit).await()
 
+        if (!response.ok) throw RuntimeException("Error ${response.status} ${response.statusText}")
+
         val module = SerializersModule {
             polymorphic(AbstractLink::class) {
                 subclass(WebAuthnLoginLink::class)

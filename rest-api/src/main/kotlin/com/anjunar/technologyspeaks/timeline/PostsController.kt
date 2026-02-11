@@ -21,7 +21,6 @@ class PostsController(val query: HibernateSearch, val identityHolder: IdentityHo
 
     @GetMapping(value = ["/timeline/posts"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
-    @Transactional
     @EntityGraph("Post.full")
     fun list(search : PostSearch): Table<PostRow> {
 

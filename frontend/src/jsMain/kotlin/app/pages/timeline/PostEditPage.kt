@@ -1,5 +1,6 @@
 package app.pages.timeline
 
+import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.time.Post
 import app.services.ApplicationService

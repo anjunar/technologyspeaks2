@@ -4,12 +4,10 @@ import com.anjunar.technologyspeaks.hibernate.search.AbstractSearch
 import com.anjunar.technologyspeaks.hibernate.search.Context
 import com.anjunar.technologyspeaks.hibernate.search.PredicateProvider
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestPredicate
-import com.anjunar.technologyspeaks.hibernate.search.annotations.RestSort
 import com.anjunar.technologyspeaks.timeline.Post
 import jakarta.json.bind.annotation.JsonbProperty
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 class CommentSearch(
@@ -25,15 +23,15 @@ class CommentSearch(
     companion object {
 
         @Component
-        class PostPredicate : PredicateProvider<Post, Comment> {
-            override fun build(context: Context<Post, Comment>) {
+        class PostPredicate : PredicateProvider<Post, FirstComment> {
+            override fun build(context: Context<Post, FirstComment>) {
 
                 val (value , session, builder, predicates, root, query, selection, name, parameters) = context
 
-                val postQuery = query.subquery(Comment::class.java)
+                val postQuery = query.subquery(FirstComment::class.java)
                 val postFrom = postQuery.from(Post::class.java)
 
-                val commentsJoin = postFrom.join<Post, Comment>("comments")
+                val commentsJoin = postFrom.join<Post, FirstComment>("comments")
 
                 postQuery
                     .select(commentsJoin)

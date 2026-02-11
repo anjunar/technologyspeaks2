@@ -7,6 +7,7 @@ import com.anjunar.json.mapper.intermediate.model.JsonNode
 import com.anjunar.json.mapper.intermediate.model.JsonNull
 import com.anjunar.json.mapper.intermediate.model.JsonObject
 import com.anjunar.json.mapper.intermediate.model.JsonString
+import com.anjunar.json.mapper.provider.DTO
 import com.anjunar.json.mapper.schema.SchemaProvider
 import com.anjunar.json.mapper.schema.VisibilityRule
 import com.anjunar.kotlin.universe.ResolvedClass
@@ -66,7 +67,11 @@ class BeanDeserializer : Deserializer<Any> {
                     val propertyType = property.propertyType.kotlin
 
                     val oldValue = try {
-                        property.get(context.instance!!)
+                        if (context.instance == null) {
+                            null
+                        } else {
+                            property.get(context.instance)
+                        }
                     } catch (e: InvocationTargetException) {
                         if (e.cause !is UninitializedPropertyAccessException) {
                             throw e.cause!!
@@ -78,11 +83,14 @@ class BeanDeserializer : Deserializer<Any> {
                     val node = json.value[property.name]
 
                     when {
-                        propertyType.isSubclassOf(EntityProvider::class) -> {
+                        propertyType.isSubclassOf(DTO::class) -> {
                             handleEntityProperty(node, property, context, oldValue, propertyType)
                         }
                         propertyType.isSubclassOf(Collection::class) -> {
                             handleCollectionProperty(node, property, context, oldValue)
+                        }
+                        propertyType.isSubclassOf(Map::class) -> {
+                            handleMapProperty(node, property, context, oldValue)
                         }
 
                         else -> {
@@ -106,7 +114,9 @@ class BeanDeserializer : Deserializer<Any> {
         oldValue: Any?
     ) {
         if (node == null) {
-            property.set(context.instance!!, null)
+            if (context.instance != null) {
+                property.set(context.instance, null)
+            }
         } else {
 
             val converterAnnotation = property.findAnnotation(UseConverter::class.java)
@@ -156,6 +166,30 @@ class BeanDeserializer : Deserializer<Any> {
         }
     }
 
+    private fun handleMapProperty(
+        node: JsonNode?,
+        property: BeanProperty,
+        context: JsonContext,
+        oldValue: Any?
+    ) {
+        val instance = context.instance!!
+        if (node == null) {
+            val collection = property.get(instance) as MutableMap<String, Any?>
+            collection.clear()
+        } else {
+            if (oldValue == null) {
+                throw IllegalStateException("Collection property must be initialized")
+            } else {
+                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
+                val originalCollection = property.get(instance) as MutableMap<String, Any?>
+                originalCollection.clear()
+                originalCollection.putAll(value as Map<String, Any>)
+                synchronizeBidirectionalRelations(instance, property, originalCollection)
+            }
+        }
+    }
+
+
     private fun handleEntityProperty(
         node: JsonNode?,
         property: BeanProperty,
@@ -174,18 +208,26 @@ class BeanDeserializer : Deserializer<Any> {
                 if (oldValue == null) {
                     val jsonObject = node as JsonObject
                     val jsonId = jsonObject.value["id"]
-                    val id = UUID.fromString(jsonId!!.value.toString())
 
-                    val entity = context.loader.load(id, propertyType.java)
-
-                    if (entity == null) {
+                    if (jsonId == null) {
                         val newInstance = propertyType.java.getConstructor().newInstance()
                         val value = deserializeValue(property.propertyType, property.name, newInstance, context, node)
                         property.set(instance, value)
                         synchronizeBidirectionalRelations(instance, property, value)
                     } else {
-                        property.set(instance, entity)
+                        val id = UUID.fromString(jsonId!!.value.toString())
+                        val entity = context.loader.load(id, propertyType.java)
+                        if (entity == null) {
+                            val newInstance = propertyType.java.getConstructor().newInstance()
+                            val value = deserializeValue(property.propertyType, property.name, newInstance, context, node)
+                            property.set(instance, value)
+                            synchronizeBidirectionalRelations(instance, property, value)
+                        } else {
+                            property.set(instance, entity)
+                        }
                     }
+
+
                 } else {
                     val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
                     property.set(instance, value)
@@ -343,7 +385,7 @@ class BeanDeserializer : Deserializer<Any> {
         context: JsonContext,
         node: JsonNode
     ) : Any {
-        val deserializer = DeserializerRegistry.findDeserializer(propertyType.raw)
+        val deserializer = DeserializerRegistry.findDeserializer(propertyType.raw, node)
         val jsonContext = JsonContext(propertyType, existingInstance, context.graph, context.loader,context, name)
         return deserializer.deserialize(node, jsonContext)
     }

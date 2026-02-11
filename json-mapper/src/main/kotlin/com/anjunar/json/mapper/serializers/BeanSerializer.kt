@@ -80,7 +80,7 @@ class BeanSerializer : Serializer<Any> {
             property.name
         }
 
-        val propertyType = if (property.propertyType.kotlin.isSubclassOf(Collection::class)) {
+        val propertyType = if (property.propertyType.kotlin.isSubclassOf(Collection::class) || property.propertyType.kotlin.isSubclassOf(Map::class)) {
             property.propertyType
         } else {
             TypeResolver.resolve(value::class.java)
@@ -96,23 +96,21 @@ class BeanSerializer : Serializer<Any> {
         val converterAnnotation = property.findAnnotation(UseConverter::class.java)
 
         val jsonNode = if (converterAnnotation == null) {
-            val serializer = SerializerRegistry.find(property.propertyType.raw) as Serializer<Any>
+            val serializer = SerializerRegistry.find(property.propertyType.raw, value) as Serializer<Any>
             serializer.serialize(value, javaContext)
         } else {
             val converter = converterAnnotation.value.primaryConstructor?.call()
             val toJson = converter?.toJson(value, property.propertyType)
-            val serializer = SerializerRegistry.find(String::class.java) as Serializer<Any>
+            val serializer = SerializerRegistry.find(String::class.java, toJson!!) as Serializer<Any>
             serializer.serialize(toJson!!, javaContext)
         }
 
         if (jsonNode is JsonObject) {
             if (jsonNode.value.isNotEmpty()) {
                 nodes[name] = jsonNode
-                nodes[$$"$type"] = JsonString(javaContext.parent!!.type.name)
             }
         } else {
             nodes[name] = jsonNode
-            nodes[$$"$type"] = JsonString(javaContext.parent!!.type.name)
         }
 
     }

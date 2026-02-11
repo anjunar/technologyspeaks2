@@ -1,13 +1,13 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package app.components.commentable
 
+import app.components.timeline.postHeader
 import app.domain.core.Data
-import app.domain.core.Link
-import app.domain.core.Table
-import app.domain.shared.Comment
+import app.domain.shared.FirstComment
+import app.domain.shared.SecondComment
 import jFx2.client.JsonClient
 import jFx2.controls.button
-import jFx2.controls.image
-import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
@@ -15,45 +15,34 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
+import jFx2.core.rendering.foreach
+import jFx2.core.rendering.observeRender
 import jFx2.core.template
 import jFx2.forms.editor
 import jFx2.forms.editor.plugins.*
 import jFx2.forms.editorView
 import jFx2.forms.form
 import jFx2.layout.div
-import jFx2.layout.hbox
 import jFx2.layout.vbox
-import jFx2.state.ListProperty
 import jFx2.state.Property
-import jFx2.virtual.RangeDataProvider
-import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
-    private var links: ListProperty<Link>? = null
-    private var listRel: String = "comments"
-    private var createRel: String = "comment"
-    private val editable = Property(false)
+    private var createRel: String = "update"
+    private val commentable = Property(Data(FirstComment()))
 
-    fun model(
-        links: ListProperty<Link>,
-        listRel: String = "comments",
-        createRel: String = "comment"
-    ) {
-        this.links = links
-        this.listRel = listRel
-        this.createRel = createRel
+    fun model(value : Data<FirstComment>) {
+        this.commentable.set(value)
     }
 
     context(scope: NodeScope)
     fun afterBuild() {
-        val links = links ?: return
-
-        val createLink = links.get().firstOrNull { it.rel == createRel } ?: return
+        val createLink = commentable.get().links.get().firstOrNull { it.rel == createRel } ?: return
 
         val busy = Property(false)
-        val newText = Property(Comment())
 
         template {
 
@@ -61,53 +50,85 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                 button("Kommentieren") {
                     type("button")
                     onClick {
-                        editable.set(!editable.get())
+                        val secondComment = SecondComment()
+                        secondComment.id = Property(Uuid.generateV4().toString())
+                        secondComment.editable.set(true)
+                        commentable.get().data.comments.add(secondComment)
                     }
                 }
             }
 
-            condition(editable) {
-                then {
-                    vbox {
-                        style {
-                            setProperty("gap", "8px")
-                            marginTop = "8px"
-                        }
+            observeRender(commentable) { commentable ->
+                foreach(commentable.data.comments, {key -> key.id!!.get()}) { comment, index ->
 
-                        form(model = newText.get(), clazz = Comment::class) {
-                            style {
-                                height = "120px"
+                    condition(comment.editable) {
+                        then {
+                            form(model = comment, clazz = SecondComment::class) {
+                                style {
+                                    height = "300px"
+                                }
+
+                                onSubmit {
+                                    busy.set(true)
+                                    try {
+                                        val created = JsonClient.put<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@CommentsSection.commentable.get().data)
+                                        this@CommentsSection.commentable.set(created)
+                                    } finally {
+                                        busy.set(false)
+                                    }
+                                }
+
+                                vbox {
+                                    editor("editor") {
+
+                                        style {
+                                            flex = "1"
+                                            minHeight = "0px"
+                                        }
+
+                                        basePlugin { }
+                                        headingPlugin { }
+                                        listPlugin { }
+                                        linkPlugin { }
+                                        imagePlugin { }
+
+                                        subscribeBidirectional(this@form.model.editor, valueProperty)
+                                    }
+
+
+                                    button("send") {
+                                        className { "material-icons hover" }
+                                    }
+                                }
+
                             }
+                        }
+                        elseDo {
+                            form(model = comment, clazz = SecondComment::class) {
 
-                            onSubmit {
-                                busy.set(true)
-                                try {
-                                    val created = JsonClient.post<Comment, Data<Comment>>("/service" + createLink.url, this@form.model)
-                                    this@form.model.editor.set("")
-                                } finally {
-                                    busy.set(false)
+                                className { "glass-border" }
+
+                                postHeader {
+                                    model(Data(this@form.model))
+                                }
+
+                                editorView("editor") {
+
+                                    basePlugin { }
+                                    headingPlugin { }
+                                    listPlugin { }
+                                    linkPlugin { }
+                                    imagePlugin { }
+
+                                    subscribeBidirectional(this@form.model.editor, valueProperty)
                                 }
                             }
-
-                            editor("editor") {
-                                basePlugin { }
-                                headingPlugin { }
-                                listPlugin { }
-                                linkPlugin { }
-                                imagePlugin { }
-
-                                subscribeBidirectional(this@form.model.editor, valueProperty)
-                            }
-
-
-                            button("send") {
-                                className { "material-icons container hover" }
-                            }
                         }
-
                     }
+
                 }
             }
+
         }
     }
 }

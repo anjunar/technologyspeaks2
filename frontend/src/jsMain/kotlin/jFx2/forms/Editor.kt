@@ -9,9 +9,11 @@ import jFx2.core.dsl.registerField
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
 import jFx2.core.template
+import jFx2.forms.editor.EditorNode
 import jFx2.forms.editor.plugins.EditorPlugin
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorStateConfig
+import jFx2.forms.editor.prosemirror.Node
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.Schema
 import jFx2.forms.editor.prosemirror.addListNodes
@@ -39,22 +41,17 @@ import jFx2.forms.editor.prosemirror.EditorView as ProseMirrorEditorView
 
 
 @Suppress("CAST_NEVER_SUCCEEDS")
-class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivElement>() {
+class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDivElement>() {
 
-    val valueProperty = Property("")
+    val valueProperty = Property<EditorNode?>(null)
 
     private var editorSchema: Schema? = null
     private var editorPlugins: Array<Plugin<Any?>> = emptyArray()
     private var editorView: ProseMirrorEditorView? = null
 
-    private fun parseDoc(schema: Schema, value: String): jFx2.forms.editor.prosemirror.Node? {
-        val raw = value.trim()
-        if (raw.isEmpty()) return null
-
+    private fun parseDoc(schema: Schema, value: EditorNode?): Node? {
         return runCatching {
-            val first: dynamic = js("JSON.parse")(raw)
-            val parsed: dynamic = if (jsTypeOf(first) == "string") js("JSON.parse")(first) else first
-            schema.asDynamic().nodeFromJSON(parsed).unsafeCast<jFx2.forms.editor.prosemirror.Node>()
+            schema.asDynamic().nodeFromJSON(value).unsafeCast<Node>()
         }.getOrNull()
     }
 
@@ -91,13 +88,12 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
         )
     }
 
-    private fun serializeDoc(doc: jFx2.forms.editor.prosemirror.Node): String {
+    private fun serializeDoc(doc: Node): EditorNode {
         val rawJson = doc.asDynamic().toJSON()
-        val normalized = normalizeNodeJson(rawJson)
-        return js("JSON.stringify")(normalized).unsafeCast<String>()
+        return normalizeNodeJson(rawJson)
     }
 
-    fun createState(initialValue: String = valueProperty.get()): EditorState {
+    fun createState(initialValue: EditorNode? = valueProperty.get()): EditorState {
 
         val pluginInstances = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any?> }
 
@@ -183,6 +179,7 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
                 style {
                     flex = "1"
+                    minHeight = "0px"
                 }
 
                 val initialValue = valueProperty.get()
@@ -214,7 +211,7 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
                 onDispose(Disposable { runCatching { view.destroy() } })
 
-                if (initialValue.isBlank() && valueProperty.get().isBlank()) {
+                if (initialValue == null) {
                     val next = serializeDoc(view.state.doc)
                     lastSeenValue = next
                     valueProperty.set(next)
@@ -250,11 +247,11 @@ class Editor(override val node: HTMLDivElement) : FormField<String, HTMLDivEleme
 
     }
 
-    override fun read(): String {
+    override fun read(): EditorNode? {
         return valueProperty.get()
     }
 
-    override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
+    override fun observeValue(listener: (EditorNode?) -> Unit): Disposable = valueProperty.observe(listener)
 
 }
 

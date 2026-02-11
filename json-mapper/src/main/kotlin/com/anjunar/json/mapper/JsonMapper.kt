@@ -13,7 +13,7 @@ import jakarta.persistence.EntityGraph
 object JsonMapper {
 
     fun deserialize(jsonNode: JsonNode, instance : Any, type: ResolvedClass, graph : EntityGraph<*>?, loader : EntityLoader) : Any {
-        val deserializer = DeserializerRegistry.findDeserializer(type.raw)
+        val deserializer = DeserializerRegistry.findDeserializer(type.raw, jsonNode)
 
         return deserializer.deserialize(jsonNode, JsonContext(type, instance, graph, loader, null, null))
 
@@ -21,7 +21,7 @@ object JsonMapper {
 
     fun serialize(instance : Any, type : ResolvedClass, graph : EntityGraph<*>?) : String {
 
-        val serializer = SerializerRegistry.find(type.raw) as Serializer<Any>
+        val serializer = SerializerRegistry.find(type.raw, instance) as Serializer<Any>
 
         val node = serializer.serialize(instance, JavaContext(type, graph, null, null))
 

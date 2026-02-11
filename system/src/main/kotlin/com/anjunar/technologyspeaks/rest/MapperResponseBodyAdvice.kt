@@ -19,7 +19,6 @@ class MapperResponseBodyAdvice(val entityManager: EntityManager) : ResponseBodyA
         return MapperHttpMessageConverter::class.java.isAssignableFrom(converterType)
     }
 
-    @Transactional
     override fun beforeBodyWrite(
         body: Any?,
         returnType: MethodParameter,

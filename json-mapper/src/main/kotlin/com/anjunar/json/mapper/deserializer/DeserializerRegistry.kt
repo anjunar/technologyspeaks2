@@ -1,5 +1,11 @@
 package com.anjunar.json.mapper.deserializer
 
+import com.anjunar.json.mapper.intermediate.model.JsonArray
+import com.anjunar.json.mapper.intermediate.model.JsonBoolean
+import com.anjunar.json.mapper.intermediate.model.JsonNode
+import com.anjunar.json.mapper.intermediate.model.JsonNumber
+import com.anjunar.json.mapper.intermediate.model.JsonObject
+import com.anjunar.json.mapper.intermediate.model.JsonString
 import java.time.temporal.Temporal
 import java.time.temporal.TemporalAmount
 import java.util.Locale
@@ -9,26 +15,37 @@ import kotlin.reflect.full.isSubclassOf
 @Suppress("UNCHECKED_CAST")
 object DeserializerRegistry {
 
-    fun <T : Any> findDeserializer(clazz: Class<T>): Deserializer<T> {
+    fun <T : Any> findDeserializer(clazz: Class<T>, node : JsonNode): Deserializer<T> {
 
         val klass = clazz.kotlin
 
-        return when {
-            klass.isSubclassOf(Collection::class) -> ArrayDeserializer()
-            klass.isSubclassOf(Boolean::class) -> BooleanDeserializer()
-            klass == ByteArray::class -> ByteArrayDeserializer()
-            klass.isSubclassOf(Enum::class) -> EnumDeserializer()
-            klass.isSubclassOf(Locale::class) -> LocaleDeserializer()
-            klass.isSubclassOf(Number::class) -> NumberDeserializer()
-            klass.isSubclassOf(String::class) -> StringDeserializer()
-            klass.isSubclassOf(TemporalAmount::class) -> TemporalAmountDeserializer()
-            klass.isSubclassOf(Temporal::class) -> TemporalDeserializer()
-            klass.isSubclassOf(UUID::class) -> UUIDDeserializer()
+        return when(node) {
+            is JsonNumber -> NumberDeserializer()
+            is JsonBoolean -> BooleanDeserializer()
+            is JsonArray -> ArrayDeserializer()
 
-            else -> {
-                BeanDeserializer()
+            is JsonObject -> {
+                when {
+                    klass.isSubclassOf(Map::class) -> MapDeserializer()
+                    klass.isSubclassOf(Any::class) -> BeanDeserializer()
+                    else -> throw IllegalArgumentException("Unsupported type: $klass")
+                }
             }
+            is JsonString -> {
+                when {
+                    klass == ByteArray::class -> ByteArrayDeserializer()
+                    klass.isSubclassOf(Enum::class) -> EnumDeserializer()
+                    klass.isSubclassOf(Locale::class) -> LocaleDeserializer()
+                    klass.isSubclassOf(String::class) -> StringDeserializer()
+                    klass.isSubclassOf(TemporalAmount::class) -> TemporalAmountDeserializer()
+                    klass.isSubclassOf(Temporal::class) -> TemporalDeserializer()
+                    klass.isSubclassOf(UUID::class) -> UUIDDeserializer()
+                    else -> throw IllegalArgumentException("Unsupported type: $klass")
+                }
+            }
+            is JsonNode -> throw IllegalArgumentException("Unsupported type: $klass")
         } as Deserializer<T>
+
 
     }
 

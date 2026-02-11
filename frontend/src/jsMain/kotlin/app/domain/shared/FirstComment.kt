@@ -1,35 +1,32 @@
-package app.domain.time
+package app.domain.shared
 
 import app.domain.core.AbstractEntity
 import app.domain.core.User
-import app.domain.shared.Like
-import app.domain.shared.OwnerProvider
 import jFx2.forms.editor.EditorNode
 import jFx2.forms.editor.NodeSerializer
-import jFx2.forms.editor.prosemirror.Node
 import jFx2.state.ListProperty
 import jFx2.state.ListPropertySerializer
 import jFx2.state.Property
 import jFx2.state.PropertySerializer
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
-class Post (
+class FirstComment(
     @Serializable(with = PropertySerializer::class)
-    override var id : Property<String>? = null,
+    override var id: Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
-    override val user : Property<User>? = null,
+    override var user: Property<User>? = null,
     @Serializable(with = NodeSerializer::class)
     val editor: Property<EditorNode?> = Property(null),
     @Serializable(with = ListPropertySerializer::class)
-    val likes : ListProperty<Like> = ListProperty()
+    val comments : ListProperty<SecondComment> = ListProperty<SecondComment>()
 ) : AbstractEntity, OwnerProvider {
-    constructor() : this(
-        id = null,
-        user = null,
-        editor = Property(null),
-        likes = ListProperty()
-    )
+
+    @Transient
+    val editable = Property(false)
+
 }
+
+

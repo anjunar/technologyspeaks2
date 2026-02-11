@@ -20,11 +20,20 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
         fun addRouteToWindows() {
 
             JobRegistry.instance.launch("Router", "Router") {
-                val resolveRoutes = resolveRoutes(routes, window.location.pathname)
-                val routeMatch = resolveRoutes.matches.last()
-                val component = routeMatch.route.factory!!(routeMatch.params)
-                val page = component as PageInfo
-                ViewPort.addWindow(WindowConf(page.name, {component}, resizable = page.resizable))
+                try {
+                    val resolveRoutes = resolveRoutes(routes, window.location.pathname)
+                    val routeMatch = resolveRoutes.matches.last()
+                    val component = routeMatch.route.factory!!(routeMatch.params)
+                    val page = component as PageInfo
+                    ViewPort.addWindow(WindowConf(page.name, {component}, resizable = page.resizable))
+                } catch (e: Exception) {
+                    val platformAvailable = js("PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();")
+                    if (!platformAvailable) {
+                        navigate("/security/login")
+                    } else {
+                        navigate("/security/login/options")
+                    }
+                }
             }
 
         }

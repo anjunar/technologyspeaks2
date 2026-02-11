@@ -8,13 +8,12 @@ import com.anjunar.json.mapper.intermediate.model.JsonNode
 class ArraySerializer : Serializer<Collection<*>> {
     override fun serialize(input: Collection<*>, context: JavaContext): JsonNode {
 
-        val serializer = SerializerRegistry.find(context.type.typeArguments[0].raw) as Serializer<Any>
-
         val nodes  = ArrayList<JsonNode>()
 
         val jsonArray = JsonArray(nodes)
 
         for (any in input) {
+            val serializer = SerializerRegistry.find(context.type.typeArguments[0].raw, any!!) as Serializer<Any>
 
             val javaContext = JavaContext(
                 context.type.typeArguments[0],

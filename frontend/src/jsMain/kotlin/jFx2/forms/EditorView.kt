@@ -6,6 +6,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
 import jFx2.core.template
+import jFx2.forms.editor.EditorNode
 import jFx2.forms.editor.plugins.EditorPlugin
 import jFx2.forms.editor.prosemirror.DOMSerializer
 import jFx2.forms.editor.prosemirror.Schema
@@ -23,21 +24,16 @@ import kotlin.js.unsafeCast
  * Uses plugin `nodeSpec`s (same mechanism as [Editor]) but does **not** use `prosemirror-view` / `EditorView`.
  */
 @Suppress("CAST_NEVER_SUCCEEDS")
-class EditorView(override val node: HTMLDivElement) : FormField<String, HTMLDivElement>() {
+class EditorView(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDivElement>() {
 
-    val valueProperty = Property("")
+    val valueProperty = Property<EditorNode?>(null)
 
     private var editorSchema: Schema? = null
     private var domSerializer: DOMSerializer? = null
 
-    private fun parseDoc(schema: Schema, value: String): jFx2.forms.editor.prosemirror.Node? {
-        val raw = value.trim()
-        if (raw.isEmpty()) return null
-
+    private fun parseDoc(schema: Schema, value: EditorNode?): jFx2.forms.editor.prosemirror.Node? {
         return runCatching {
-            val first: dynamic = js("JSON.parse")(raw)
-            val parsed: dynamic = if (jsTypeOf(first) == "string") js("JSON.parse")(first) else first
-            schema.asDynamic().nodeFromJSON(parsed).unsafeCast<jFx2.forms.editor.prosemirror.Node>()
+            schema.asDynamic().nodeFromJSON(value).unsafeCast<jFx2.forms.editor.prosemirror.Node>()
         }.getOrNull()
     }
 
@@ -79,7 +75,7 @@ class EditorView(override val node: HTMLDivElement) : FormField<String, HTMLDivE
         }
     }
 
-    private fun renderInto(mount: HTMLDivElement, value: String) {
+    private fun renderInto(mount: HTMLDivElement, value: EditorNode?) {
         val schema = ensureSchema()
         val doc = parseDoc(schema, value)
 
@@ -113,9 +109,9 @@ class EditorView(override val node: HTMLDivElement) : FormField<String, HTMLDivE
         }
     }
 
-    override fun read(): String = valueProperty.get()
+    override fun read(): EditorNode? = valueProperty.get()
 
-    override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
+    override fun observeValue(listener: (EditorNode?) -> Unit): Disposable = valueProperty.observe(listener)
 }
 
 context(scope: NodeScope)

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestParam
 class UserSearch(
     @JsonbProperty
     @RequestParam
-    val name : String,
-    sort: MutableList<String>,
+    val name : String? = null,
+    sort: MutableList<String> = mutableListOf(),
     index: Int = 0,
     limit: Int = 5
 ) : AbstractSearch(sort, index, limit)

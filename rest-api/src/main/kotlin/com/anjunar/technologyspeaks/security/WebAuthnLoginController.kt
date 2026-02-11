@@ -27,7 +27,6 @@ class WebAuthnLoginController(val store: CredentialStore, val entityManager: Ent
 
     @PostMapping("/security/login/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun options(@RequestBody request: JsonObject): JsonObject {
         val username = request.getString("email")
 
@@ -56,7 +55,6 @@ class WebAuthnLoginController(val store: CredentialStore, val entityManager: Ent
 
     @PostMapping("/security/login/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun finish(@RequestBody body : JsonObject) : JsonObject {
         val publicKeyCredential = body.getJsonObject("optionsJSON")
         val username = body.getString("email")

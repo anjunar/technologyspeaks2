@@ -1,5 +1,6 @@
 package com.anjunar.json.mapper.serializers
 
+import com.anjunar.json.mapper.intermediate.model.JsonNode
 import java.time.temporal.Temporal
 import java.time.temporal.TemporalAmount
 import java.util.Locale
@@ -9,26 +10,27 @@ import kotlin.reflect.full.isSubclassOf
 @Suppress("UNCHECKED_CAST")
 object SerializerRegistry {
 
-    fun <T : Any> find(clazz: Class<T>): Serializer<T> {
+    fun <T : Any> find(clazz: Class<T>, instance : Any): Serializer<T> {
 
         val klass = clazz.kotlin
 
-        return when {
-            klass.isSubclassOf(Collection::class) -> ArraySerializer()
-            klass.isSubclassOf(Boolean::class) -> BooleanSerializer()
-            klass == ByteArray::class -> ByteArraySerializer()
-            klass.isSubclassOf(Enum::class) -> EnumSerializer()
-            klass.isSubclassOf(Locale::class) -> LocaleSerializer()
-            klass.isSubclassOf(Number::class) -> NumberSerializer()
-            klass.isSubclassOf(String::class) -> StringSerializer()
-            klass.isSubclassOf(TemporalAmount::class) -> TemporalAmountSerializer()
-            klass.isSubclassOf(Temporal::class) -> TemporalSerializer()
-            klass.isSubclassOf(UUID::class) -> UUIDSerializer()
-
+        return when(instance) {
+            is String -> StringSerializer()
+            is Collection<*> -> ArraySerializer()
+            is Boolean -> BooleanSerializer()
+            is ByteArray -> ByteArraySerializer()
+            is Enum<*> -> EnumSerializer()
+            is Locale -> LocaleSerializer()
+            is Map<*,*> -> MapSerializer()
+            is UUID -> UUIDSerializer()
+            is Number -> NumberSerializer()
+            is TemporalAmount -> TemporalAmountSerializer()
+            is Temporal -> TemporalSerializer()
             else -> {
                 BeanSerializer()
             }
         } as Serializer<T>
+
 
     }
 

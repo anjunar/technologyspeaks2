@@ -15,7 +15,6 @@ class PasswordLoginController(val sessionHolder: SessionHolder) {
 
     @PostMapping("/security/login", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun login(@RequestBody jsonObject: JsonObject) : JsonObject {
 
         val email = jsonObject.getString("email")

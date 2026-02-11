@@ -1,6 +1,5 @@
 package com.anjunar.technologyspeaks.timeline
 
-import com.anjunar.technologyspeaks.rest.types.DTOList
 import com.anjunar.technologyspeaks.shared.likeable.Like
 import com.anjunar.technologyspeaks.shared.likeable.LikeService
 import jakarta.annotation.security.RolesAllowed
@@ -14,7 +13,6 @@ class LikeController(val likeService: LikeService) {
 
     @PostMapping(value = ["/timeline/posts/post/{id}/like"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
-    @Transactional
     fun like(@PathVariable("id") post: Post): Set<Like> {
         return likeService.toggle(post)
     }

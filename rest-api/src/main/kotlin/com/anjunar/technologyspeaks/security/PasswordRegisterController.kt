@@ -17,7 +17,6 @@ class PasswordRegisterController(val registerService: RegisterService) {
 
     @PostMapping("/security/register", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun register(@RequestBody jsonObject: JsonObject) : JsonObject {
         val nickName = jsonObject.getString("nickName")
         val email = jsonObject.getString("email")

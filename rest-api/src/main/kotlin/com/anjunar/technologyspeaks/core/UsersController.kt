@@ -16,7 +16,6 @@ class UsersController(val query: HibernateSearch) {
 
     @GetMapping(value = ["/core/users"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
-    @Transactional
     @EntityGraph("User.full")
     fun list(search: UserSearch): Table<UserRow> {
 

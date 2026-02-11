@@ -1,7 +1,7 @@
 package com.anjunar.technologyspeaks.rest
 
 import com.anjunar.json.mapper.intermediate.model.JsonNode
-import com.anjunar.technologyspeaks.rest.types.DTO
+import com.anjunar.json.mapper.provider.DTO
 import com.anjunar.technologyspeaks.rest.types.Table
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpOutputMessage

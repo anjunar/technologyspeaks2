@@ -15,10 +15,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import kotlin.math.max
 import kotlin.math.min
+
+private external class ResizeObserver(callback: (entries: Array<dynamic>, observer: ResizeObserver) -> Unit) {
+    fun observe(target: Element)
+    fun disconnect()
+}
 
 /**
  * Virtualized infinite list with:
@@ -49,6 +55,8 @@ class VirtualListView<T : Data<out AbstractEntity>>(
 
     private val job = SupervisorJob()
     private val cs = CoroutineScope(job)
+
+    private var resizeObserver: ResizeObserver? = null
 
     private var loadingJob: Job? = null
     private var pendingTargetTo = -1
@@ -95,6 +103,14 @@ class VirtualListView<T : Data<out AbstractEntity>>(
         uiScope = scope.ui
         baseScope = scope
         uiScope.dom.clear(node)
+
+        resizeObserver = runCatching {
+            val supported = (js("typeof ResizeObserver !== 'undefined'") as Boolean)
+            if (!supported) null else ResizeObserver { _, _ -> scheduleMeasure() }
+        }.getOrNull()
+        resizeObserver?.let { ro ->
+            onDispose(Disposable { ro.disconnect() })
+        }
 
         viewport = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-virtual-list-viewport"
@@ -311,6 +327,7 @@ class VirtualListView<T : Data<out AbstractEntity>>(
                 className = "jfx-virtual-list-cell"
             }
             content.appendChild(n)
+            resizeObserver?.observe(n)
             slots.add(Slot(n))
         }
     }

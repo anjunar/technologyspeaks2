@@ -20,7 +20,6 @@ class ApplicationController(val identityHolder: IdentityHolder) {
 
     @GetMapping(value = [""], produces = ["application/json"])
     @RolesAllowed("Anonymous", "Guest",  "User", "Administrator")
-    @Transactional
     @EntityGraph("User.full")
     fun main() : Application {
 

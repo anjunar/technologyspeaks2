@@ -1,9 +1,8 @@
-package app.pages.timeline
+package app.components.timeline
 
 import app.domain.core.Data
-import app.domain.core.User
+import app.domain.shared.OwnerProvider
 import app.domain.time.Post
-import app.pages.timeline.PostsPage.Page
 import jFx2.controls.button
 import jFx2.controls.heading
 import jFx2.controls.image
@@ -23,9 +22,9 @@ import org.w3c.dom.HTMLDivElement
 
 class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
-    private val model = Property(Data(Post()))
+    private val model = Property<Data<out OwnerProvider>>(Data(Post()))
 
-    fun model(value : Data<Post>) {
+    fun model(value : Data<out OwnerProvider>) {
         model.set(value)
     }
 
@@ -77,7 +76,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 context(scope: NodeScope)
 fun postHeader(block: context(NodeScope) PostHeader.() -> Unit = {}): PostHeader {
     val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("users-page")
+    el.classList.add("post-header")
     val c = PostHeader(el)
     scope.attach(c)
 

@@ -17,7 +17,6 @@ class CredentialStore {
         return WebAuthnCredential.loadByCredentialId(credentialId)?.email?.user!!
     }
 
-    @Transactional
     fun saveRecord(email: String, nickName: String, code: String, record: WebAuthnCredentialRecord) {
         val roleAction = Role.query("name" to "Guest")
         val eMail = EMail.query("value" to email)

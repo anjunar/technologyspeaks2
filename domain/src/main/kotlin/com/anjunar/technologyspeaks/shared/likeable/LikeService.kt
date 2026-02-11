@@ -11,7 +11,6 @@ class LikeService(
     private val entityManager: EntityManager
 ) {
 
-    @Transactional
     fun toggle(entity: LikeContainer.Interface): Set<Like> {
         val userId = identityHolder.user.id
 

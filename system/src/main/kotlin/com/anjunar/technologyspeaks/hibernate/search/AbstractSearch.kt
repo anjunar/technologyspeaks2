@@ -8,14 +8,13 @@ open class AbstractSearch(
     @JsonbProperty
     @RestSort
     @RequestParam
-    val sort: MutableList<String> = mutableListOf(),
+    val sort: MutableList<String>,
 
     @JsonbProperty
     @RequestParam
-    val index: Int = 0,
+    val index: Int,
 
     @JsonbProperty
     @RequestParam
-    val limit: Int = 5
-
+    val limit: Int
 )

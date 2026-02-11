@@ -21,7 +21,6 @@ class EntityConverter : ConditionalGenericConverter {
         return targetType.type.kotlin.isSubclassOf(EntityProvider::class)
     }
 
-    @Transactional
     override fun convert(source: Any?, sourceType: TypeDescriptor, targetType: TypeDescriptor): Any? {
         if (source == null || (source as String).isBlank()) return null
 

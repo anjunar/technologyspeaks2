@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class User(
     @Serializable(with = PropertySerializer::class)
-    override val id : Property<String>? = null,
+    override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
     val nickName: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)

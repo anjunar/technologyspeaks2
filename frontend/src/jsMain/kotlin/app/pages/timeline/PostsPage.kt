@@ -1,12 +1,12 @@
 package app.pages.timeline
 
 import app.components.likeable.likeButton
+import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.time.Post
 import app.services.ApplicationService
 import jFx2.client.JsonClient
-import jFx2.controls.button
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -22,11 +22,9 @@ import jFx2.forms.input
 import jFx2.layout.hbox
 import jFx2.router.PageInfo
 import jFx2.router.navigate
-import jFx2.state.ListProperty
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
-import kotlin.math.min
 
 object PostsPage {
 

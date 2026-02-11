@@ -30,7 +30,6 @@ class WebAuthnRegisterController(val store: CredentialStore, val registerService
 
     @PostMapping("/security/register/options", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun options(@RequestBody body: JsonObject): JsonObject {
         val username = body.getString("email")
 
@@ -79,7 +78,6 @@ class WebAuthnRegisterController(val store: CredentialStore, val registerService
 
     @PostMapping("/security/register/finish", produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Anonymous")
-    @Transactional
     fun finish(@RequestBody body: JsonObject): JsonObject {
         val publicKeyCredential = body.getJsonObject("optionsJSON")
         val credentialId = publicKeyCredential.getString("id")

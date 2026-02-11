@@ -4,6 +4,6 @@ import jFx2.state.Property
 
 interface AbstractEntity {
 
-    val id : Property<String>?
+    var id : Property<String>?
 
 }

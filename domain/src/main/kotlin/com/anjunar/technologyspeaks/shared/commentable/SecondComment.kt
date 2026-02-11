@@ -10,7 +10,7 @@ import com.anjunar.technologyspeaks.core.AbstractEntitySchema
 import com.anjunar.technologyspeaks.core.User
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
-import com.anjunar.technologyspeaks.rest.types.DTO
+import com.anjunar.json.mapper.provider.DTO
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
 import jakarta.json.bind.annotation.JsonbProperty
@@ -19,30 +19,16 @@ import jakarta.persistence.Entity
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
-import java.util.UUID
 
 @Entity
-@Table(name = "Shared#Comment")
-class Comment : AbstractEntity(), EntityContext<Comment>, OwnerProvider, DTO {
+@Table(name = "Shared#SecondComment")
+class SecondComment : AbstractComment(), EntityContext<SecondComment> {
 
-    @ManyToOne(optional = false)
-    @JsonbProperty
-    lateinit var user: User
+    companion object : RepositoryContext<SecondComment>(), SchemaProvider {
 
-    @Column(columnDefinition = "jsonb")
-    @Type(NodeType::class)
-    @UseConverter
-    @JsonbProperty
-    lateinit var editor: Node
-
-    override fun owner(): EntityProvider = user
-
-    companion object : RepositoryContext<Comment>(), SchemaProvider {
-
-        class Schema : AbstractEntitySchema<Comment>() {
-            val user = property(Comment::user)
-            val editor = property(Comment::editor, DefaultWritableRule())
+        class Schema : AbstractEntitySchema<SecondComment>() {
+            val user = property(SecondComment::user)
+            val editor = property(SecondComment::editor, DefaultWritableRule())
         }
     }
 }
-
