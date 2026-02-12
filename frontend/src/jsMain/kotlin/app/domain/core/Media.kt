@@ -1,8 +1,11 @@
 package app.domain.core
 
+import jFx2.state.ListProperty
+import jFx2.state.ListPropertySerializer
 import jFx2.state.Property
 import jFx2.state.PropertySerializer
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,7 +18,10 @@ class Media(
     val contentType : Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
     val data : Property<String> = Property(""),
-    val thumbnail: Thumbnail = Thumbnail()
+    val thumbnail: Thumbnail = Thumbnail(),
+    @SerialName($$"$links")
+    @Serializable(with = ListPropertySerializer::class)
+    override val links : ListProperty<Link> = ListProperty()
 ) : AbstractEntity {
 
     fun dataUrl() : String {

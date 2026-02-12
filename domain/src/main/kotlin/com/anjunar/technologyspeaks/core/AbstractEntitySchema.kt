@@ -10,5 +10,6 @@ import kotlin.reflect.KProperty1
 abstract class AbstractEntitySchema<E : AbstractEntity> : EntitySchema<E>() {
 
     val id = property(AbstractEntity::id as KProperty1<E, UUID>)
+    val links = property(AbstractEntity::links as KProperty1<E, List<Link>>)
 
 }

@@ -3,6 +3,7 @@ package com.anjunar.technologyspeaks.timeline
 import com.anjunar.technologyspeaks.hibernate.search.HibernateSearch
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
+import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import com.anjunar.technologyspeaks.shared.commentable.CommentSearch
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CommentsController(val query: HibernateSearch) {
+class CommentsController(val query: HibernateSearch, val identityHolder: IdentityHolder) {
 
     @GetMapping(value = ["/timeline/posts/post/{post}/comments"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
@@ -32,11 +33,31 @@ class CommentsController(val query: HibernateSearch) {
 
         for (row in entities) {
 
-            row.addLinks(
+            row.data.addLinks(
                 LinkBuilder.create(CommentController::update)
                     .withVariable("id", search.post.id)
+                    .build(),
+                LinkBuilder.create(CommentController::delete)
+                    .withVariable("id", row.data.id)
                     .build()
             )
+
+
+            row.data.comments.forEach { comment ->
+
+                if (comment.user == identityHolder.user) {
+
+                    comment.addLinks(
+                        LinkBuilder.create(CommentController::delete)
+                            .withVariable("id", comment.id)
+                            .build()
+                    )
+
+                }
+
+            }
+
+
 
         }
 

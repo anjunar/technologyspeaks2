@@ -69,4 +69,8 @@ abstract class RangeDataProvider<T : Data<out AbstractEntity>> {
         if (index >= 0) items[index] = entity else items.add(entity)
     }
 
+    fun remove(entity: T) {
+        items.remove(entity)
+    }
+
 }

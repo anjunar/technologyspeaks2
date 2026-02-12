@@ -5,6 +5,7 @@ import jFx2.state.ListPropertySerializer
 import jFx2.state.Property
 import jFx2.state.PropertySerializer
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,7 +19,10 @@ class User(
     var info: UserInfo? = null,
     var address: Address? = null,
     @Serializable(with = ListPropertySerializer::class)
-    val emails: ListProperty<Email> = ListProperty()
+    val emails: ListProperty<Email> = ListProperty(),
+    @SerialName($$"$links")
+    @Serializable(with = ListPropertySerializer::class)
+    override val links : ListProperty<Link> = ListProperty()
 )  : AbstractEntity {
 
     override fun toString(): String {

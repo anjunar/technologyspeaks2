@@ -17,13 +17,13 @@ class PostController(val identityHolder: IdentityHolder) {
     fun read(@PathVariable("id") post: Post): Data<Post> {
         val data = Data(post, Post.schema())
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(LikeController::like)
                 .withVariable("id", post.id)
                 .build()
         )
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(CommentsController::comments)
                 .withVariable("post", post.id)
                 .build(),
@@ -33,7 +33,7 @@ class PostController(val identityHolder: IdentityHolder) {
         )
 
         if (post.user == identityHolder.user) {
-            data.addLinks(
+            post.addLinks(
                 LinkBuilder.create(PostController::read)
                     .withVariable("id", post.id)
                     .build(),
@@ -56,15 +56,15 @@ class PostController(val identityHolder: IdentityHolder) {
         post.persist()
         val data = Data(post, Post.schema())
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(LikeController::like)
                 .withVariable("id", post.id)
                 .build()
         )
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(CommentsController::comments)
-                .withVariable("id", post.id)
+                .withVariable("post", post.id)
                 .build(),
             LinkBuilder.create(CommentController::save)
                 .withVariable("id", post.id)
@@ -72,7 +72,7 @@ class PostController(val identityHolder: IdentityHolder) {
         )
 
         if (post.user == identityHolder.user) {
-            data.addLinks(
+            post.addLinks(
                 LinkBuilder.create(PostController::read)
                     .withVariable("id", post.id)
                     .build(),
@@ -93,15 +93,15 @@ class PostController(val identityHolder: IdentityHolder) {
     fun update(@RequestBody post: Post): Data<Post> {
         val data = Data(post.merge(), Post.schema())
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(LikeController::like)
                 .withVariable("id", post.id)
                 .build()
         )
 
-        data.addLinks(
+        post.addLinks(
             LinkBuilder.create(CommentsController::comments)
-                .withVariable("id", post.id)
+                .withVariable("post", post.id)
                 .build(),
             LinkBuilder.create(CommentController::save)
                 .withVariable("id", post.id)
@@ -109,7 +109,7 @@ class PostController(val identityHolder: IdentityHolder) {
         )
 
         if (post.user == identityHolder.user) {
-            data.addLinks(
+            post.addLinks(
                 LinkBuilder.create(PostController::read)
                     .withVariable("id", post.id)
                     .build(),

@@ -29,7 +29,7 @@ class Media(name: String, contentType: String, data: ByteArray) : Thumbnail(name
 
     companion object : SchemaProvider {
 
-        class Schema : EntitySchema<Media>() {
+        class Schema : AbstractEntitySchema<Media>() {
             @JsonbProperty val name = property(Media::name, DefaultWritableRule())
             @JsonbProperty val contentType = property(Media::contentType, DefaultWritableRule())
             @JsonbProperty val data = property(Media::data, DefaultWritableRule())

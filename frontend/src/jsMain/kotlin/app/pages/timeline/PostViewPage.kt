@@ -28,7 +28,6 @@ import jFx2.forms.editor.plugins.headingPlugin
 import jFx2.forms.editor.plugins.imagePlugin
 import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
-import jFx2.forms.editorView
 import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.hbox
@@ -74,8 +73,8 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val createLink = model.get().links.get().firstOrNull { it.rel == createRel } ?: return
-        val listLink = model.get().links.firstOrNull { it.rel == "comments" } ?: return
+        val createLink = model.get().data.links.get().firstOrNull { it.rel == createRel } ?: return
+        val listLink = model.get().data.links.firstOrNull { it.rel == "comments" } ?: return
         val provider = RangeProvider(serviceUrl(listLink.url))
         provider.upsert(model.get())
 
@@ -116,7 +115,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         model(item as Data<Post>)
                                                     }
 
-                                                    editorView("editor") {
+                                                    editor("editor", false) {
                                                         basePlugin { }
                                                         headingPlugin { }
                                                         listPlugin { }
@@ -133,47 +132,12 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                 className { "glass-border" }
 
-                                                hbox {
-                                                    style {
-                                                        columnGap = "8px"
-                                                        alignItems = "center"
+                                                postHeader {
+                                                    model(item as Data<FirstComment>)
+
+                                                    onDelete {
+                                                        provider.remove(item)
                                                     }
-
-                                                    val user = item.data.user!!.get()
-                                                    val img = user.image.get()?.thumbnailLink()
-                                                    if (img == null) {
-                                                        div {
-                                                            text("user")
-                                                            className { "material-icons" }
-                                                            style {
-                                                                fontSize = "48px"
-                                                            }
-                                                        }
-                                                    } else {
-                                                        image {
-                                                            style {
-                                                                height = "48px"
-                                                                width = "48px"
-                                                            }
-                                                            src = img
-                                                        }
-                                                    }
-
-                                                    div {
-                                                        style {
-                                                            flex = "1"
-                                                        }
-                                                        text(user.nickName.get())
-                                                    }
-
-                                                    button("delete") {
-                                                        type("button")
-                                                        className { "material-icons" }
-                                                        onClick {
-
-                                                        }
-                                                    }
-
                                                 }
 
                                                 condition(item.data.editable) {
@@ -204,7 +168,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                     }
                                                     elseDo {
-                                                        editorView("editor") {
+                                                        editor("editor", false) {
                                                             basePlugin { }
                                                             headingPlugin { }
                                                             listPlugin { }
@@ -217,7 +181,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                 }
 
                                                 commentsSection {
-                                                    model(item as Data<FirstComment>)
+                                                    model(item.data)
                                                 }
 
                                             }

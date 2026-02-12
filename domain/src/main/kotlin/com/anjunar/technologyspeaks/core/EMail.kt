@@ -33,8 +33,7 @@ class EMail(@JsonbProperty @Email @NotBlank @Column(unique = true) var value: St
 
     companion object : SchemaProvider, RepositoryContext<EMail>() {
 
-        class Schema : EntitySchema<EMail>() {
-            @JsonbProperty val id = property(EMail::id, OwnerRule())
+        class Schema : AbstractEntitySchema<EMail>() {
             @JsonbProperty val value = property(EMail::value, OwnerRule())
         }
 

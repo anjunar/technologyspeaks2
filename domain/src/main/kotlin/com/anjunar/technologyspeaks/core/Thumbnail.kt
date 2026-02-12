@@ -42,7 +42,7 @@ class Thumbnail(
 
     companion object : SchemaProvider {
 
-        class Schema : EntitySchema<Thumbnail>() {
+        class Schema : AbstractEntitySchema<Thumbnail>() {
             val name = property(Thumbnail::name, DefaultWritableRule())
             val contentType = property(Thumbnail::contentType, DefaultWritableRule())
             val data = property(Thumbnail::data, DefaultWritableRule())

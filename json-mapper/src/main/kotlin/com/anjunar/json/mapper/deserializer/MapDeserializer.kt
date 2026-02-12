@@ -5,7 +5,9 @@ import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.JsonContext
 import com.anjunar.json.mapper.intermediate.model.JsonArray
 import com.anjunar.json.mapper.intermediate.model.JsonNode
+import com.anjunar.json.mapper.intermediate.model.JsonNumber
 import com.anjunar.json.mapper.intermediate.model.JsonObject
+import com.anjunar.json.mapper.intermediate.model.JsonString
 import java.util.UUID
 import kotlin.reflect.full.isSubclassOf
 
@@ -16,32 +18,20 @@ class MapDeserializer : Deserializer<Map<String, *>> {
             is JsonObject -> {
 
                 val collection = mutableMapOf<String, Any>()
-
                 val elementResolvedClass = context.type.typeArguments[1]
-                DeserializerRegistry.findDeserializer(elementResolvedClass.raw, json)
 
                 for ((key, node) in json.value) {
+                    val entityCollection = context.instance as Map<String, Any>
 
-                    when (node) {
-                        is JsonObject -> {
-                            val entityCollection = context.instance as Collection<EntityProvider>
+                    val entity = entityCollection[key] ?: elementResolvedClass.raw.getConstructor().newInstance()
 
-                            val idNode = node.value["id"] ?: throw IllegalArgumentException("missing property id")
+                    val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context, context.name)
 
-                            val entityId = UUID.fromString(idNode.value.toString())
+                    collection.put(key, DeserializerRegistry
+                        .findDeserializer(elementResolvedClass.raw, node)
+                        .deserialize(node, jsonContext)
+                    )
 
-                            val entity = entityCollection.find { it.id == entityId } ?: elementResolvedClass.raw.getConstructor().newInstance()
-
-                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context, context.name)
-
-                            collection.put(key, DeserializerRegistry
-                                .findDeserializer(elementResolvedClass.raw, node)
-                                .deserialize(node, jsonContext)
-                            )
-
-                        }
-                        else -> throw IllegalArgumentException("json array must contain a json object")
-                    }
 
                 }
 

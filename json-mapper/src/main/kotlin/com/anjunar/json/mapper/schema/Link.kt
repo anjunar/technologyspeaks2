@@ -12,10 +12,10 @@ class Link(
     companion object : SchemaProvider {
 
         class Schema : EntitySchema<Link>() {
-            val id = property(Link::id)
-            val rel = property(Link::rel)
-            val url = property(Link::url)
-            val method = property(Link::method)
+            @JsonbProperty val id = property(Link::id)
+            @JsonbProperty val rel = property(Link::rel)
+            @JsonbProperty val url = property(Link::url)
+            @JsonbProperty val method = property(Link::method)
         }
 
     }

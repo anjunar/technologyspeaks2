@@ -118,7 +118,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                     )
 
                     onRowDoubleClick { user, _ ->
-                        navigateByRel("read", user.links) { navigate -> navigate() }
+                        navigateByRel("read", user.data.links) { navigate -> navigate() }
                     }
                 }
             }

@@ -2,13 +2,14 @@ package com.anjunar.technologyspeaks.core
 
 import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.provider.DTO
+import com.anjunar.technologyspeaks.rest.types.LinksContainer
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
 
 @MappedSuperclass
-abstract class AbstractEntity : EntityProvider, DTO {
+abstract class AbstractEntity : EntityProvider, DTO, LinksContainer.Interface by LinksContainer.Trait() {
 
     @Id
     @JsonbProperty

@@ -22,7 +22,7 @@ class UserController {
 
         val form = Data(user, User.schema())
 
-        form.addLinks(
+        user.addLinks(
             LinkBuilder.create(UserController::update)
                 .build(),
             LinkBuilder.create(ManagedPropertyController::read)
@@ -39,7 +39,7 @@ class UserController {
     fun update(@RequestBody user : User): Data<User> {
         val form = Data(user.merge(), User.schema())
 
-        form.addLinks(
+        user.addLinks(
             LinkBuilder.create(UserController::update)
                 .build(),
             LinkBuilder.create(ManagedPropertyController::read)

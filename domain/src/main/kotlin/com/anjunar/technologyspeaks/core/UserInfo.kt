@@ -40,7 +40,7 @@ class UserInfo(
 
     companion object : SchemaProvider {
 
-        class Schema : EntitySchema<UserInfo>() {
+        class Schema : AbstractEntitySchema<UserInfo>() {
             @JsonbProperty val firstName = property(UserInfo::firstName, ManagedRule())
             @JsonbProperty val lastName = property(UserInfo::lastName, ManagedRule())
             @JsonbProperty val birthDate = property(UserInfo::birthDate, ManagedRule())

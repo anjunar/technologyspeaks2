@@ -20,7 +20,6 @@ import jFx2.core.rendering.observeRender
 import jFx2.core.template
 import jFx2.forms.editor
 import jFx2.forms.editor.plugins.*
-import jFx2.forms.editorView
 import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.vbox
@@ -32,9 +31,9 @@ import kotlin.uuid.Uuid
 class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private var createRel: String = "update"
-    private val commentable = Property(Data(FirstComment()))
+    private val commentable = Property(FirstComment())
 
-    fun model(value : Data<FirstComment>) {
+    fun model(value : FirstComment) {
         this.commentable.set(value)
     }
 
@@ -53,13 +52,13 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                         val secondComment = SecondComment()
                         secondComment.id = Property(Uuid.generateV4().toString())
                         secondComment.editable.set(true)
-                        commentable.get().data.comments.add(secondComment)
+                        commentable.get().comments.add(secondComment)
                     }
                 }
             }
 
             observeRender(commentable) { commentable ->
-                foreach(commentable.data.comments, {key -> key.id!!.get()}) { comment, index ->
+                foreach(commentable.comments, {key -> key.id!!.get()}) { comment, index ->
 
                     condition(comment.editable) {
                         then {
@@ -71,8 +70,8 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 onSubmit {
                                     busy.set(true)
                                     try {
-                                        val created = JsonClient.put<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@CommentsSection.commentable.get().data)
-                                        this@CommentsSection.commentable.set(created)
+                                        val created = JsonClient.put<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@CommentsSection.commentable.get())
+                                        this@CommentsSection.commentable.set(created.data)
                                     } finally {
                                         busy.set(false)
                                     }
@@ -110,9 +109,13 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
                                 postHeader {
                                     model(Data(this@form.model))
+
+                                    onDelete {
+                                        commentable.comments.remove(comment)
+                                    }
                                 }
 
-                                editorView("editor") {
+                                editor("editor", false) {
 
                                     basePlugin { }
                                     headingPlugin { }

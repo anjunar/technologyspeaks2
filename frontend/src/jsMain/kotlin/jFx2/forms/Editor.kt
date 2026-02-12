@@ -8,9 +8,11 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.registerField
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
+import jFx2.core.rendering.condition
 import jFx2.core.template
 import jFx2.forms.editor.EditorNode
 import jFx2.forms.editor.plugins.EditorPlugin
+import jFx2.forms.editor.prosemirror.DOMSerializer
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorStateConfig
 import jFx2.forms.editor.prosemirror.Node
@@ -41,13 +43,15 @@ import jFx2.forms.editor.prosemirror.EditorView as ProseMirrorEditorView
 
 
 @Suppress("CAST_NEVER_SUCCEEDS")
-class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDivElement>() {
+class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormField<EditorNode?, HTMLDivElement>() {
 
     val valueProperty = Property<EditorNode?>(null)
 
     private var editorSchema: Schema? = null
     private var editorPlugins: Array<Plugin<Any?>> = emptyArray()
     private var editorView: ProseMirrorEditorView? = null
+    private val editable = Property(edit)
+    private var domSerializer: DOMSerializer? = null
 
     private fun parseDoc(schema: Schema, value: EditorNode?): Node? {
         return runCatching {
@@ -55,50 +59,16 @@ class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDiv
         }.getOrNull()
     }
 
-    private fun normalizeNodeJson(input: dynamic): dynamic {
-        fun isArray(v: dynamic): Boolean =
-            jsTypeOf(v) != "undefined" && v != null && (js("Array.isArray")(v) as Boolean)
-
-        fun safeObject(v: dynamic): dynamic =
-            if (jsTypeOf(v) != "undefined" && v != null) v else json()
-
-        val type = (input?.type as? String).orEmpty()
-        val text = (input?.text as? String).orEmpty()
-
-        val content: Array<dynamic> =
-            if (isArray(input?.content)) {
-                input.content.unsafeCast<Array<dynamic>>().map { normalizeNodeJson(it) }.toTypedArray()
-            } else {
-                emptyArray()
-            }
-
-        val marks: Array<dynamic> =
-            if (isArray(input?.marks)) {
-                input.marks.unsafeCast<Array<dynamic>>().map { normalizeNodeJson(it) }.toTypedArray()
-            } else {
-                emptyArray()
-            }
-
-        return json(
-            "type" to type,
-            "content" to content,
-            "attrs" to safeObject(input?.attrs),
-            "text" to text,
-            "marks" to marks
-        )
-    }
-
     private fun serializeDoc(doc: Node): EditorNode {
         val rawJson = doc.asDynamic().toJSON()
-        return normalizeNodeJson(rawJson)
+        return rawJson.unsafeCast<EditorNode>()
     }
 
-    fun createState(initialValue: EditorNode? = valueProperty.get()): EditorState {
-
-        val pluginInstances = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any?> }
+    private fun ensureSchema(): Schema {
+        val existing = editorSchema
+        if (existing != null) return existing
 
         val specs: dynamic = {}
-
         this@Editor.children.forEach {
             val p = it as EditorPlugin
             if (p.nodeSpec != null) {
@@ -113,12 +83,24 @@ class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDiv
                 "block"
             )
 
+
         val customSchema = Schema(
             jsObject {
                 nodes = customNodes
                 marks = basicSchema.spec.marks
             }
         )
+
+        editorSchema = customSchema
+        domSerializer = DOMSerializer.fromSchema(customSchema)
+        return customSchema
+    }
+
+    fun createState(initialValue: EditorNode? = valueProperty.get()): EditorState {
+
+        val pluginInstances = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any?> }
+
+        val customSchema = ensureSchema()
 
         val itemType = customSchema.nodes["list_item"] ?: error("list_item missing in schema")
 
@@ -161,85 +143,124 @@ class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDiv
         return EditorState.create(cfg)
     }
 
+    private fun clear(node: HTMLDivElement) {
+        while (node.firstChild != null) {
+            node.removeChild(node.firstChild!!)
+        }
+    }
+
+    private fun renderInto(mount: HTMLDivElement, value: EditorNode?) {
+        val schema = ensureSchema()
+        val doc = parseDoc(schema, value)
+
+        clear(mount)
+        if (doc == null) return
+
+        val serializer = domSerializer ?: DOMSerializer.fromSchema(schema).also { domSerializer = it }
+        mount.appendChild(serializer.serializeFragment(doc.content))
+    }
+
     context(scope : NodeScope)
     fun afterBuild() {
         val ui = scope.ui
 
         template {
-            hbox {
+            condition(editable) {
+                then {
+                    hbox {
 
-                style {
-                    alignItems = "center"
-                }
-
-                renderFields(*this@Editor.children.toTypedArray())
-            }
-
-            div {
-
-                style {
-                    flex = "1"
-                    minHeight = "0px"
-                }
-
-                val initialValue = valueProperty.get()
-                val initialState = createState(initialValue)
-
-                var lastSeenValue = initialValue
-
-                lateinit var view: ProseMirrorEditorView
-                view = ProseMirrorEditorView(this@div.node, jsObject {
-                    state = initialState
-                    dispatchTransaction = { tr ->
-                        val newState = view.state.apply(tr)
-                        view.updateState(newState)
-
-                        if (tr.docChanged) {
-                            val next = serializeDoc(newState.doc)
-                            lastSeenValue = next
-                            valueProperty.set(next)
-                            ui.build.flush()
+                        style {
+                            alignItems = "center"
                         }
+
+                        renderFields(*this@Editor.children.toTypedArray())
                     }
-                })
 
-                editorView = view
+                    div {
 
-                this@Editor.children.forEach {
-                    (it as EditorPlugin).view = view
-                }
+                        style {
+                            flex = "1"
+                            minHeight = "0px"
+                        }
 
-                onDispose(Disposable { runCatching { view.destroy() } })
+                        val initialValue = valueProperty.get()
+                        val initialState = createState(initialValue)
 
-                if (initialValue == null) {
-                    val next = serializeDoc(view.state.doc)
-                    lastSeenValue = next
-                    valueProperty.set(next)
-                }
+                        var lastSeenValue = initialValue
+                        lateinit var view: ProseMirrorEditorView
+                        view = ProseMirrorEditorView(this@div.node, jsObject {
+                            state = initialState
+                            dispatchTransaction = { tr ->
+                                val newState = view.state.apply(tr)
+                                view.updateState(newState)
 
-                onDispose(
-                    valueProperty.observe { v ->
-                        if (v == lastSeenValue) return@observe
-
-                        val schema = editorSchema ?: return@observe
-                        val plugins = editorPlugins
-
-                        val doc = parseDoc(schema, v)
-
-                        val nextState = EditorState.create(
-                            jsObject<EditorStateConfig> {
-                                this.schema = schema
-                                this.plugins = plugins
-                                if (doc != null) {
-                                    this.doc = doc
+                                if (tr.docChanged) {
+                                    val next = serializeDoc(newState.doc)
+                                    lastSeenValue = next
+                                    valueProperty.set(next)
+                                    ui.build.flush()
                                 }
                             }
-                        )
+                        })
 
-                        view.updateState(nextState)
-                        lastSeenValue = v
+                        editorView = view
+
+                        this@Editor.children.forEach {
+                            (it as EditorPlugin).view = view
+                        }
+
+                        onDispose { runCatching { view.destroy() } }
+
+                        if (initialValue == null) {
+                            val next = serializeDoc(view.state.doc)
+                            lastSeenValue = next
+                            valueProperty.set(next)
+                        }
+
+                        onDispose(
+                            valueProperty.observe { v ->
+                                if (v == lastSeenValue) return@observe
+
+                                val schema = editorSchema ?: return@observe
+                                val plugins = editorPlugins
+
+                                val doc = parseDoc(schema, v)
+
+                                val nextState = EditorState.create(
+                                    jsObject {
+                                        this.schema = schema
+                                        this.plugins = plugins
+                                        if (doc != null) {
+                                            this.doc = doc
+                                        }
+                                    }
+                                )
+
+                                view.updateState(nextState)
+                                lastSeenValue = v
+                            }
+                        )
                     }
-                )
+                }
+                elseDo {
+                    div {
+                        val mount = this@div.node
+                        mount.classList.add("ProseMirror")
+                        mount.setAttribute("contenteditable", "false")
+
+                        val initialValue = valueProperty.get()
+                        var lastSeenValue = initialValue
+
+                        renderInto(mount, initialValue)
+                        onDispose(
+                            valueProperty.observe { v ->
+                                if (v == lastSeenValue) return@observe
+                                renderInto(mount, v)
+                                lastSeenValue = v
+                            }
+                        )
+                    }
+                }
             }
 
         }
@@ -257,11 +278,11 @@ class Editor(override val node: HTMLDivElement) : FormField<EditorNode?, HTMLDiv
 
 
 context(scope : NodeScope)
-fun editor(name: String, block: context(NodeScope) Editor.() -> Unit = {}): Editor {
+fun editor(name: String, editable: Boolean = true, block: context(NodeScope) Editor.() -> Unit = {}): Editor {
     val el = scope.create<HTMLDivElement>("div").also {
         it.classList.add("editor")
     }
-    val c = Editor(el)
+    val c = Editor(el, editable)
     scope.attach(c)
 
     registerField(name, c)

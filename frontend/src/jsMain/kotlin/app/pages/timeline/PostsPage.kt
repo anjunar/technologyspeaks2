@@ -15,8 +15,8 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
+import jFx2.forms.editor
 import jFx2.forms.editor.plugins.*
-import jFx2.forms.editorView
 import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.layout.hbox
@@ -102,7 +102,7 @@ object PostsPage {
                                         model(item)
                                     }
 
-                                    editorView("editor") {
+                                    editor("editor", false) {
                                         style {
                                             height = "100%"
                                             width = "100%"
@@ -127,7 +127,7 @@ object PostsPage {
 
                                         likeButton {
                                             model(
-                                                likes = this@form.model.likes, links = item.links
+                                                likes = this@form.model.likes, links = item.data.links
                                             )
                                         }
 

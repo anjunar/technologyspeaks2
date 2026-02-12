@@ -44,7 +44,7 @@ class Address (
 
     companion object : SchemaProvider {
 
-        class Schema : EntitySchema<Address>() {
+        class Schema : AbstractEntitySchema<Address>() {
 
             @JsonbProperty val street = property(Address::street, ManagedRule())
             @JsonbProperty val number = property(Address::number, ManagedRule())

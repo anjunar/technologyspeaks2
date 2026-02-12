@@ -4,7 +4,9 @@ import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import jakarta.annotation.security.RolesAllowed
+import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -49,6 +51,18 @@ class CommentController(val identityHolder: IdentityHolder) {
         post.comments.add(body)
 
         return Data(body, FirstComment.schema())
+    }
+
+
+    @DeleteMapping(value = ["/timeline/posts/post/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
+    @RolesAllowed("User", "Administrator")
+    fun delete(@PathVariable("id") post: Post, @RequestBody body: FirstComment): ResponseEntity<Unit> {
+
+        post.comments.remove(body)
+
+        body.remove()
+
+        return ResponseEntity.ok().build()
     }
 
 

@@ -1,8 +1,11 @@
 package app.domain.core
 
+import jFx2.state.ListProperty
+import jFx2.state.ListPropertySerializer
 import jFx2.state.Property
 import jFx2.state.PropertySerializer
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,7 +19,11 @@ class Address(
     @Serializable(with = PropertySerializer::class)
     val zipCode: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
-    val country: Property<String> = Property("")) : AbstractEntity {
+    val country: Property<String> = Property(""),
+    @SerialName($$"$links")
+    @Serializable(with = ListPropertySerializer::class)
+    override val links : ListProperty<Link> = ListProperty()
+) : AbstractEntity {
 
     override fun toString(): String {
         return "Address(id=$id, street=$street, number=$number, zipCode=$zipCode, country=$country)"

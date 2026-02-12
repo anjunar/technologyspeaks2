@@ -24,8 +24,14 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 
     private val model = Property<Data<out OwnerProvider>>(Data(Post()))
 
+    private var onDelete: (() -> Unit)? = null
+
     fun model(value : Data<out OwnerProvider>) {
         model.set(value)
+    }
+
+    fun onDelete(fn: () -> Unit) {
+        onDelete = fn
     }
 
     context(scope: NodeScope)
@@ -58,7 +64,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     }
                 }
 
-                navigateByRel("read", model.get().links) { navigate ->
+                navigateByRel("read", model.get().data.links) { navigate ->
                     button("edit") {
                         type("button")
                         className { "material-icons" }
@@ -67,6 +73,17 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                         }
                     }
                 }
+
+                navigateByRel("delete", model.get().data.links) { navigate ->
+                    button("delete") {
+                        type("button")
+                        className { "material-icons" }
+                        onClick {
+                            onDelete!!()
+                        }
+                    }
+                }
+
             }
         }
     }

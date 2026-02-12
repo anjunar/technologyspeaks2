@@ -33,7 +33,7 @@ class UsersController(val query: HibernateSearch) {
         val count = query.count(User::class, searchContext)
 
         for (user in entities) {
-            user.addLinks(
+            user.data.addLinks(
                 LinkBuilder.create(UserController::read)
                     .withVariable("id", user.data.id)
                     .build()
