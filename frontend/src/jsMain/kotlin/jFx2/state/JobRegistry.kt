@@ -254,28 +254,23 @@ class JobRegistry(
                 else -> JobState.FAILED
             }
 
-            // Wichtig: ListProperty-Mutationen sauber im Registry-Scope
             scope.launch {
                 e.state = endState
                 if (t != null) e.error = t
 
                 bumpEnd(id, label, owner, endState)
 
-                // Fertige Jobs aus der Liste entfernen (sofort oder nach kurzer Retention)
                 if (retainFinishedMs > 0) delay(retainFinishedMs)
-                // falls du ein anderes API hast: entries.remove(e) -> anpassen
                 window.setTimeout({ entries.remove(e) }, 3000)
             }
         }
     }
 
     private fun trimIfNeeded() {
-        // optional: wenn retainFinishedMs > 0 oder churn viel ist, hält das die Liste klein
         val all = entries.toList()
         val overflow = all.size - maxEntries
         if (overflow <= 0) return
 
-        // zuerst: nicht laufende Jobs wegtrimmen (älteste zuerst)
         val removable = all
             .filter { it.state != JobState.RUNNING || !it.job.isActive }
             .sortedBy { it.startedAtMs }

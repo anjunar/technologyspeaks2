@@ -21,8 +21,11 @@ import jFx2.core.template
 import jFx2.forms.editor
 import jFx2.forms.editor.plugins.*
 import jFx2.forms.form
+import jFx2.forms.input
 import jFx2.layout.div
 import jFx2.layout.vbox
+import jFx2.router.navigate
+import jFx2.state.JobRegistry
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
@@ -46,13 +49,23 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
         template {
 
             div {
-                button("Kommentieren") {
-                    type("button")
-                    onClick {
-                        val secondComment = SecondComment()
-                        secondComment.id = Property(Uuid.generateV4().toString())
-                        secondComment.editable.set(true)
-                        commentable.get().comments.add(secondComment)
+                vbox {
+
+                    style {
+                        alignItems = "flex-end"
+                    }
+
+                    button("Kommentieren") {
+                        type("button")
+                        onClick {
+                            val lastComment = commentable.get().comments.lastOrNull()
+                            if (lastComment != null && lastComment.editable.get()) return@onClick
+                            val secondComment = SecondComment()
+                            secondComment.id = Property(Uuid.generateV4().toString())
+                            secondComment.editable.set(true)
+                            commentable.get().comments.add(secondComment)
+                        }
+
                     }
                 }
             }
@@ -111,7 +124,18 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                     model(Data(this@form.model))
 
                                     onDelete {
-                                        commentable.comments.remove(comment)
+
+                                        JobRegistry.instance.launch("Comment Remove", "Comment") {
+
+                                            val updateLink = comment.links.find { it.rel == "update" }
+
+                                            commentable.comments.remove(comment)
+
+                                            JsonClient.put<FirstComment, Data<FirstComment>>("/service" + updateLink!!.url, commentable)
+
+                                        }
+
+
                                     }
                                 }
 

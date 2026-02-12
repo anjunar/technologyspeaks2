@@ -46,7 +46,7 @@ class CommentController(val identityHolder: IdentityHolder) {
             } catch (e: Exception) {
                 true
             }
-        }.forEach { it.user = identityHolder.user}
+        }.forEach { it.user = identityHolder.user }
 
         post.comments.add(body)
 
@@ -63,6 +63,7 @@ class CommentController(val identityHolder: IdentityHolder) {
         body.remove()
 
         return ResponseEntity.ok().build()
+
     }
 
 

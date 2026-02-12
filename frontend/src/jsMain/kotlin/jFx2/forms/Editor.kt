@@ -46,11 +46,11 @@ import jFx2.forms.editor.prosemirror.EditorView as ProseMirrorEditorView
 class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormField<EditorNode?, HTMLDivElement>() {
 
     val valueProperty = Property<EditorNode?>(null)
+    val editable = Property(edit)
 
     private var editorSchema: Schema? = null
     private var editorPlugins: Array<Plugin<Any?>> = emptyArray()
     private var editorView: ProseMirrorEditorView? = null
-    private val editable = Property(edit)
     private var domSerializer: DOMSerializer? = null
 
     private fun parseDoc(schema: Schema, value: EditorNode?): Node? {

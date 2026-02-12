@@ -27,24 +27,7 @@ object JsonClient {
 
         if (!response.ok) throw RuntimeException("Error ${response.status} ${response.statusText}")
 
-        val module = SerializersModule {
-            polymorphic(AbstractLink::class) {
-                subclass(WebAuthnLoginLink::class)
-                subclass(WebAuthnRegisterLink::class)
-                subclass(PasswordLoginLink::class)
-                subclass(PasswordRegisterLink::class)
-                subclass(UsersLink::class)
-                subclass(LogoutLink::class)
-                subclass(PostsLink::class)
-            }
-        }
-
-        val defaultJson = Json {
-            serializersModule = module
-            encodeDefaults = true
-            ignoreUnknownKeys = true
-            explicitNulls = false
-        }
+        val defaultJson = configure()
 
         return defaultJson.decodeFromString<O>(response.text().await())
     }
@@ -73,5 +56,41 @@ object JsonClient {
         ))
     }
 
+    suspend inline fun <reified I> delete(url: String, entity : I) {
+        val headers = Headers()
+        headers.set("Content-Type", "application/json")
 
+        val requestInit = RequestInit(
+            method = "DELETE",
+            headers = headers,
+            body = Json.encodeToString(entity)
+        )
+
+        val response = window.fetch(url, requestInit).await()
+
+        if (!response.ok) throw RuntimeException("Error ${response.status} ${response.statusText}")
+
+    }
+
+    fun configure(): Json {
+        val module = SerializersModule {
+            polymorphic(AbstractLink::class) {
+                subclass(WebAuthnLoginLink::class)
+                subclass(WebAuthnRegisterLink::class)
+                subclass(PasswordLoginLink::class)
+                subclass(PasswordRegisterLink::class)
+                subclass(UsersLink::class)
+                subclass(LogoutLink::class)
+                subclass(PostsLink::class)
+            }
+        }
+
+        val defaultJson = Json {
+            serializersModule = module
+            encodeDefaults = true
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
+        return defaultJson
+    }
 }

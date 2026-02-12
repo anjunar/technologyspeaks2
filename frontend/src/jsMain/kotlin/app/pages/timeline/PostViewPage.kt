@@ -29,10 +29,12 @@ import jFx2.forms.editor.plugins.imagePlugin
 import jFx2.forms.editor.plugins.linkPlugin
 import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.form
+import jFx2.forms.input
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
+import jFx2.state.JobRegistry
 import jFx2.state.Property
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
@@ -86,6 +88,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                     style {
                         flex = "1"
+                        minHeight = "0px"
                     }
 
                     virtualList(
@@ -136,7 +139,17 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                     model(item as Data<FirstComment>)
 
                                                     onDelete {
-                                                        provider.remove(item)
+
+                                                        JobRegistry.instance.launch("Comment Remove", "Comment") {
+
+                                                            val deleteLink = item.data.links.find { it.rel == "delete" }
+
+                                                            JsonClient.delete("/service" + deleteLink!!.url, item.data)
+
+                                                            provider.remove(item)
+                                                        }
+
+
                                                     }
                                                 }
 
@@ -144,8 +157,8 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                     then {
                                                         form(model = item.data, clazz = FirstComment::class) {
                                                             onSubmit {
-                                                                val created = JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
-                                                                this@form.model.editable.set(false)
+                                                                JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
+                                                                item.data.editable.set(false)
                                                             }
 
                                                             editor("editor") {
@@ -193,13 +206,27 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                     )
                 }
 
-                button("Neuer Kommentar") {
-                    type("button")
+                input("newComment") {
+                    style {
+                        margin = "12px"
+                        padding = "12px"
+                        width = "calc(100% - 48px)"
+                        backgroundColor = "var(--color-background-secondary)"
+                        fontSize = "24px"
+                        borderRadius = "8px"
+                    }
+
+                    placeholder = "Neuer Kommentar..."
                     onClick {
-                        val firstComment = FirstComment()
-                        firstComment.editable.set(true)
-                        firstComment.user = Property(ApplicationService.app.get().user)
-                        provider.upsert(Data(firstComment))
+                        val lastItem = provider.getOrNull(provider.items.size - 1)
+                        if (lastItem!!.data is FirstComment) {
+                            if (! lastItem.data.editable.get()) {
+                                val firstComment = FirstComment()
+                                firstComment.editable.set(true)
+                                firstComment.user = Property(ApplicationService.app.get().user)
+                                provider.upsert(Data(firstComment))
+                            }
+                        }
                     }
                 }
             }

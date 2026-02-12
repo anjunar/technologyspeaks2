@@ -35,8 +35,8 @@ private class ConditionComponent(
     private val start: Comment,
     private val end: Comment,
     private val builder: ConditionBuilder,
-    private val readFlag: () -> Boolean,
-    private val subscribe: (((Boolean) -> Unit) -> Disposable?)? // null => polling
+    private val readFlag: (() -> Boolean)?,
+    private val subscribe: (((Boolean) -> Unit) -> Disposable)? // null => polling
 ) : Component<DocumentFragment>() {
 
     private var disposed = false
@@ -50,8 +50,17 @@ private class ConditionComponent(
 
     private var baseScope: NodeScope? = null
 
+    private var subscription: Disposable? = null
+
     override fun mount() {
-        with(baseScope!!) { rebuild( readFlag()) }
+        with(baseScope!!) {
+            if (readFlag == null) {
+                subscribe?.invoke { rebuild(it) }
+            } else {
+                rebuild( readFlag())
+            }
+
+        }
     }
 
     context(scope: NodeScope)
@@ -60,7 +69,7 @@ private class ConditionComponent(
 
         subscribe?.let { sub ->
             val d = sub { v -> scheduleRebuild(v) }
-            if (d != null) onDispose(d)
+            onDispose(d)
         } ?: run {
             schedulePoll()
         }
@@ -113,7 +122,7 @@ private class ConditionComponent(
     private fun schedulePoll() {
         val scope = baseScope ?: return
         if (disposed) return
-
+        if (readFlag == null) return
 
         scope.ui.build.afterBuild {
             if (disposed) return@afterBuild
@@ -127,6 +136,7 @@ private class ConditionComponent(
 
     override fun dispose() {
         disposed = true
+
         runCatching { currentMount?.dispose() }
         currentMount = null
 
@@ -156,7 +166,7 @@ fun condition(flag: Property<Boolean>, build: ConditionBuilder.() -> Unit) {
         start = start,
         end = end,
         builder = builder,
-        readFlag = { flag.get() },
+        readFlag = null,
         subscribe = { cb -> flag.observe(cb) }
     )
 

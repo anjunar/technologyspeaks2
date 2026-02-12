@@ -6,7 +6,6 @@ import com.anjunar.json.mapper.annotations.UseConverter
 import com.anjunar.json.mapper.intermediate.model.JsonNode
 import com.anjunar.json.mapper.intermediate.model.JsonNull
 import com.anjunar.json.mapper.intermediate.model.JsonObject
-import com.anjunar.json.mapper.intermediate.model.JsonString
 import com.anjunar.json.mapper.provider.DTO
 import com.anjunar.json.mapper.schema.SchemaProvider
 import com.anjunar.json.mapper.schema.VisibilityRule
@@ -174,8 +173,8 @@ class BeanDeserializer : Deserializer<Any> {
     ) {
         val instance = context.instance!!
         if (node == null) {
-            val collection = property.get(instance) as MutableMap<String, Any?>
-            collection.clear()
+            val originalCollection = property.get(instance) as MutableMap<String, Any?>
+            originalCollection.clear()
         } else {
             if (oldValue == null) {
                 throw IllegalStateException("Collection property must be initialized")

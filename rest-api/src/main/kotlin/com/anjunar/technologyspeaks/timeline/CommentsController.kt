@@ -38,7 +38,7 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
                     .withVariable("id", search.post.id)
                     .build(),
                 LinkBuilder.create(CommentController::delete)
-                    .withVariable("id", row.data.id)
+                    .withVariable("id", search.post.id)
                     .build()
             )
 
@@ -48,8 +48,11 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
                 if (comment.user == identityHolder.user) {
 
                     comment.addLinks(
+                        LinkBuilder.create(CommentController::update)
+                            .withVariable("id", search.post.id)
+                            .build(),
                         LinkBuilder.create(CommentController::delete)
-                            .withVariable("id", comment.id)
+                            .withVariable("id", search.post.id)
                             .build()
                     )
 
