@@ -3,6 +3,7 @@
 package app.pages.timeline
 
 import app.components.commentable.commentsSection
+import app.components.likeable.likeButton
 import app.components.timeline.postHeader
 import app.domain.core.AbstractEntity
 import app.domain.core.Data
@@ -93,14 +94,32 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                     virtualList(
                         dataProvider = provider,
-                        estimateHeightPx = 44,
-                        overscanPx = 120,
+                        estimateHeightPx = 240,
+                        overscanPx = 240,
                         prefetchItems = 40,
                         renderer = { item, _ ->
 
                             template {
                                 if (item == null) {
-                                    text("Loading...")
+                                    div {
+                                        className { "glass-border" }
+
+                                        style {
+                                            height = "200px"
+                                        }
+
+                                        postHeader {
+
+                                        }
+
+                                        vbox {
+                                            style {
+                                                justifyContent = "center"
+                                                alignItems = "center"
+                                            }
+                                            text("Laden...")
+                                        }
+                                    }
                                 } else {
 
 
@@ -139,58 +158,48 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                     model(item as Data<FirstComment>)
 
                                                     onDelete {
-
                                                         JobRegistry.instance.launch("Comment Remove", "Comment") {
-
                                                             val deleteLink = item.data.links.find { it.rel == "delete" }
-
                                                             JsonClient.delete("/service" + deleteLink!!.url, item.data)
-
                                                             provider.remove(item)
                                                         }
+                                                    }
 
-
+                                                    onUpdate {
+                                                        val editable = item.data.editable
+                                                        editable.set(! editable.get())
                                                     }
                                                 }
 
-                                                condition(item.data.editable) {
-                                                    then {
-                                                        form(model = item.data, clazz = FirstComment::class) {
-                                                            onSubmit {
-                                                                JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
-                                                                item.data.editable.set(false)
-                                                            }
+                                                form(model = item.data, clazz = FirstComment::class) {
+                                                    onSubmit {
+                                                        JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
+                                                        item.data.editable.set(false)
+                                                    }
 
-                                                            editor("editor") {
+                                                    editor("editor", false) {
 
-                                                                style {
-                                                                    height = "300px"
-                                                                }
+                                                        basePlugin { }
+                                                        headingPlugin { }
+                                                        listPlugin { }
+                                                        linkPlugin { }
+                                                        imagePlugin { }
 
-                                                                basePlugin { }
-                                                                headingPlugin { }
-                                                                listPlugin { }
-                                                                linkPlugin { }
-                                                                imagePlugin { }
+                                                        subscribeBidirectional(this@form.model.editor, valueProperty)
+                                                        subscribeBidirectional(this@form.model.editable, editable)
+                                                    }
 
-                                                                subscribeBidirectional(this@form.model.editor, valueProperty)
-                                                            }
-
+                                                    condition(this@form.model.editable) {
+                                                        then {
                                                             button("send") {}
                                                         }
-
                                                     }
-                                                    elseDo {
-                                                        editor("editor", false) {
-                                                            basePlugin { }
-                                                            headingPlugin { }
-                                                            listPlugin { }
-                                                            linkPlugin { }
-                                                            imagePlugin { }
 
-                                                            subscribeBidirectional(item.data.editor, valueProperty)
-                                                        }
-                                                    }
+
+                                                }
+
+                                                likeButton {
+                                                    model(item.data.likes, item.data.links)
                                                 }
 
                                                 commentsSection {

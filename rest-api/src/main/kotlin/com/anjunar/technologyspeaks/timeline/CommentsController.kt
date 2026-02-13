@@ -5,10 +5,9 @@ import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
-import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import com.anjunar.technologyspeaks.shared.commentable.CommentSearch
+import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import jakarta.annotation.security.RolesAllowed
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -34,6 +33,10 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
         for (row in entities) {
 
             row.data.addLinks(
+                LinkBuilder.create(LikeController::likeFirstComment)
+                    .withRel("like")
+                    .withVariable("id", row.data.id)
+                    .build(),
                 LinkBuilder.create(CommentController::update)
                     .withVariable("id", search.post.id)
                     .build(),
@@ -48,6 +51,10 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
                 if (comment.user == identityHolder.user) {
 
                     comment.addLinks(
+                        LinkBuilder.create(LikeController::likeSecondComment)
+                            .withRel("like")
+                            .withVariable("id", comment.id)
+                            .build(),
                         LinkBuilder.create(CommentController::update)
                             .withVariable("id", search.post.id)
                             .build(),
@@ -59,7 +66,6 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
                 }
 
             }
-
 
 
         }

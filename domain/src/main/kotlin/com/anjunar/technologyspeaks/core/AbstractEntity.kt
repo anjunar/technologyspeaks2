@@ -19,8 +19,10 @@ abstract class AbstractEntity : EntityProvider, DTO, LinksContainer.Interface by
     @JsonbProperty
     override var version: Long = -1
 
+    @JsonbProperty
     lateinit var created: LocalDateTime
 
+    @JsonbProperty
     lateinit var modified: LocalDateTime
 
     @PreUpdate

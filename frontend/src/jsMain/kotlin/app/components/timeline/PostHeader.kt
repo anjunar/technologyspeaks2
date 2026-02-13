@@ -3,10 +3,7 @@ package app.components.timeline
 import app.domain.core.Data
 import app.domain.shared.OwnerProvider
 import app.domain.time.Post
-import jFx2.controls.button
-import jFx2.controls.heading
-import jFx2.controls.image
-import jFx2.controls.text
+import jFx2.controls.*
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
@@ -15,23 +12,31 @@ import jFx2.core.dsl.style
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.layout.hbox
-import jFx2.layout.vbox
 import jFx2.router.navigateByRel
 import jFx2.state.Property
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import org.w3c.dom.HTMLDivElement
+import kotlin.time.Clock
 
 class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private val model = Property<Data<out OwnerProvider>>(Data(Post()))
 
     private var onDelete: (() -> Unit)? = null
+    private var onUpdate: (() -> Unit)? = null
 
-    fun model(value : Data<out OwnerProvider>) {
+    fun model(value: Data<out OwnerProvider>) {
         model.set(value)
     }
 
     fun onDelete(fn: () -> Unit) {
         onDelete = fn
+    }
+
+    fun onUpdate(fn: () -> Unit) {
+        onUpdate = fn
     }
 
     context(scope: NodeScope)
@@ -44,18 +49,73 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     alignItems = "center"
                 }
 
-                image {
-                    style {
-                        height = "48px"
-                        width = "48px"
+                if (model.get().data.user == null) {
+                    div {
+                        style {
+                            fontSize = "48px"
+                        }
+                        className { "material-icons" }
+                        text("account_circle")
                     }
-                    src = model.get().data.user!!.get().image.get()?.thumbnailLink()!!
+                } else {
+                    image {
+                        style {
+                            height = "48px"
+                            width = "48px"
+                        }
+                        src = model.get().data.user!!.get().image.get()?.thumbnailLink()!!
+                    }
                 }
 
-                vbox {
-                    heading(3) {
-                        text(model.get().data.user!!.get().nickName.get())
+                hbox {
+
+                    style {
+                        alignItems = "center"
                     }
+
+                    hbox {
+
+                        style {
+                            columnGap = "6px"
+                            alignItems = "baseline"
+                        }
+
+
+                        if (model.get().data.user == null) {
+                            heading(3) {
+                                text("User")
+                            }
+                        } else {
+                            heading(3) {
+                                text(model.get().data.user!!.get().nickName.get())
+                            }
+                        }
+
+                        fun timeAgo(dateTime: LocalDateTime, clock: Clock = Clock.System): String {
+                            val now = clock.now()
+                            val zone = TimeZone.currentSystemDefault()
+
+                            val createdInstant = dateTime.toInstant(zone)
+                            val duration = now - createdInstant
+
+                            val hours = duration.inWholeHours
+                            val days = duration.inWholeDays
+
+                            return when {
+                                days > 0 -> "vor $days Tagen"
+                                hours > 0 -> "vor $hours Stunden"
+                                else -> "vor ${duration.inWholeMinutes} Minuten"
+                            }
+                        }
+
+                        span {
+                            style {
+                                fontSize = "10px"
+                            }
+                            text(timeAgo(model.get().data.created.get()))
+                        }
+                    }
+
                 }
 
                 div {
@@ -70,6 +130,16 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                         className { "material-icons" }
                         onClick {
                             navigate()
+                        }
+                    }
+                }
+
+                navigateByRel("update", model.get().data.links) { navigate ->
+                    button("edit") {
+                        type("button")
+                        className { "material-icons" }
+                        onClick {
+                            onUpdate!!()
                         }
                     }
                 }

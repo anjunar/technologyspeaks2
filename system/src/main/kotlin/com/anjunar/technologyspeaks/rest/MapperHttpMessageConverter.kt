@@ -12,7 +12,7 @@ import kotlin.reflect.full.isSubclassOf
 class MapperHttpMessageConverter : AbstractHttpMessageConverter<Any>(MediaType.APPLICATION_JSON) {
 
     override fun supports(clazz: Class<*>): Boolean {
-        return clazz.kotlin.isSubclassOf(DTO::class)
+        return clazz.kotlin.isSubclassOf(DTO::class) || clazz.kotlin.isSubclassOf(Collection::class)
     }
 
     override fun readInternal(clazz: Class<*>, inputMessage: HttpInputMessage): Any {

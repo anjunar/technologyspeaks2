@@ -6,6 +6,8 @@ import com.anjunar.json.mapper.schema.SchemaProvider
 import com.anjunar.technologyspeaks.core.AbstractEntitySchema
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
+import com.anjunar.technologyspeaks.shared.likeable.Like
+import com.anjunar.technologyspeaks.shared.likeable.LikeContainer
 import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
@@ -14,11 +16,15 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "Shared#FirstComment")
-class FirstComment : AbstractComment(), EntityContext<FirstComment>{
+class FirstComment : AbstractComment(), EntityContext<FirstComment>, LikeContainer.Interface {
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonbProperty
     val comments : MutableList<SecondComment> = ArrayList()
+
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonbProperty
+    override val likes: MutableSet<Like> = mutableSetOf()
 
     override fun owner(): EntityProvider = user
 

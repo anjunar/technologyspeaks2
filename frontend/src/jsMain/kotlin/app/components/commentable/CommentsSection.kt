@@ -2,16 +2,19 @@
 
 package app.components.commentable
 
+import app.components.likeable.likeButton
 import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.shared.FirstComment
 import app.domain.shared.SecondComment
+import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
@@ -27,6 +30,7 @@ import jFx2.layout.vbox
 import jFx2.router.navigate
 import jFx2.state.JobRegistry
 import jFx2.state.Property
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -73,86 +77,72 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
             observeRender(commentable) { commentable ->
                 foreach(commentable.comments, {key -> key.id!!.get()}) { comment, index ->
 
-                    condition(comment.editable) {
-                        then {
-                            form(model = comment, clazz = SecondComment::class) {
+                    form(model = comment, clazz = SecondComment::class) {
+
+                        vbox {
+                            onSubmit {
+                                busy.set(true)
+                                try {
+                                    JsonClient.put<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@CommentsSection.commentable.get())
+                                    comment.user = Property(ApplicationService.app.get().user)
+                                    comment.editable.set(false)
+                                } finally {
+                                    busy.set(false)
+                                }
+                            }
+
+                            className { "glass-border" }
+
+                            postHeader {
+                                model(Data(this@form.model))
+
+                                onDelete {
+                                    JobRegistry.instance.launch("Comment Remove", "Comment") {
+                                        val updateLink = comment.links.find { it.rel == "update" }
+                                        commentable.comments.remove(comment)
+                                        JsonClient.put<FirstComment, Data<FirstComment>>("/service" + updateLink!!.url, commentable)
+                                    }
+                                }
+
+                                onUpdate {
+                                    val editable = this@form.model.editable
+                                    editable.set(! editable.get())
+                                }
+
+                            }
+
+                            editor("editor", false) {
+
                                 style {
-                                    height = "300px"
+                                    flex = "1"
+                                    minHeight = "0px"
                                 }
 
-                                onSubmit {
-                                    busy.set(true)
-                                    try {
-                                        val created = JsonClient.put<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@CommentsSection.commentable.get())
-                                        this@CommentsSection.commentable.set(created.data)
-                                    } finally {
-                                        busy.set(false)
-                                    }
-                                }
+                                basePlugin { }
+                                headingPlugin { }
+                                listPlugin { }
+                                linkPlugin { }
+                                imagePlugin { }
 
-                                vbox {
-                                    editor("editor") {
+                                subscribeBidirectional(this@form.model.editor, valueProperty)
+                                subscribeBidirectional(this@form.model.editable, editable)
+                            }
 
-                                        style {
-                                            flex = "1"
-                                            minHeight = "0px"
-                                        }
+                            likeButton {
+                                model(this@form.model.likes, this@form.model.links)
+                            }
 
-                                        basePlugin { }
-                                        headingPlugin { }
-                                        listPlugin { }
-                                        linkPlugin { }
-                                        imagePlugin { }
-
-                                        subscribeBidirectional(this@form.model.editor, valueProperty)
-                                    }
-
-
+                            condition(this@form.model.editable) {
+                                then {
                                     button("send") {
                                         className { "material-icons hover" }
                                     }
                                 }
-
                             }
                         }
-                        elseDo {
-                            form(model = comment, clazz = SecondComment::class) {
-
-                                className { "glass-border" }
-
-                                postHeader {
-                                    model(Data(this@form.model))
-
-                                    onDelete {
-
-                                        JobRegistry.instance.launch("Comment Remove", "Comment") {
-
-                                            val updateLink = comment.links.find { it.rel == "update" }
-
-                                            commentable.comments.remove(comment)
-
-                                            JsonClient.put<FirstComment, Data<FirstComment>>("/service" + updateLink!!.url, commentable)
-
-                                        }
 
 
-                                    }
-                                }
-
-                                editor("editor", false) {
-
-                                    basePlugin { }
-                                    headingPlugin { }
-                                    listPlugin { }
-                                    linkPlugin { }
-                                    imagePlugin { }
-
-                                    subscribeBidirectional(this@form.model.editor, valueProperty)
-                                }
-                            }
-                        }
                     }
-
                 }
             }
 

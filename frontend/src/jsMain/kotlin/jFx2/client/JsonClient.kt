@@ -8,6 +8,7 @@ import app.domain.security.PasswordRegisterLink
 import app.domain.security.WebAuthnLoginLink
 import app.domain.security.WebAuthnRegisterLink
 import app.domain.time.PostsLink
+import jFx2.router.navigate
 import jFx2.state.Property
 import jFx2.state.PropertySerializer
 import kotlinx.browser.window
@@ -25,7 +26,14 @@ object JsonClient {
     suspend inline fun <reified O> invoke(url: String, requestInit: RequestInit = RequestInit()): O {
         val response = window.fetch(url, requestInit).await()
 
-        if (!response.ok) throw RuntimeException("Error ${response.status} ${response.statusText}")
+        if (!response.ok) {
+            val platformAvailable = js("PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();")
+            if (!platformAvailable) {
+                navigate("/security/login")
+            } else {
+                navigate("/security/login/options")
+            }
+        }
 
         val defaultJson = configure()
 

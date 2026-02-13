@@ -18,7 +18,8 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post, Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::like)
+            LinkBuilder.create(LikeController::likePost)
+                .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
@@ -36,8 +37,6 @@ class PostController(val identityHolder: IdentityHolder) {
             post.addLinks(
                 LinkBuilder.create(PostController::read)
                     .withVariable("id", post.id)
-                    .build(),
-                LinkBuilder.create(PostController::update)
                     .build(),
                 LinkBuilder.create(PostController::delete)
                     .withVariable("id", post.id)
@@ -57,7 +56,8 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post, Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::like)
+            LinkBuilder.create(LikeController::likePost)
+                .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
@@ -76,8 +76,6 @@ class PostController(val identityHolder: IdentityHolder) {
                 LinkBuilder.create(PostController::read)
                     .withVariable("id", post.id)
                     .build(),
-                LinkBuilder.create(PostController::update)
-                    .build(),
                 LinkBuilder.create(PostController::delete)
                     .withVariable("id", post.id)
                     .build()
@@ -94,7 +92,8 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post.merge(), Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::like)
+            LinkBuilder.create(LikeController::likePost)
+                .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
