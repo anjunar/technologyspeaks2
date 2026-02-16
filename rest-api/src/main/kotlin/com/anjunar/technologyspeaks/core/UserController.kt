@@ -37,7 +37,7 @@ class UserController {
     @RolesAllowed("User", "Administrator")
     @EntityGraph("User.full")
     fun update(@RequestBody user : User): Data<User> {
-        val form = Data(user.merge(), User.schema())
+        val form = Data(user, User.schema())
 
         user.addLinks(
             LinkBuilder.create(UserController::update)

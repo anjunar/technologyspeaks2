@@ -9,11 +9,10 @@ import app.domain.core.AbstractEntity
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.shared.FirstComment
-import app.domain.time.Post
+import app.domain.timeline.Post
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
-import jFx2.controls.image
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -32,7 +31,6 @@ import jFx2.forms.editor.plugins.listPlugin
 import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.layout.div
-import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.state.JobRegistry

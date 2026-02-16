@@ -2,7 +2,7 @@ package app.services
 
 import app.domain.Application
 import app.domain.core.Data
-import app.domain.time.Post
+import app.domain.timeline.Post
 import jFx2.client.JsonClient
 import jFx2.state.Property
 import jFx2.state.Disposable

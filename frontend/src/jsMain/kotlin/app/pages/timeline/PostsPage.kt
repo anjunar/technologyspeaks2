@@ -4,7 +4,7 @@ import app.components.likeable.likeButton
 import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.core.Table
-import app.domain.time.Post
+import app.domain.timeline.Post
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.text

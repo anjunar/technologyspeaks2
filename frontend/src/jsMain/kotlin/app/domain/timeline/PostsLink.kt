@@ -1,4 +1,4 @@
-package app.domain.time
+package app.domain.timeline
 
 import app.domain.core.AbstractLink
 import kotlinx.serialization.SerialName

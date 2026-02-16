@@ -2,6 +2,8 @@ package com.anjunar.technologyspeaks
 
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.core.UsersController
+import com.anjunar.technologyspeaks.documents.DocumentController
+import com.anjunar.technologyspeaks.documents.DocumentsController
 import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LogoutController
@@ -46,7 +48,11 @@ class ApplicationController(val identityHolder: IdentityHolder) {
                 .build(),
             LinkBuilder.create(PostsController::list)
                 .withRel("posts")
+                .build(),
+            LinkBuilder.create(DocumentController::root)
+                .withRel("document")
                 .build()
+
         )
 
         return application

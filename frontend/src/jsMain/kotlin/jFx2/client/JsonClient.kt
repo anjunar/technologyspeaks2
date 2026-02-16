@@ -2,18 +2,16 @@ package jFx2.client
 
 import app.domain.core.AbstractLink
 import app.domain.core.UsersLink
+import app.domain.documents.DocumentsLink
 import app.domain.security.LogoutLink
 import app.domain.security.PasswordLoginLink
 import app.domain.security.PasswordRegisterLink
 import app.domain.security.WebAuthnLoginLink
 import app.domain.security.WebAuthnRegisterLink
-import app.domain.time.PostsLink
+import app.domain.timeline.PostsLink
 import jFx2.router.navigate
-import jFx2.state.Property
-import jFx2.state.PropertySerializer
 import kotlinx.browser.window
 import kotlinx.coroutines.await
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -90,6 +88,7 @@ object JsonClient {
                 subclass(UsersLink::class)
                 subclass(LogoutLink::class)
                 subclass(PostsLink::class)
+                subclass(DocumentsLink::class)
             }
         }
 

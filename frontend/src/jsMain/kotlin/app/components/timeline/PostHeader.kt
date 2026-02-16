@@ -2,7 +2,7 @@ package app.components.timeline
 
 import app.domain.core.Data
 import app.domain.shared.OwnerProvider
-import app.domain.time.Post
+import app.domain.timeline.Post
 import jFx2.controls.*
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope

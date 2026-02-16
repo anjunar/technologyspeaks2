@@ -1,6 +1,5 @@
-package com.anjunar.technologyspeaks.timeline
+package com.anjunar.technologyspeaks.documents
 
-import com.anjunar.json.mapper.annotations.UseConverter
 import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.provider.OwnerProvider
 import com.anjunar.json.mapper.schema.SchemaProvider
@@ -9,16 +8,12 @@ import com.anjunar.technologyspeaks.core.AbstractEntitySchema
 import com.anjunar.technologyspeaks.core.Media
 import com.anjunar.technologyspeaks.core.OwnerRule
 import com.anjunar.technologyspeaks.core.User
+import com.anjunar.technologyspeaks.core.UserInfo
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
-import com.anjunar.technologyspeaks.shared.commentable.FirstComment
-import com.anjunar.technologyspeaks.shared.commentable.CommentContainer
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
-import com.anjunar.technologyspeaks.shared.likeable.Like
-import com.anjunar.technologyspeaks.shared.likeable.LikeContainer
 import jakarta.json.bind.annotation.JsonbProperty
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.ManyToOne
@@ -26,16 +21,15 @@ import jakarta.persistence.NamedAttributeNode
 import jakarta.persistence.NamedEntityGraph
 import jakarta.persistence.NamedEntityGraphs
 import jakarta.persistence.NamedSubgraph
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
 
 @Entity
-@Table(name = "Timeline#Post")
+@Table(name = "Documents#Document")
 @NamedEntityGraphs(
     value = [
         NamedEntityGraph(
-            name = "Post.full",
+            name = "Document.full",
             subgraphs = [
                 NamedSubgraph(
                     name = "image",
@@ -45,28 +39,39 @@ import org.hibernate.annotations.Type
                     ]
                 ),
                 NamedSubgraph(
-                    "user",
-                    User::class,
+                    name = "userInfo",
+                    type = UserInfo::class,
+                    attributeNodes = [
+                        NamedAttributeNode("id"),
+                        NamedAttributeNode("firstName"),
+                        NamedAttributeNode("lastName")
+                    ]
+                ),
+                NamedSubgraph(
+                    name = "user",
+                    type = User::class,
                     attributeNodes = [
                         NamedAttributeNode("id"),
                         NamedAttributeNode("nickName"),
                         NamedAttributeNode("image", subgraph = "image"),
-                        NamedAttributeNode("info"),
+                        NamedAttributeNode("info", subgraph = "userInfo")
                     ]
                 )
             ],
             attributeNodes = [
                 NamedAttributeNode("id"),
-                NamedAttributeNode("user", "user"),
+                NamedAttributeNode("user", subgraph = "user"),
                 NamedAttributeNode("editor"),
-                NamedAttributeNode("likes"),
+                NamedAttributeNode("title")
             ]
         )
     ]
 )
-class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
-    LikeContainer.Interface,
-    CommentContainer.Interface{
+class Document : AbstractEntity(), EntityContext<Document>, OwnerProvider {
+
+    @Column(nullable = false)
+    @JsonbProperty
+    lateinit var title: String
 
     @ManyToOne(optional = false)
     @JsonbProperty
@@ -77,23 +82,16 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
     @JsonbProperty
     lateinit var editor: Node
 
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JsonbProperty
-    override val likes: MutableSet<Like> = mutableSetOf()
-
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JsonbProperty
-    override val comments: MutableSet<FirstComment> = mutableSetOf()
-
     override fun owner(): EntityProvider = user
 
-    companion object : RepositoryContext<Post>(), SchemaProvider {
+    companion object : RepositoryContext<Document>(), SchemaProvider {
 
-        class Schema : AbstractEntitySchema<Post>() {
-            val user = property(Post::user, OwnerRule())
-            val editor = property(Post::editor, OwnerRule())
-            val likes = property(Post::likes, OwnerRule())
+        class Schema : AbstractEntitySchema<Document>() {
+            @JsonbProperty val title = property(Document::title, OwnerRule())
+            @JsonbProperty val user = property(Document::user, OwnerRule())
+            @JsonbProperty val editor = property(Document::editor, OwnerRule())
         }
 
     }
+
 }

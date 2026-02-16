@@ -2,7 +2,7 @@ package app
 
 import app.domain.core.Data
 import app.domain.core.User
-import app.domain.time.Post
+import app.domain.timeline.Post
 import app.pages.core.UserPage
 import app.pages.core.usersPage
 import app.pages.homePage
