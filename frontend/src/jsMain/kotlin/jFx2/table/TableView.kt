@@ -155,6 +155,20 @@ class TableView<R>(
             className = "jfx-table-content"
         }
 
+        fun updateContentWidth() {
+            var total = 0
+            for (c in columns) total += c.width.get()
+            if (total <= 0) total = 1
+            content.style.width = "${total}px"
+        }
+
+        // When the header is hidden, rows are absolutely positioned and do not contribute to intrinsic width.
+        // Keeping the content width in sync with column widths prevents the table from collapsing to 0px.
+        columns.forEach { col ->
+            onDispose(col.width.observe { _ -> updateContentWidth() })
+        }
+        updateContentWidth()
+
         viewport.appendChild(content)
         node.appendChild(viewport)
 

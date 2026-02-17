@@ -71,8 +71,8 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
         if (existing != null) return existing
 
         val specs: dynamic = {}
-        this@Editor.children.forEach {
-            val p = it as EditorPlugin
+        this@Editor.children.filterIsInstance<EditorPlugin>().forEach {
+            val p = it
             if (p.nodeSpec != null) {
                 specs[p.name] = p.nodeSpec
             }
@@ -100,7 +100,7 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
 
     fun createState(initialValue: EditorNode? = valueProperty.get()): EditorState {
 
-        val pluginInstances = this@Editor.children.map { (it as EditorPlugin).plugin() as Plugin<Any?> }
+        val pluginInstances = this@Editor.children.filterIsInstance<EditorPlugin>().map { it.plugin() as Plugin<Any?> }
 
         val customSchema = ensureSchema()
 
@@ -176,15 +176,22 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
                             minHeight = "0px"
                         }
 
-                        className { "glass-border" }
-
                         hbox {
 
                             style {
                                 alignItems = "center"
+                                marginTop = "8px"
                             }
 
-                            renderFields(*this@Editor.children.toTypedArray())
+                            renderFields(*this@Editor.children.filter { it is EditorPlugin }.toTypedArray())
+
+                            div {
+                                style {
+                                    flex = "1"
+                                }
+                            }
+
+                            renderFields(*this@Editor.children.filter { it !is EditorPlugin }.toTypedArray())
                         }
 
                         hr {
@@ -222,8 +229,8 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
 
                             editorView = view
 
-                            this@Editor.children.forEach {
-                                (it as EditorPlugin).view = view
+                            this@Editor.children.filterIsInstance<EditorPlugin>().forEach {
+                                it.view = view
                             }
 
                             onDispose { runCatching { view.destroy() } }

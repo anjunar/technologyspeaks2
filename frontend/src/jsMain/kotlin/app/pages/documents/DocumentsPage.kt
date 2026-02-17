@@ -5,7 +5,10 @@ import app.domain.core.Table
 import app.domain.core.User
 import app.domain.documents.Document
 import jFx2.client.JsonClient
+import jFx2.controls.button
 import jFx2.controls.image
+import jFx2.controls.span
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
@@ -87,6 +90,20 @@ class DocumentsPage(override var node: HTMLDivElement) : Component<HTMLDivElemen
                 }
 
                 vbox {
+
+                    style {
+                        width = "300px"
+                        borderRight = "1px solid var(--color-background-secondary)"
+                    }
+
+                    input("search", "search") {
+                        placeholder = "Suche"
+                        style {
+                            fontSize = "32px"
+                            padding = "24px"
+                        }
+                    }
+
                     tableView(tableModel, rowHeightPx = 64, headerVisible = false) {
 
                         columnProperty(
@@ -122,6 +139,7 @@ class DocumentsPage(override var node: HTMLDivElement) : Component<HTMLDivElemen
                             width = "calc(100% - 48px)"
                             fontSize = "32px"
                             padding = "24px"
+                            backgroundColor = "rgba(255,255,255,0.01)"
                         }
 
                         subscribeBidirectional(model.title, valueProperty)
@@ -130,6 +148,7 @@ class DocumentsPage(override var node: HTMLDivElement) : Component<HTMLDivElemen
                     editor("editor") {
                         style {
                             flex = "1"
+                            backgroundColor = "rgba(0,0,0,0.1)"
                         }
 
                         basePlugin { }
@@ -138,10 +157,31 @@ class DocumentsPage(override var node: HTMLDivElement) : Component<HTMLDivElemen
                         linkPlugin { }
                         imagePlugin { }
 
+                        button("Speichern") {
+
+                        }
+
                         subscribeBidirectional(model.editor, valueProperty)
 
                     }
 
+
+                }
+
+                vbox {
+
+                    style {
+                        width = "300px"
+                        borderLeft = "1px solid var(--color-background-secondary)"
+                    }
+
+                    span {
+                        style {
+                            fontSize = "32px"
+                            padding = "24px"
+                        }
+                        text { "Issues" }
+                    }
 
                 }
 

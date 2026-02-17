@@ -78,11 +78,6 @@ html[data-theme="dark"] {
     --glass-shadow: rgba(0, 0, 0, 0.4);
     --glass-blur: 16px;
 
-    --glass2-bg: rgba(20, 20, 20, 0.2);
-    --glass2-border: rgba(255, 255, 255, 0.08);
-    --glass2-shadow: rgba(0, 0, 0, 0.2);
-    --glass2-blur: 16px;
-
     input {
         color-scheme: dark;
     }
