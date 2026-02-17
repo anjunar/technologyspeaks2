@@ -19,6 +19,7 @@ import kotlin.js.unsafeCast
 class TableView<R>(
     private val model: LazyTableModel<R>,
     private val columns: List<Column<R, *>>,
+    private val headerVisible : Boolean = true,
     private val rowHeightPx: Int = 28,
     private val overscan: Int = 6
 ) : Component<HTMLDivElement>() {
@@ -51,95 +52,100 @@ class TableView<R>(
 
         node.style.setProperty("--row-height", "${rowHeightPx}px")
 
-        val header = scope.create<HTMLDivElement>("div").apply {
-            className = "jfx-table-header"
-        }
-
-        onDispose(sortState.observe { s ->
-            model.clearCache()
-        })
-
-        columns.forEach { col ->
-            val headerCell = scope.create<HTMLDivElement>("div").apply {
-                className = "jfx-table-header-cell"
-            }
-
-            onDispose(col.width.observe { w ->
-                headerCell.style.width = "${w}px"
-                headerCell.style.minWidth = "${w}px"
-                headerCell.style.maxWidth = "${w}px"
-            })
-
-            val title = scope.create<HTMLDivElement>("div").apply {
-                className = "jfx-table-header-title"
-            }
-
-            val sortIndicator = scope.create<HTMLDivElement>("div").apply {
-                className = "jfx-table-sort-indicator"
+        if (headerVisible) {
+            val header = scope.create<HTMLDivElement>("div").apply {
+                className = "jfx-table-header"
             }
 
             onDispose(sortState.observe { s ->
-                sortIndicator.textContent =
-                    if (s?.columnId == col.id) (if (s.direction == SortDirection.ASC) "▲" else "▼")
-                    else ""
+                model.clearCache()
             })
 
-            title.textContent = col.header
-            headerCell.appendChild(title)
-            headerCell.appendChild(sortIndicator)
+            columns.forEach { col ->
+                val headerCell = scope.create<HTMLDivElement>("div").apply {
+                    className = "jfx-table-header-cell"
+                }
 
-            onDispose(col.width.observe { w ->
-                headerCell.style.width = "${w}px"
-            })
-
-            if (col.sortable) {
-                headerCell.addEventListener("click", { ev ->
-                    val current = sortState.get()
-                    val next =
-                        if (current?.columnId != col.id) {
-                            SortState(col.id, SortDirection.ASC)
-                        } else {
-                            when (current.direction) {
-                                SortDirection.ASC -> SortState(col.id, SortDirection.DESC)
-                                SortDirection.DESC -> null
-                            }
-                        }
-
-                    sortState.set(next)
-                    onSortRequested?.invoke(next)
+                onDispose(col.width.observe { w ->
+                    headerCell.style.width = "${w}px"
+                    headerCell.style.minWidth = "${w}px"
+                    headerCell.style.maxWidth = "${w}px"
                 })
+
+                val title = scope.create<HTMLDivElement>("div").apply {
+                    className = "jfx-table-header-title"
+                }
+
+                val sortIndicator = scope.create<HTMLDivElement>("div").apply {
+                    className = "jfx-table-sort-indicator"
+                }
+
+                onDispose(sortState.observe { s ->
+                    sortIndicator.textContent =
+                        if (s?.columnId == col.id) (if (s.direction == SortDirection.ASC) "▲" else "▼")
+                        else ""
+                })
+
+                title.textContent = col.header
+                headerCell.appendChild(title)
+                headerCell.appendChild(sortIndicator)
+
+                onDispose(col.width.observe { w ->
+                    headerCell.style.width = "${w}px"
+                })
+
+                if (col.sortable) {
+                    headerCell.addEventListener("click", { ev ->
+                        val current = sortState.get()
+                        val next =
+                            if (current?.columnId != col.id) {
+                                SortState(col.id, SortDirection.ASC)
+                            } else {
+                                when (current.direction) {
+                                    SortDirection.ASC -> SortState(col.id, SortDirection.DESC)
+                                    SortDirection.DESC -> null
+                                }
+                            }
+
+                        sortState.set(next)
+                        onSortRequested?.invoke(next)
+                    })
+                }
+
+                val handle = scope.create<HTMLDivElement>("div").apply {
+                    className = "jfx-table-resize-handle"
+                }
+
+                handle.addEventListener("mousedown", { e ->
+                    val me = e.unsafeCast<MouseEvent>()
+                    me.preventDefault()
+                    me.stopPropagation()
+
+                    val startX = me.clientX
+                    val startW = col.width.get()
+
+                    lateinit var moveD: Disposable
+                    lateinit var upD: Disposable
+
+                    moveD = window.on("mousemove") { ev ->
+                        val mm = ev.unsafeCast<MouseEvent>()
+                        val dx = mm.clientX - startX
+                        val newW = kotlin.math.max(40, startW + dx)
+                        col.width.set(newW)
+                    }
+                    upD = window.on("mouseup") { _ ->
+                        moveD.dispose()
+                        upD.dispose()
+                    }
+                })
+
+                headerCell.appendChild(handle)
+                header.appendChild(headerCell)
             }
 
-            val handle = scope.create<HTMLDivElement>("div").apply {
-                className = "jfx-table-resize-handle"
-            }
-
-            handle.addEventListener("mousedown", { e ->
-                val me = e.unsafeCast<MouseEvent>()
-                me.preventDefault()
-                me.stopPropagation()
-
-                val startX = me.clientX
-                val startW = col.width.get()
-
-                lateinit var moveD: Disposable
-                lateinit var upD: Disposable
-
-                moveD = window.on("mousemove") { ev ->
-                    val mm = ev.unsafeCast<MouseEvent>()
-                    val dx = mm.clientX - startX
-                    val newW = kotlin.math.max(40, startW + dx)
-                    col.width.set(newW)
-                }
-                upD = window.on("mouseup") { _ ->
-                    moveD.dispose()
-                    upD.dispose()
-                }
-            })
-
-            headerCell.appendChild(handle)
-            header.appendChild(headerCell)
+            node.appendChild(header)
         }
+
 
         viewport = scope.create<HTMLDivElement>("div").apply {
             className = "jfx-table-viewport"
@@ -150,7 +156,6 @@ class TableView<R>(
         }
 
         viewport.appendChild(content)
-        node.appendChild(header)
         node.appendChild(viewport)
 
         onDispose(selectionModel.selected.observe { indices ->

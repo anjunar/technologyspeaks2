@@ -48,7 +48,7 @@ class DocumentsController(val query: HibernateSearch) {
 
 
     companion object {
-        class DocumentRow(data: User, @JsonbProperty val score: Double) : Data<User>(data, User.schema())
+        class DocumentRow(@JsonbProperty data: Document, @JsonbProperty val score: Double) : Data<Document>(data, Document.schema())
     }
 
 }

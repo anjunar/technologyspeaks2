@@ -2,9 +2,11 @@ package app
 
 import app.domain.core.Data
 import app.domain.core.User
+import app.domain.documents.Document
 import app.domain.timeline.Post
 import app.pages.core.UserPage
 import app.pages.core.usersPage
+import app.pages.documents.documentPage
 import app.pages.homePage
 import app.pages.security.logoutPage
 import app.pages.security.passwordLoginPage
@@ -16,6 +18,7 @@ import app.pages.timeline.postEditPage
 import app.pages.timeline.postViewPage
 import jFx2.client.JsonClient
 import jFx2.router.Route
+import org.w3c.fetch.RequestInit
 
 object Routes {
 
@@ -24,6 +27,28 @@ object Routes {
             path = "/",
             factory = { homePage {} },
             children = listOf(
+                Route(
+                    path = "document",
+                    children = listOf(
+                        Route(
+                            path = "documents",
+                            children = listOf(
+                                Route(
+                                    path = "document",
+                                    factory = {
+                                        val document = JsonClient.invoke<Data<Document>>("/service/document/documents/document",
+                                            RequestInit("POST")
+                                        )
+
+                                        documentPage {
+                                            model(document)
+                                        }
+                                    }
+                                )
+                            )
+                        )
+                    )
+                ),
                 Route(
                     path = "timeline",
                     children = listOf(

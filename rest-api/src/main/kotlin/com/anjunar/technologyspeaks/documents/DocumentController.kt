@@ -4,9 +4,11 @@ import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
+import com.anjunar.technologyspeaks.shared.editor.Node
 import jakarta.annotation.security.RolesAllowed
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class DocumentController(val identityHolder: IdentityHolder) {
 
-    @GetMapping(value = ["/document/documents/document"], produces = ["application/json"])
+    @PostMapping(value = ["/document/documents/document"], produces = ["application/json"])
     @RolesAllowed("Document", "Administrator")
     @EntityGraph("Document.full")
     fun root(): Data<Document> {
@@ -22,8 +24,12 @@ class DocumentController(val identityHolder: IdentityHolder) {
         var entity = Document.query("title" to "Technology Speaks")
 
         if (entity == null) {
-            entity = Document()
+            entity = Document("Technology Speaks")
             entity.user = identityHolder.user
+            val node = Node()
+            node.type = "doc"
+            entity.editor = node
+            entity.persist()
         }
 
         val form = Data(entity, Document.schema())

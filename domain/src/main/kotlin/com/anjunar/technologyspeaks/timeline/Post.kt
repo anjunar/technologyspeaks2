@@ -53,13 +53,21 @@ import org.hibernate.annotations.Type
                         NamedAttributeNode("image", subgraph = "image"),
                         NamedAttributeNode("info"),
                     ]
+                ),
+                NamedSubgraph(
+                    name = "likes",
+                    type = Like::class,
+                    attributeNodes = [
+                        NamedAttributeNode("id"),
+                        NamedAttributeNode("user", subgraph = "user")
+                    ]
                 )
             ],
             attributeNodes = [
                 NamedAttributeNode("id"),
                 NamedAttributeNode("user", "user"),
                 NamedAttributeNode("editor"),
-                NamedAttributeNode("likes"),
+                NamedAttributeNode("likes", subgraph = "likes"),
             ]
         )
     ]

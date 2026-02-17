@@ -31,11 +31,12 @@ object JsonClient {
             } else {
                 navigate("/security/login/options")
             }
+            throw RuntimeException("Error ${response.status} ${response.statusText}")
+        } else {
+            val defaultJson = configure()
+
+            return defaultJson.decodeFromString<O>(response.text().await())
         }
-
-        val defaultJson = configure()
-
-        return defaultJson.decodeFromString<O>(response.text().await())
     }
 
     suspend inline fun <reified I, reified O> post(url: String, entity : I): O {

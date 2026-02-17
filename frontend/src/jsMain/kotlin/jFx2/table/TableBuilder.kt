@@ -56,6 +56,7 @@ fun <R> tableView(
     model: LazyTableModel<R>,
     rowHeightPx: Int = 28,
     overscan: Int = 6,
+    headerVisible: Boolean = true,
     block: TableBuilder<R>.() -> Unit
 ): TableView<R> {
     val b = TableBuilder<R>().apply(block)
@@ -63,7 +64,8 @@ fun <R> tableView(
         model = model,
         columns = b.cols,
         rowHeightPx = rowHeightPx,
-        overscan = overscan
+        overscan = overscan,
+        headerVisible = headerVisible
     )
 
     tableView.onSelectionChanged = b.onSelectionChanged

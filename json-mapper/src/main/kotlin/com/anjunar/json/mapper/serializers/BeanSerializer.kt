@@ -137,6 +137,10 @@ class BeanSerializer : Serializer<Any> {
             return resolveContainer(context.parent)
         }
 
+        if (!context.parent.type.kotlin.isSubclassOf(EntityProvider::class)) {
+            return context.graph
+        }
+
         return findSubgraph(context)
     }
 

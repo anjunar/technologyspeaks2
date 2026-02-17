@@ -67,11 +67,11 @@ import org.hibernate.annotations.Type
         )
     ]
 )
-class Document : AbstractEntity(), EntityContext<Document>, OwnerProvider {
-
+class Document(
     @Column(nullable = false)
     @JsonbProperty
-    lateinit var title: String
+    var title: String
+) : AbstractEntity(), EntityContext<Document>, OwnerProvider {
 
     @ManyToOne(optional = false)
     @JsonbProperty

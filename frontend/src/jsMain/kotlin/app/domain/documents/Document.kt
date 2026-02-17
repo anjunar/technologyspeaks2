@@ -30,6 +30,9 @@ class Document (
     override val created : Property<LocalDateTime> = Property(Clock.System.now().toLocalDateTime(TimeZone.UTC)),
 
     @Serializable(with = PropertySerializer::class)
+    var title : Property<String> = Property(""),
+
+    @Serializable(with = PropertySerializer::class)
     override val user : Property<User>? = null,
 
     @Serializable(with = NodeSerializer::class)

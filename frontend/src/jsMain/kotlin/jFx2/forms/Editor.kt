@@ -33,6 +33,8 @@ import jFx2.forms.editor.prosemirror.splitListItem
 import jFx2.forms.editor.prosemirror.undo
 import jFx2.layout.div
 import jFx2.layout.hbox
+import jFx2.layout.hr
+import jFx2.layout.vbox
 import jFx2.forms.editor.prosemirror.schema as basicSchema
 import jFx2.state.Disposable
 import jFx2.state.Property
@@ -167,80 +169,98 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
         template {
             condition(editable) {
                 then {
-                    hbox {
 
-                        style {
-                            alignItems = "center"
-                        }
-
-                        renderFields(*this@Editor.children.toTypedArray())
-                    }
-
-                    div {
-
+                    vbox {
                         style {
                             flex = "1"
                             minHeight = "0px"
                         }
 
-                        val initialValue = valueProperty.get()
-                        val initialState = createState(initialValue)
+                        className { "glass-border" }
 
-                        var lastSeenValue = initialValue
-                        lateinit var view: ProseMirrorEditorView
-                        view = ProseMirrorEditorView(this@div.node, jsObject {
-                            state = initialState
-                            dispatchTransaction = { tr ->
-                                val newState = view.state.apply(tr)
-                                view.updateState(newState)
+                        hbox {
 
-                                if (tr.docChanged) {
-                                    val next = serializeDoc(newState.doc)
-                                    lastSeenValue = next
-                                    valueProperty.set(next)
-                                    ui.build.flush()
-                                }
+                            style {
+                                alignItems = "center"
                             }
-                        })
 
-                        editorView = view
-
-                        this@Editor.children.forEach {
-                            (it as EditorPlugin).view = view
+                            renderFields(*this@Editor.children.toTypedArray())
                         }
 
-                        onDispose { runCatching { view.destroy() } }
-
-                        if (initialValue == null) {
-                            val next = serializeDoc(view.state.doc)
-                            lastSeenValue = next
-                            valueProperty.set(next)
+                        hr {
+                            style {
+                                marginTop = "8px"
+                            }
                         }
 
-                        onDispose(
-                            valueProperty.observe { v ->
-                                if (v == lastSeenValue) return@observe
+                        div {
 
-                                val schema = editorSchema ?: return@observe
-                                val plugins = editorPlugins
+                            style {
+                                flex = "1"
+                                minHeight = "0px"
+                            }
 
-                                val doc = parseDoc(schema, v)
+                            val initialValue = valueProperty.get()
+                            val initialState = createState(initialValue)
 
-                                val nextState = EditorState.create(
-                                    jsObject {
-                                        this.schema = schema
-                                        this.plugins = plugins
-                                        if (doc != null) {
-                                            this.doc = doc
-                                        }
+                            var lastSeenValue = initialValue
+                            lateinit var view: ProseMirrorEditorView
+                            view = ProseMirrorEditorView(this@div.node, jsObject {
+                                state = initialState
+                                dispatchTransaction = { tr ->
+                                    val newState = view.state.apply(tr)
+                                    view.updateState(newState)
+
+                                    if (tr.docChanged) {
+                                        val next = serializeDoc(newState.doc)
+                                        lastSeenValue = next
+                                        valueProperty.set(next)
+                                        ui.build.flush()
                                     }
-                                )
+                                }
+                            })
 
-                                view.updateState(nextState)
-                                lastSeenValue = v
+                            editorView = view
+
+                            this@Editor.children.forEach {
+                                (it as EditorPlugin).view = view
                             }
-                        )
+
+                            onDispose { runCatching { view.destroy() } }
+
+                            if (initialValue == null) {
+                                val next = serializeDoc(view.state.doc)
+                                lastSeenValue = next
+                                valueProperty.set(next)
+                            }
+
+                            onDispose(
+                                valueProperty.observe { v ->
+                                    if (v == lastSeenValue) return@observe
+
+                                    val schema = editorSchema ?: return@observe
+                                    val plugins = editorPlugins
+
+                                    val doc = parseDoc(schema, v)
+
+                                    val nextState = EditorState.create(
+                                        jsObject {
+                                            this.schema = schema
+                                            this.plugins = plugins
+                                            if (doc != null) {
+                                                this.doc = doc
+                                            }
+                                        }
+                                    )
+
+                                    view.updateState(nextState)
+                                    lastSeenValue = v
+                                }
+                            )
+                        }
+
                     }
+
                 }
                 elseDo {
                     div {
