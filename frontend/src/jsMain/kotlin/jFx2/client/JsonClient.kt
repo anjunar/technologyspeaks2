@@ -1,6 +1,7 @@
 package jFx2.client
 
 import app.domain.core.AbstractLink
+import app.domain.core.Link
 import app.domain.core.UsersLink
 import app.domain.documents.DocumentsLink
 import app.domain.security.LogoutLink
@@ -37,6 +38,18 @@ object JsonClient {
 
             return defaultJson.decodeFromString<O>(response.text().await())
         }
+    }
+
+    suspend inline fun <reified I, reified O> invoke(url: Link, entity : I): O {
+        val headers = Headers()
+        headers.set("Content-Type", "application/json")
+        headers.set("Accept", "application/json")
+
+        return invoke("/service" + url.url, RequestInit(
+            method = url.method,
+            headers = headers,
+            body = Json.encodeToString(entity)
+        ))
     }
 
     suspend inline fun <reified I, reified O> post(url: String, entity : I): O {

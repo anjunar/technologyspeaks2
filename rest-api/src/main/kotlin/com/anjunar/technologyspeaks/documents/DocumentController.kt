@@ -16,7 +16,29 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class DocumentController(val identityHolder: IdentityHolder) {
 
-    @PostMapping(value = ["/document/documents/document"], produces = ["application/json"])
+
+    @GetMapping(value = ["/document/documents/document"], produces = ["application/json"])
+    @RolesAllowed("Document", "Administrator")
+    @EntityGraph("Document.full")
+    fun create(): Data<Document> {
+
+        val entity = Document("Arbeitsblatt")
+        entity.user = identityHolder.user
+        val node = Node()
+        node.type = "doc"
+        entity.editor = node
+
+        val form = Data(entity, Document.schema())
+
+        entity.addLinks(
+            LinkBuilder.create(DocumentController::save)
+                .build()
+        )
+
+        return form
+    }
+
+    @PostMapping(value = ["/document/documents/document/root"], produces = ["application/json"])
     @RolesAllowed("Document", "Administrator")
     @EntityGraph("Document.full")
     fun root(): Data<Document> {
@@ -57,10 +79,31 @@ class DocumentController(val identityHolder: IdentityHolder) {
         return form
     }
 
+    @PostMapping(value = ["/document/documents/document"], produces = ["application/json"], consumes = ["application/json"])
+    @RolesAllowed("Document", "Administrator")
+    @EntityGraph("Document.full")
+    fun save(@RequestBody entity : Document): Data<Document> {
+
+        entity.user = identityHolder.user
+        entity.persist()
+
+        val form = Data(entity, Document.schema())
+
+        entity.addLinks(
+            LinkBuilder.create(DocumentController::update)
+                .build()
+        )
+
+        return form
+    }
+
     @PutMapping(value = ["/document/documents/document"], produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("Document", "Administrator")
     @EntityGraph("Document.full")
     fun update(@RequestBody entity : Document): Data<Document> {
+
+        entity.user = identityHolder.user
+
         val form = Data(entity, Document.schema())
 
         entity.addLinks(

@@ -5,4 +5,4 @@ import com.anjunar.json.mapper.schema.EntitySchema
 import jakarta.json.bind.annotation.JsonbProperty
 
 class Table<C>(@JsonbProperty val rows : List<C>, @JsonbProperty val size : Long, @JsonbProperty val schema : EntitySchema<*>) :
-    DTO
+    DTO, LinksContainer.Interface by LinksContainer.Trait()

@@ -16,6 +16,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.time.Clock
 
 @Serializable
@@ -38,6 +39,12 @@ class Document (
     @Serializable(with = NodeSerializer::class)
     val editor: Property<EditorNode?> = Property(null),
 
+    @SerialName($$"$links")
     @Serializable(with = ListPropertySerializer::class)
     override val links : ListProperty<Link> = ListProperty()
-) : AbstractEntity, OwnerProvider
+) : AbstractEntity, OwnerProvider {
+
+    @Transient
+    val editable = Property(false)
+
+}

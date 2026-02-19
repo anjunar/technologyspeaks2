@@ -60,6 +60,8 @@ import org.hibernate.annotations.Type
             ],
             attributeNodes = [
                 NamedAttributeNode("id"),
+                NamedAttributeNode("modified"),
+                NamedAttributeNode("created"),
                 NamedAttributeNode("user", subgraph = "user"),
                 NamedAttributeNode("editor"),
                 NamedAttributeNode("title")

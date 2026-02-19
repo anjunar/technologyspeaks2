@@ -6,6 +6,7 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.registerField
+import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
 import jFx2.core.rendering.condition
@@ -185,11 +186,13 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
 
                             renderFields(*this@Editor.children.filter { it is EditorPlugin }.toTypedArray())
 
-                            div {
-                                style {
-                                    flex = "1"
+                            renderComponent(
+                                div {
+                                    style {
+                                        flex = "1"
+                                    }
                                 }
-                            }
+                            )
 
                             renderFields(*this@Editor.children.filter { it !is EditorPlugin }.toTypedArray())
                         }

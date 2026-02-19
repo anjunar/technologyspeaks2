@@ -35,15 +35,20 @@ object Routes {
                             children = listOf(
                                 Route(
                                     path = "document",
-                                    factory = {
-                                        val document = JsonClient.invoke<Data<Document>>("/service/document/documents/document",
-                                            RequestInit("POST")
-                                        )
+                                    children = listOf(
+                                        Route(
+                                            path = "root",
+                                            factory = {
+                                                val document = JsonClient.invoke<Data<Document>>("/service/document/documents/document/root",
+                                                    RequestInit("POST")
+                                                )
 
-                                        documentPage {
-                                            model(document)
-                                        }
-                                    }
+                                                documentPage {
+                                                    model(document)
+                                                }
+                                            }
+                                        )
+                                    )
                                 )
                             )
                         )

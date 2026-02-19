@@ -12,6 +12,7 @@ import jakarta.annotation.security.RolesAllowed
 import jakarta.json.bind.annotation.JsonbProperty
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.print.Doc
 
 @RestController
 class DocumentsController(val query: HibernateSearch) {
@@ -34,15 +35,22 @@ class DocumentsController(val query: HibernateSearch) {
 
         val count = query.count(Document::class, searchContext)
 
-        for (user in entities) {
-            user.data.addLinks(
-                LinkBuilder.create(UserController::read)
-                    .withVariable("id", user.data.id)
+        for (entity in entities) {
+            entity.data.addLinks(
+                LinkBuilder.create(DocumentController::read)
+                    .withVariable("id", entity.data.id)
                     .build()
             )
         }
 
-        return Table(entities, count, Document.schema())
+        val table = Table(entities, count, Document.schema())
+
+        table.addLinks(
+            LinkBuilder.create(DocumentController::create)
+                .build()
+        )
+
+        return table
 
     }
 
