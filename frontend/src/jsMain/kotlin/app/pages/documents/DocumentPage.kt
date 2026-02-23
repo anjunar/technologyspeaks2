@@ -34,20 +34,15 @@ import jFx2.state.Property
 import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
 import jFx2.table.LazyTableModel
+import jFx2.table.SelectionMode
 import jFx2.table.SortState
-import jFx2.table.TableCell
-import jFx2.table.TextCell
 import jFx2.table.tableView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format
-import kotlinx.datetime.format.DateTimeFormat
-import kotlinx.datetime.format.DateTimeFormatBuilder
 import kotlinx.datetime.toInstant
 import org.w3c.dom.HTMLDivElement
-import org.w3c.fetch.RequestInit
 import kotlin.time.Clock
 
 class DocumentsProvider : DataProvider<Data<Document>> {
@@ -109,30 +104,48 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
             style {
                 height = "100%"
                 width = "100%"
+                setProperty("overflow", "hidden")
             }
 
             hbox {
+                node.classList.add("documents-layout")
                 style {
                     height = "100%"
                     width = "100%"
                 }
 
                 vbox {
+                    node.classList.add("doc-panel")
 
                     style {
-                        width = "300px"
-                        borderRight = "1px solid rgba(45,45,45,0.2)"
+                        width = "320px"
+                        minWidth = "280px"
+                        maxWidth = "360px"
                     }
 
-                    input("search", "search") {
-                        placeholder = "Suche"
-                        style {
-                            fontSize = "32px"
-                            padding = "24px"
+                    hbox {
+                        node.classList.add("doc-panel-header")
+
+                        span {
+                            node.classList.add("doc-panel-title")
+                            text("Dokumente")
                         }
                     }
 
-                    tableView(tableModel, rowHeightPx = 64, headerVisible = false) {
+                    div {
+                        node.classList.add("doc-search")
+
+                        span {
+                            node.classList.add("material-icons")
+                            text("search")
+                        }
+
+                        input("search", "search") {
+                            placeholder = "Suche..."
+                        }
+                    }
+
+                    val docsTable = tableView(tableModel, rowHeightPx = 64, headerVisible = false) {
 
                         columnProperty("title", "Titel", 300, valueProperty = { it.data.title }) {
                             ComponentCell(
@@ -144,21 +157,38 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                                             style {
                                                 alignItems = "center"
-                                                columnGap = "6px"
+                                                columnGap = "10px"
+                                                width = "100%"
                                             }
 
                                             span {
-                                                text("■")
+                                                node.classList.add("material-icons")
+                                                style {
+                                                    fontSize = "18px"
+                                                    opacity = "0.75"
+                                                }
+                                                text("description")
                                             }
 
                                             vbox {
+                                                style {
+                                                    setProperty("overflow", "hidden")
+                                                }
                                                 div {
-                                                    text(v!!)
+                                                    style {
+                                                        fontWeight = "600"
+                                                        setProperty("overflow", "hidden")
+                                                        textOverflow = "ellipsis"
+                                                    }
+
+                                                    val title = v?.ifBlank { "(Ohne Titel)" } ?: "(Ohne Titel)"
+                                                    text(title)
                                                 }
                                                 div {
 
                                                     style {
                                                         fontSize = "12px"
+                                                        opacity = "0.75"
                                                     }
 
                                                     text(timeAgo(row.data.created.get()))
@@ -170,17 +200,43 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             )
                         }
 
+                        onSelectionChanged { selected ->
+                            selected.firstOrNull()?.let { model.set(it) }
+                        }
+
                         onRowDoubleClick { document, _ ->
                             model.set(document)
                         }
                     }
 
-                    button("Neues Dokument...") {
+                    docsTable.node.classList.add("doc-table")
+                    docsTable.selectionModel.mode.set(SelectionMode.SINGLE)
+
+                    button("") {
+                        node.classList.add("doc-new-btn")
                         style {
-                            marginBottom = "32px"
+                            marginBottom = "12px"
+                            display = "flex"
+                            alignItems = "center"
+                            justifyContent = "center"
+                            columnGap = "10px"
                         }
                         type("button")
+
+                        span {
+                            node.classList.add("material-icons")
+                            style {
+                                fontSize = "20px"
+                                opacity = "0.85"
+                            }
+                            text("add")
+                        }
+                        span {
+                            text("Neues Dokument")
+                        }
+
                         onClick {
+                            docsTable.selectionModel.clearSelection()
                             val document = Document()
                             document.editable.set(true)
                             model.set(Data(document))
@@ -190,6 +246,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                 observeRender(model) { observedModel ->
                     form(model = observedModel.data, clazz = Document::class) {
+                        node.classList.add("doc-panel")
 
                         onSubmit {
                             val updateLink = this@form.model.links.find { it.rel == "update" }
@@ -203,48 +260,45 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                         style {
                             flex = "1"
+                            minWidth = "0"
                             height = "100%"
                             display = "flex"
                             flexDirection = "column"
                         }
 
                         hbox {
+                            node.classList.add("doc-titlebar")
                             input("title") {
 
                                 style {
-                                    width = "calc(100% - 48px)"
-                                    fontSize = "32px"
-                                    padding = "24px"
-                                    backgroundColor = "rgba(0,0,0,0.05)"
+                                    flex = "1"
+                                    minWidth = "0"
                                 }
 
+                                placeholder = "Titel"
                                 subscribeBidirectional(model.title, valueProperty)
+                                onDispose(model.editable.observe { editable -> node.disabled = !editable })
                             }
 
                             button("edit") {
 
                                 type("button")
 
-                                style {
-                                    fontSize = "32px"
-                                    backgroundColor = "rgba(0,0,0,0.05)"
-                                }
-
-                                className { "material-icons" }
-
                                 onClick { model.editable.set(!model.editable.get()) }
 
+                                node.classList.add("material-icons")
+                                node.classList.add("doc-icon-btn")
+                                onDispose(
+                                    model.editable.observe { editable ->
+                                        text(if (editable) "done" else "edit")
+                                        if (editable) node.classList.add("active") else node.classList.remove("active")
+                                    }
+                                )
                             }
                         }
 
                         editor("editor", model.editable.get()) {
-
-                            style {
-                                flex = "1"
-                                minHeight = "0"
-                                padding = "12px"
-                                border = "12px solid rgba(0,0,0,0.05)"
-                            }
+                            node.classList.add("doc-editor")
 
                             basePlugin { }
                             headingPlugin { }
@@ -253,7 +307,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             imagePlugin { }
 
                             button("save") {
-                                className { "material-icons" }
+                                node.classList.add("material-icons")
+                                node.classList.add("doc-icon-btn")
                             }
 
                             subscribeBidirectional(model.editor, valueProperty)
@@ -265,18 +320,26 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
 
                 vbox {
+                    node.classList.add("doc-panel")
 
                     style {
-                        width = "300px"
-                        borderLeft = "1px solid rgba(45,45,45,0.2)"
+                        width = "320px"
+                        minWidth = "280px"
+                        maxWidth = "360px"
                     }
 
-                    span {
-                        style {
-                            fontSize = "32px"
-                            padding = "24px"
+                    hbox {
+                        node.classList.add("doc-panel-header")
+
+                        span {
+                            node.classList.add("doc-panel-title")
+                            text("Issues")
                         }
-                        text { "Issues" }
+                    }
+
+                    div {
+                        node.classList.add("issues-empty")
+                        text("Noch keine Issues. (Hier koennen spaeter Hinweise, ToDos oder Kommentare auftauchen.)")
                     }
 
                 }
