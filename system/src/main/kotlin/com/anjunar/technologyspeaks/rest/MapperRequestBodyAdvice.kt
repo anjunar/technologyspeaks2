@@ -60,7 +60,9 @@ class MapperRequestBodyAdvice(val entityManager: EntityManager) : RequestBodyAdv
                         } else {
                             val primaryKey = UUID.fromString(idNode.value.toString())
 
-                            entityManager.find(resolvedClass.raw, primaryKey)
+                            val entity = entityManager.find(resolvedClass.raw, primaryKey)
+
+                            entity ?: resolvedClass.raw.getConstructor().newInstance()
                         }
 
                         val annotation = parameter.getMethodAnnotation(EntityGraph::class.java)

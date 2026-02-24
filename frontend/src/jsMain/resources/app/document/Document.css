@@ -3,10 +3,10 @@
     height: 100%;
     width: 100%;
     box-sizing: border-box;
-    padding: 14px;
+    padding: 8px;
 
     --doc-panel-bg: rgba(255, 255, 255, 0.55);
-    --doc-panel-border: rgba(0, 0, 0, 0.10);
+    --doc-panel-border: rgba(0, 0, 0, 0.04);
     --doc-panel-shadow: rgba(0, 0, 0, 0.12);
     --doc-hover-bg: rgba(0, 0, 0, 0.04);
     --doc-selected-bg: rgba(0, 0, 0, 0.08);
@@ -14,7 +14,7 @@
 
 html[data-theme="dark"] .document-page {
     --doc-panel-bg: rgba(0, 0, 0, 0.22);
-    --doc-panel-border: rgba(255, 255, 255, 0.08);
+    --doc-panel-border: rgba(255, 255, 255, 0.04);
     --doc-panel-shadow: rgba(0, 0, 0, 0.35);
     --doc-hover-bg: rgba(255, 255, 255, 0.05);
     --doc-selected-bg: rgba(255, 255, 255, 0.08);
@@ -54,7 +54,6 @@ html[data-theme="dark"] .document-page {
     gap: 10px;
     padding: 10px 12px;
     margin: 0 12px 12px;
-    background: var(--doc-hover-bg);
     border: 1px solid var(--doc-panel-border);
 }
 

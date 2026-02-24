@@ -3,10 +3,12 @@ package app
 import app.domain.core.Data
 import app.domain.core.User
 import app.domain.documents.Document
+import app.domain.documents.Issue
 import app.domain.timeline.Post
 import app.pages.core.UserPage
 import app.pages.core.usersPage
 import app.pages.documents.documentPage
+import app.pages.documents.issuePage
 import app.pages.homePage
 import app.pages.security.logoutPage
 import app.pages.security.passwordLoginPage
@@ -47,6 +49,38 @@ object Routes {
                                                     model(document)
                                                 }
                                             }
+                                        )
+                                    )
+                                ),
+                                Route(
+                                    path = "document/:documentId",
+                                    children = listOf(
+                                        Route(
+                                            path = "issues",
+                                            children = listOf(
+                                                Route(
+                                                    path = "issue",
+                                                    factory = { params ->
+                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/${params["documentId"]!!}/issues/issue")
+
+                                                        issuePage {
+                                                            documentId(params["documentId"]!!)
+                                                            model(issue.data)
+                                                        }
+                                                    }
+                                                ),
+                                                Route(
+                                                    path = "issue/:id",
+                                                    factory = { params ->
+                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/issues/issue/" + params["id"]!!)
+
+                                                        issuePage {
+                                                            documentId(params["documentId"]!!)
+                                                            model(issue.data)
+                                                        }
+                                                    }
+                                                )
+                                            )
                                         )
                                     )
                                 )

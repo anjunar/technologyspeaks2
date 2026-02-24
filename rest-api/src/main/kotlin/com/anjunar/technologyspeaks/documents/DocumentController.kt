@@ -58,6 +58,12 @@ class DocumentController(val identityHolder: IdentityHolder) {
 
         entity.addLinks(
             LinkBuilder.create(DocumentController::update)
+                .build(),
+            LinkBuilder.create(IssuesController::list)
+                .withVariable("id", entity.id)
+                .build(),
+            LinkBuilder.create(IssueController::create)
+                .withVariable("id", entity.id)
                 .build()
         )
 
@@ -73,6 +79,12 @@ class DocumentController(val identityHolder: IdentityHolder) {
 
         entity.addLinks(
             LinkBuilder.create(DocumentController::update)
+                .build(),
+            LinkBuilder.create(IssuesController::list)
+                .withVariable("id", entity.id)
+                .build(),
+            LinkBuilder.create(IssueController::create)
+                .withVariable("id", entity.id)
                 .build()
         )
 
@@ -91,6 +103,12 @@ class DocumentController(val identityHolder: IdentityHolder) {
 
         entity.addLinks(
             LinkBuilder.create(DocumentController::update)
+                .build(),
+            LinkBuilder.create(IssuesController::list)
+                .withVariable("id", entity.id)
+                .build(),
+            LinkBuilder.create(IssueController::create)
+                .withVariable("id", entity.id)
                 .build()
         )
 
@@ -108,6 +126,12 @@ class DocumentController(val identityHolder: IdentityHolder) {
 
         entity.addLinks(
             LinkBuilder.create(DocumentController::update)
+                .build(),
+            LinkBuilder.create(IssuesController::list)
+                .withVariable("id", entity.id)
+                .build(),
+            LinkBuilder.create(IssueController::create)
+                .withVariable("id", entity.id)
                 .build()
         )
 

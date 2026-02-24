@@ -1,10 +1,15 @@
 package app.pages.documents
 
+import app.components.likeable.likeButton
+import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.documents.Document
+import app.domain.documents.Issue
+import app.domain.timeline.Post
 import jFx2.client.JsonClient
 import jFx2.controls.button
+import jFx2.controls.heading
 import jFx2.controls.image
 import jFx2.controls.span
 import jFx2.controls.text
@@ -28,6 +33,7 @@ import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
+import jFx2.router.navigate
 import jFx2.router.navigateByRel
 import jFx2.state.JobRegistry
 import jFx2.state.Property
@@ -37,6 +43,8 @@ import jFx2.table.LazyTableModel
 import jFx2.table.SelectionMode
 import jFx2.table.SortState
 import jFx2.table.tableView
+import jFx2.virtual.RangeDataProvider
+import jFx2.virtual.virtualList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.LocalDateTime
@@ -58,6 +66,14 @@ class DocumentsProvider : DataProvider<Data<Document>> {
             .rows
     }
 }
+
+class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSize: Int = 50,val document: Document) : RangeDataProvider<Data<Issue>>() {
+
+    override suspend fun fetch(index: Int, limit: Int): Table<Data<Issue>> {
+        return JsonClient.invoke<Table<Data<Issue>>>("/service/document/documents/document/${document.id!!.get()}/issues?index=${items.size}&limit=$limit&sort=created:desc")
+    }
+}
+
 
 class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
@@ -93,6 +109,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
+        val issuesProvider = IssuesRangeProvider(document = model.get().data)
         val provider = DocumentsProvider()
         val job = SupervisorJob()
         val cs = CoroutineScope(job)
@@ -333,15 +350,76 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                         span {
                             node.classList.add("doc-panel-title")
-                            text("Issues")
+                            text("Aufgaben")
                         }
                     }
 
                     div {
-                        node.classList.add("issues-empty")
-                        text("Noch keine Issues. (Hier koennen spaeter Hinweise, ToDos oder Kommentare auftauchen.)")
+
+                        style {
+                            flex = "1"
+                        }
+
+                        virtualList(
+                            dataProvider = issuesProvider,
+                            estimateHeightPx = 44,
+                            overscanPx = 240,
+                            prefetchItems = 80,
+                            renderer = { item, index ->
+
+                                template {
+
+                                    form(model = item?.data, clazz = Issue::class) {
+
+                                        className { "glass-border" }
+
+                                        heading(3) {
+                                            text(model.title.get())
+                                        }
+
+                                        editor("editor", false) {
+                                            basePlugin { }
+                                            headingPlugin { }
+                                            listPlugin { }
+                                            linkPlugin { }
+                                            imagePlugin { }
+
+                                            subscribeBidirectional(this@form.model.editor, valueProperty)
+                                        }
+
+                                    }
+
+                                }
+                            })
                     }
 
+                    button("") {
+                        node.classList.add("doc-new-btn")
+                        style {
+                            marginBottom = "12px"
+                            display = "flex"
+                            alignItems = "center"
+                            justifyContent = "center"
+                            columnGap = "10px"
+                        }
+                        type("button")
+
+                        span {
+                            node.classList.add("material-icons")
+                            style {
+                                fontSize = "20px"
+                                opacity = "0.85"
+                            }
+                            text("add")
+                        }
+                        span {
+                            text("Neue Aufgabe")
+                        }
+
+                        onClick {
+                            navigate("/document/documents/document/${model.get().data.id!!.get()}/issues/issue")
+                        }
+                    }
                 }
 
             }
