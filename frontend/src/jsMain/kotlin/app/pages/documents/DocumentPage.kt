@@ -6,7 +6,12 @@ import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.documents.Document
 import app.domain.documents.Issue
+import app.domain.documents.IssueCreated
+import app.domain.documents.IssueUpdated
 import app.domain.timeline.Post
+import app.domain.timeline.PostCreated
+import app.domain.timeline.PostUpdated
+import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.heading
@@ -67,10 +72,13 @@ class DocumentsProvider : DataProvider<Data<Document>> {
     }
 }
 
-class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSize: Int = 50,val document: Document) : RangeDataProvider<Data<Issue>>() {
+class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSize: Int = 50,val document: Property<Document>) : RangeDataProvider<Data<Issue>>() {
 
     override suspend fun fetch(index: Int, limit: Int): Table<Data<Issue>> {
-        return JsonClient.invoke<Table<Data<Issue>>>("/service/document/documents/document/${document.id!!.get()}/issues?index=${items.size}&limit=$limit&sort=created:desc")
+        val documentId = document.get().id?.get()
+        if (documentId.isNullOrBlank()) return Table<Data<Issue>>(size = 0)
+
+        return JsonClient.invoke<Table<Data<Issue>>>("/service/document/documents/document/$documentId/issues?index=$index&limit=$limit&sort=created:desc")
     }
 }
 
@@ -83,9 +91,9 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
     override val resizable: Boolean = true
     override var close: () -> Unit = {}
 
-    private val model = Property(Data(Document()))
+    private val model = Property(Document())
 
-    fun model(value : Data<Document>) {
+    fun model(value : Document) {
         model.set(value)
     }
 
@@ -109,13 +117,20 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val issuesProvider = IssuesRangeProvider(document = model.get().data)
+        val issuesProvider = IssuesRangeProvider(document = model)
         val provider = DocumentsProvider()
         val job = SupervisorJob()
         val cs = CoroutineScope(job)
         onDispose { job.cancel() }
         val tableModel = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
+        scope.dispose.register(
+            ApplicationService.messageBus.subscribe { message ->
+                when (message) {
+                    is IssueCreated -> issuesProvider.upsert(message.post)
+                    is IssueUpdated -> issuesProvider.upsert(message.post)
+                }
+            })
 
         template {
             style {
@@ -135,9 +150,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     node.classList.add("doc-panel")
 
                     style {
-                        width = "320px"
-                        minWidth = "280px"
-                        maxWidth = "360px"
+                        width = "420px"
                     }
 
                     hbox {
@@ -164,7 +177,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                     val docsTable = tableView(tableModel, rowHeightPx = 64, headerVisible = false) {
 
-                        columnProperty("title", "Titel", 300, valueProperty = { it.data.title }) {
+                        columnProperty("title", "Titel", 400, valueProperty = { it.data.title }) {
                             ComponentCell(
                                 outerScope = scope,
                                 node = scope.create("div"),
@@ -218,11 +231,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                         }
 
                         onSelectionChanged { selected ->
-                            selected.firstOrNull()?.let { model.set(it) }
-                        }
-
-                        onRowDoubleClick { document, _ ->
-                            model.set(document)
+                            selected.firstOrNull()?.let { model.set(it.data) }
+                            issuesProvider.reload()
                         }
                     }
 
@@ -256,13 +266,13 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             docsTable.selectionModel.clearSelection()
                             val document = Document()
                             document.editable.set(true)
-                            model.set(Data(document))
+                            model.set(document)
                         }
                     }
                 }
 
                 observeRender(model) { observedModel ->
-                    form(model = observedModel.data, clazz = Document::class) {
+                    form(model = observedModel, clazz = Document::class) {
                         node.classList.add("doc-panel")
 
                         onSubmit {
@@ -340,9 +350,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     node.classList.add("doc-panel")
 
                     style {
-                        width = "320px"
-                        minWidth = "280px"
-                        maxWidth = "360px"
+                        width = "420px"
                     }
 
                     hbox {
@@ -372,6 +380,10 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                                     form(model = item?.data, clazz = Issue::class) {
 
                                         className { "glass-border" }
+
+                                        postHeader {
+                                            model(model)
+                                        }
 
                                         heading(3) {
                                             text(model.title.get())
@@ -417,7 +429,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                         }
 
                         onClick {
-                            navigate("/document/documents/document/${model.get().data.id!!.get()}/issues/issue")
+                            navigate("/document/documents/document/${model.get().id!!.get()}/issues/issue")
                         }
                     }
                 }

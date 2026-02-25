@@ -1,6 +1,5 @@
 package com.anjunar.technologyspeaks.timeline
 
-import com.anjunar.json.mapper.annotations.UseConverter
 import com.anjunar.json.mapper.provider.EntityProvider
 import com.anjunar.json.mapper.provider.OwnerProvider
 import com.anjunar.json.mapper.schema.SchemaProvider
@@ -98,9 +97,9 @@ class Post : AbstractEntity(), EntityContext<Post>, OwnerProvider,
     companion object : RepositoryContext<Post>(), SchemaProvider {
 
         class Schema : AbstractEntitySchema<Post>() {
-            val user = property(Post::user, OwnerRule())
-            val editor = property(Post::editor, OwnerRule())
-            val likes = property(Post::likes, OwnerRule())
+            @JsonbProperty val user = property(Post::user, OwnerRule())
+            @JsonbProperty val editor = property(Post::editor, OwnerRule())
+            @JsonbProperty val likes = property(Post::likes, OwnerRule())
         }
 
     }

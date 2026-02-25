@@ -132,7 +132,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                 vbox {
                                                     postHeader {
-                                                        model(item as Data<Post>)
+                                                        model(model)
                                                     }
 
                                                     editor("editor", false) {
@@ -153,7 +153,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                 className { "glass-border" }
 
                                                 postHeader {
-                                                    model(item as Data<FirstComment>)
+                                                    model(item.data)
 
                                                     onDelete {
                                                         JobRegistry.instance.launch("Comment Remove", "Comment") {
@@ -233,6 +233,11 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                 firstComment.user = Property(ApplicationService.app.get().user)
                                 provider.upsert(Data(firstComment))
                             }
+                        } else {
+                            val firstComment = FirstComment()
+                            firstComment.editable.set(true)
+                            firstComment.user = Property(ApplicationService.app.get().user)
+                            provider.upsert(Data(firstComment))
                         }
                     }
                 }

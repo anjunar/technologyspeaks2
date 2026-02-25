@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "2.3.0"
-    kotlin("plugin.js-plain-objects") version "2.3.0"
+    kotlin("plugin.serialization") version "2.3.20-RC"
+    kotlin("plugin.js-plain-objects") version "2.3.20-RC"
 }
 
 repositories {

@@ -23,6 +23,11 @@ abstract class RangeDataProvider<T : Data<out AbstractEntity>> {
     val loadedCount: Int
         get() = items.size
 
+    fun reload() {
+        items.setAll(emptyList())
+        reachedEnd = false
+    }
+
     fun getOrNull(index: Int): T? = items.getOrNull(index)
 
     abstract suspend fun fetch(index : Int, limit: Int): Table<out T>

@@ -94,7 +94,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                             className { "glass-border" }
 
                             postHeader {
-                                model(Data(this@form.model))
+                                model(this@form.model)
 
                                 onDelete {
                                     JobRegistry.instance.launch("Comment Remove", "Comment") {

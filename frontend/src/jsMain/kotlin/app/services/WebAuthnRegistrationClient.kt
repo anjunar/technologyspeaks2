@@ -19,7 +19,8 @@ private val json = Json {
 
 @Serializable
 data class RegisterOptionsRequest(
-    val email: String
+    val email: String,
+    val nickName: String
 )
 
 object WebAuthnRegistrationClient {
@@ -33,7 +34,7 @@ object WebAuthnRegistrationClient {
 
         val optionsJsonText = postJsonText(
             url = optionsUrl,
-            body = json.encodeToString(RegisterOptionsRequest.serializer(), RegisterOptionsRequest(email))
+            body = json.encodeToString(RegisterOptionsRequest.serializer(), RegisterOptionsRequest(email, nickName))
         )
 
         val optionsDyn = json.parseToJsonElement(optionsJsonText).toDynamic()

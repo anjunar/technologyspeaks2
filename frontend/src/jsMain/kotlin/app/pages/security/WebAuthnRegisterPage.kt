@@ -80,6 +80,15 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
                         padding = "20px"
                     }
 
+                    inputContainer("Nick name") {
+
+                        input("nickName") {
+                            validatorsProperty.add(SizeValidator(3, 30))
+                            subscribeBidirectional(this@form.model.nickName, valueProperty)
+                        }
+
+                    }
+
                     inputContainer("Email") {
 
                         input("email", "email") {

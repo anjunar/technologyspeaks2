@@ -5,6 +5,8 @@ import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.timeline.Post
+import app.domain.timeline.PostCreated
+import app.domain.timeline.PostUpdated
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.text
@@ -50,8 +52,8 @@ object PostsPage {
             scope.dispose.register(
                 ApplicationService.messageBus.subscribe { message ->
                     when (message) {
-                        is ApplicationService.Message.PostCreated -> provider.upsert(message.post)
-                        is ApplicationService.Message.PostUpdated -> provider.upsert(message.post)
+                        is PostCreated -> provider.upsert(message.post)
+                        is PostUpdated -> provider.upsert(message.post)
                     }
                 })
 
@@ -99,7 +101,7 @@ object PostsPage {
                                     text("Loading...")
                                 } else {
                                     postHeader {
-                                        model(item)
+                                        model(item.data)
                                     }
 
                                     editor("editor", false) {

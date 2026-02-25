@@ -31,7 +31,12 @@ class ListProperty<T>(
     override fun observe(listener: (List<T>) -> Unit): Disposable {
         val id = nextId++
         valueListeners[id] = listener
-        listener(get()) // JavaFX-like: immediately emit current value
+        listener(get())
+
+        if (valueListeners.size > 10) {
+            console.warn("Too many listeners on ${this::class.simpleName}")
+        }
+
         return { valueListeners.remove(id) }
     }
 
@@ -184,10 +189,10 @@ class ListProperty<T>(
     }
 
     override fun clear() {
-        if (backing.isEmpty()) return
         val old = backing.toList()
         backing.clear()
         fireValue()
+        if (old.isEmpty()) return
         fireChange(ListChange.Clear(old))
     }
 

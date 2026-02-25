@@ -46,7 +46,7 @@ object Routes {
                                                 )
 
                                                 documentPage {
-                                                    model(document)
+                                                    model(document.data)
                                                 }
                                             }
                                         )
@@ -72,7 +72,7 @@ object Routes {
                                                 Route(
                                                     path = "issue/:id",
                                                     factory = { params ->
-                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/issues/issue/" + params["id"]!!)
+                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/${params["documentId"]!!}/issues/issue/" + params["id"]!!)
 
                                                         issuePage {
                                                             documentId(params["documentId"]!!)

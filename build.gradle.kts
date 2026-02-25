@@ -1,12 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    // nur apply false, damit Child-Module sie aktivieren können
-    kotlin("jvm") version "2.3.0" apply false
-    kotlin("plugin.allopen") version "2.3.0" apply false
-    kotlin("plugin.noarg") version "2.3.0" apply false
-    kotlin("plugin.jpa") version "2.3.0" apply false
+    kotlin("jvm") version "2.3.20-RC" apply false
+    kotlin("plugin.allopen") version "2.3.20-RC" apply false
+    kotlin("plugin.noarg") version "2.3.20-RC" apply false
+    kotlin("plugin.jpa") version "2.3.20-RC" apply false
 }
 
 subprojects {

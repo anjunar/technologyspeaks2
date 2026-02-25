@@ -11,9 +11,15 @@ import com.anjunar.technologyspeaks.core.User
 import com.anjunar.technologyspeaks.core.UserInfo
 import com.anjunar.technologyspeaks.hibernate.EntityContext
 import com.anjunar.technologyspeaks.hibernate.RepositoryContext
+import com.anjunar.technologyspeaks.shared.commentable.CommentContainer
+import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import com.anjunar.technologyspeaks.shared.editor.Node
 import com.anjunar.technologyspeaks.shared.editor.NodeType
+import com.anjunar.technologyspeaks.shared.likeable.Like
+import com.anjunar.technologyspeaks.shared.likeable.LikeContainer
+import com.anjunar.technologyspeaks.timeline.Post
 import jakarta.json.bind.annotation.JsonbProperty
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.ManyToOne
@@ -21,6 +27,7 @@ import jakarta.persistence.NamedAttributeNode
 import jakarta.persistence.NamedEntityGraph
 import jakarta.persistence.NamedEntityGraphs
 import jakarta.persistence.NamedSubgraph
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
 
@@ -73,7 +80,9 @@ class Issue(
     @Column(nullable = false)
     @JsonbProperty
     var title: String
-) : AbstractEntity(), OwnerProvider, EntityContext<Issue> {
+) : AbstractEntity(), OwnerProvider, EntityContext<Issue>,
+    LikeContainer.Interface,
+    CommentContainer.Interface {
 
     @ManyToOne(optional = false)
     @JsonbProperty
@@ -88,6 +97,14 @@ class Issue(
     @JsonbProperty
     lateinit var editor: Node
 
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonbProperty
+    override val likes: MutableSet<Like> = mutableSetOf()
+
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonbProperty
+    override val comments: MutableSet<FirstComment> = mutableSetOf()
+
     override fun owner(): EntityProvider = user
 
     companion object : RepositoryContext<Issue>(), SchemaProvider {
@@ -96,6 +113,7 @@ class Issue(
             @JsonbProperty val title = property(Issue::title, OwnerRule())
             @JsonbProperty val user = property(Issue::user, OwnerRule())
             @JsonbProperty val editor = property(Issue::editor, OwnerRule())
+            @JsonbProperty val likes = property(Issue::likes, OwnerRule())
         }
 
     }

@@ -11,10 +11,7 @@ object ApplicationService {
 
     val app = Property(Application())
 
-    sealed interface Message {
-        data class PostCreated(val post: Data<Post>) : Message
-        data class PostUpdated(val post: Data<Post>) : Message
-    }
+    interface Message
 
     class MessageBus {
         private val listeners = LinkedHashMap<Int, (Message) -> Unit>()

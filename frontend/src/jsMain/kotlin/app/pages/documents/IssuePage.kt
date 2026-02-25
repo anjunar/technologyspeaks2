@@ -1,9 +1,10 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package app.pages.documents
 
 import app.domain.core.Data
 import app.domain.documents.Issue
+import app.domain.documents.IssueCreated
+import app.domain.documents.IssueUpdated
+import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
@@ -63,7 +64,12 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                 onSubmit {
                     val link = model.links.get().find { it.rel == "update" || it.rel == "save" }
 
-                    JsonClient.invoke<Issue, Data<Issue>>(link!!, model.get())
+                    val entity = JsonClient.invoke<Issue, Data<Issue>>(link!!, model)
+
+                    when(link.rel) {
+                        "update" -> ApplicationService.messageBus.publish(IssueUpdated(entity))
+                        "save" -> ApplicationService.messageBus.publish(IssueCreated(entity))
+                    }
 
                     close()
                 }

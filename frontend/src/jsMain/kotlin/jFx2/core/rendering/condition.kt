@@ -55,7 +55,7 @@ private class ConditionComponent(
     override fun mount() {
         with(baseScope!!) {
             if (readFlag == null) {
-                subscribe?.invoke { rebuild(it) }
+                onDispose(subscribe?.invoke { rebuild(it) }!!)
             } else {
                 rebuild( readFlag())
             }

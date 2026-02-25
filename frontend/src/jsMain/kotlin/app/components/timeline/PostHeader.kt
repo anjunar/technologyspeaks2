@@ -22,12 +22,12 @@ import kotlin.time.Clock
 
 class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
-    private val model = Property<Data<out OwnerProvider>>(Data(Post()))
+    private val model = Property<OwnerProvider>(Post())
 
     private var onDelete: (() -> Unit)? = null
     private var onUpdate: (() -> Unit)? = null
 
-    fun model(value: Data<out OwnerProvider>) {
+    fun model(value: OwnerProvider) {
         model.set(value)
     }
 
@@ -49,7 +49,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     alignItems = "center"
                 }
 
-                if (model.get().data.user == null) {
+                if (model.get().user == null) {
                     div {
                         style {
                             fontSize = "48px"
@@ -63,7 +63,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                             height = "48px"
                             width = "48px"
                         }
-                        src = model.get().data.user!!.get().image.get()?.thumbnailLink()!!
+                        src = model.get().user!!.get().image.get()?.thumbnailLink()!!
                     }
                 }
 
@@ -81,13 +81,13 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                         }
 
 
-                        if (model.get().data.user == null) {
+                        if (model.get().user == null) {
                             heading(3) {
                                 text("User")
                             }
                         } else {
                             heading(3) {
-                                text(model.get().data.user!!.get().nickName.get())
+                                text(model.get().user!!.get().nickName.get())
                             }
                         }
 
@@ -112,7 +112,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                             style {
                                 fontSize = "10px"
                             }
-                            text(timeAgo(model.get().data.created.get()))
+                            text(timeAgo(model.get().created.get()))
                         }
                     }
 
@@ -124,7 +124,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     }
                 }
 
-                navigateByRel("read", model.get().data.links) { navigate ->
+                navigateByRel("read", model.get().links) { navigate ->
                     button("edit") {
                         type("button")
                         className { "material-icons" }
@@ -134,22 +134,31 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     }
                 }
 
-                navigateByRel("update", model.get().data.links) { navigate ->
+                navigateByRel("update", model.get().links) { navigate ->
                     button("edit") {
                         type("button")
                         className { "material-icons" }
                         onClick {
-                            onUpdate!!()
+                            if (onUpdate == null) {
+                                navigate()
+                            } else {
+                                onUpdate!!()
+                            }
                         }
                     }
                 }
 
-                navigateByRel("delete", model.get().data.links) { navigate ->
+                navigateByRel("delete", model.get().links) { navigate ->
                     button("delete") {
                         type("button")
                         className { "material-icons" }
                         onClick {
-                            onDelete!!()
+                            if (onDelete == null) {
+                                navigate()
+                            } else {
+                                onDelete!!()
+                            }
+
                         }
                     }
                 }

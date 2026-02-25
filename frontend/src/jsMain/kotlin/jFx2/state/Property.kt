@@ -19,6 +19,11 @@ class Property<T>(var value: T) : ReadOnlyProperty<T> {
         val id = nextId++
         listeners[id] = listener
         listener(value)
+
+        if (listeners.size > 20) {
+            console.warn("Too many listeners on ${this::class.simpleName} : ${listeners.size}")
+        }
+
         return { listeners.remove(id) }
     }
 }

@@ -35,7 +35,10 @@ class IssuesController(val query: HibernateSearch) {
         for (entity in entities) {
             entity.data.addLinks(
                 LinkBuilder.create(IssueController::read)
+                    .withVariable("document", entity.data.document.id)
                     .withVariable("id", entity.data.id)
+                    .build(),
+                LinkBuilder.create(IssueController::delete)
                     .build()
             )
         }

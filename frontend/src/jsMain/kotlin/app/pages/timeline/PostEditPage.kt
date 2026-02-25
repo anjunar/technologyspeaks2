@@ -3,6 +3,8 @@ package app.pages.timeline
 import app.components.timeline.postHeader
 import app.domain.core.Data
 import app.domain.timeline.Post
+import app.domain.timeline.PostCreated
+import app.domain.timeline.PostUpdated
 import app.services.ApplicationService
 import jFx2.client.JsonClient
 import jFx2.controls.button
@@ -49,11 +51,11 @@ class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                 onSubmit {
                     if (model.id == null) {
                         val saved = JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
-                        ApplicationService.messageBus.publish(ApplicationService.Message.PostCreated(saved))
+                        ApplicationService.messageBus.publish(PostCreated(saved))
                         close()
                     } else {
                         val saved = JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
-                        ApplicationService.messageBus.publish(ApplicationService.Message.PostUpdated(saved))
+                        ApplicationService.messageBus.publish(PostUpdated(saved))
                         close()
                     }
                 }
@@ -65,7 +67,7 @@ class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                 vbox {
                     postHeader {
-                        model(this@PostEditPage.model.get())
+                        model(model)
                     }
 
                     editor("editor") {

@@ -33,10 +33,10 @@ class IssueController(val identityHolder: IdentityHolder) {
         return Data(entity, Issue.schema())
     }
 
-    @GetMapping("/document/documents/document/issues/issue/{id}", produces = ["application/json"])
+    @GetMapping("/document/documents/document/{document}/issues/issue/{id}", produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
     @EntityGraph("Issue.full")
-    fun read(@PathVariable("id") entity : Issue) : Data<Issue> {
+    fun read(@PathVariable("document") document: Document, @PathVariable("id") entity : Issue) : Data<Issue> {
 
         entity.addLinks(
             LinkBuilder.create(IssueController::update)
