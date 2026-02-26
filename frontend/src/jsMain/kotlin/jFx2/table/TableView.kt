@@ -57,7 +57,7 @@ class TableView<R>(
                 className = "jfx-table-header"
             }
 
-            onDispose(sortState.observe { s ->
+            onDispose(sortState.observeWithoutInitial { s ->
                 model.clearCache()
             })
 

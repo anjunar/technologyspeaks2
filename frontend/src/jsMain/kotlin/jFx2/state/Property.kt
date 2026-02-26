@@ -26,6 +26,18 @@ class Property<T>(var value: T) : ReadOnlyProperty<T> {
 
         return { listeners.remove(id) }
     }
+
+    override fun observeWithoutInitial(listener: (T) -> Unit): Disposable {
+        val id = nextId++
+        listeners[id] = listener
+
+        if (listeners.size > 100) {
+            console.warn("Too many listeners on ${this::class.simpleName} : ${listeners.size}")
+        }
+
+        return { listeners.remove(id) }
+    }
+
 }
 
 fun <T> Property<T>.subscribeBidirectional(

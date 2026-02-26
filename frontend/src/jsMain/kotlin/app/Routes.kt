@@ -1,6 +1,7 @@
 package app
 
 import app.domain.core.Data
+import app.domain.core.Table
 import app.domain.core.User
 import app.domain.documents.Document
 import app.domain.documents.Issue
@@ -18,6 +19,7 @@ import app.pages.security.webAuthnRegisterPage
 import app.pages.timeline.PostsPage
 import app.pages.timeline.postEditPage
 import app.pages.timeline.postViewPage
+import app.pages.timeline.postsPage
 import jFx2.client.JsonClient
 import jFx2.router.Route
 import org.w3c.fetch.RequestInit
@@ -93,7 +95,12 @@ object Routes {
                     children = listOf(
                         Route(
                             path = "posts",
-                            factory = { PostsPage.page { } },
+                            factory = {
+                                val table = JsonClient.invoke<Table<Data<Post>>>("/service/timeline/posts?index=0&limit=50&sort=created:desc")
+                                postsPage {
+                                    model(table)
+                                }
+                            },
                             children = listOf(
                                 Route(
                                     path = "post",
@@ -140,7 +147,13 @@ object Routes {
                     children = listOf(
                         Route(
                             path = "users",
-                            factory = { usersPage {} },
+                            factory = {
+                                val table = JsonClient.invoke<Table<Data<User>>>("/service/core/users")
+
+                                usersPage {
+                                    model(table)
+                                }
+                            },
                             children = listOf(
                                 Route(
                                     path = "user/:id",

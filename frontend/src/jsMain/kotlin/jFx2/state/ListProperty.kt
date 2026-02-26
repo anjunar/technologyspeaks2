@@ -40,6 +40,17 @@ class ListProperty<T>(
         return { valueListeners.remove(id) }
     }
 
+    override fun observeWithoutInitial(listener: (List<T>) -> Unit): Disposable {
+        val id = nextId++
+        valueListeners[id] = listener
+
+        if (valueListeners.size > 100) {
+            console.warn("Too many listeners on ${this::class.simpleName}")
+        }
+
+        return { valueListeners.remove(id) }
+    }
+
     fun observeChanges(listener: (ListChange<T>) -> Unit): Disposable {
         val id = nextId++
         changeListeners[id] = listener

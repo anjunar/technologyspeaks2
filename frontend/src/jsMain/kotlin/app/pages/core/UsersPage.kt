@@ -34,12 +34,11 @@ class UsersProvider : DataProvider<Data<User>> {
     override val sortState: Property<SortState?> = Property(null)
 
     override suspend fun loadRange(offset: Int, limit: Int): List<Data<User>> {
-        val table = JsonClient.invoke<Table<Data<User>>>("/service/core/users")
+        val table = JsonClient.invoke<Table<Data<User>>>("/service/core/users?index=${offset}&limit=$limit&sort=created:desc")
 
         totalCount.set(table.size)
 
-        return table
-            .rows
+        return table.rows
     }
 }
 
@@ -48,17 +47,22 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
     override val name: String = "Users"
     override val width: Int = -1
     override val height: Int = -1
-    override val resizable: Boolean = false
+    override val resizable: Boolean = true
     override var close: () -> Unit = {}
+    private val provider = UsersProvider()
+    private val job = SupervisorJob()
+    private val cs = CoroutineScope(job)
+    private val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
+
+    fun model(table : Table<Data<User>>) {
+        model.setAll(table.rows)
+        model.totalCount.set(table.size)
+    }
 
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val provider = UsersProvider()
-        val job = SupervisorJob()
-        val cs = CoroutineScope(job)
         onDispose { job.cancel() }
-        val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
         template {
             div {

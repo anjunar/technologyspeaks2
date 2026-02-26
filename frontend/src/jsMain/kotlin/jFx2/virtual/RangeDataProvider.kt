@@ -15,8 +15,8 @@ abstract class RangeDataProvider<T : Data<out AbstractEntity>> {
     val items = ListProperty<T>()
 
     var reachedEnd: Boolean = false
-    val hasKnownCount: Boolean = false
-    val knownCount: Int = 0
+    var hasKnownCount: Boolean = false
+    var knownCount: Int = 0
     val endReached: Boolean
         get() = reachedEnd || items.size >= maxItems
 
@@ -26,6 +26,12 @@ abstract class RangeDataProvider<T : Data<out AbstractEntity>> {
     fun reload() {
         items.setAll(emptyList())
         reachedEnd = false
+    }
+
+    fun setAll(items: List<T>, size : Int) {
+        this.items.setAll(items)
+        knownCount = size
+        hasKnownCount = true
     }
 
     fun getOrNull(index: Int): T? = items.getOrNull(index)

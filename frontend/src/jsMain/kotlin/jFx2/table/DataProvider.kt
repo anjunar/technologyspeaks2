@@ -34,6 +34,11 @@ class LazyTableModel<T>(
         clearCache()
     }
 
+    fun setAll(items: List<T>) {
+        clearCache()
+        cache[0] = items
+    }
+
     fun get(index: Int): T? {
         val pageIndex = floorDiv(index, pageSize)
         cache[pageIndex]?.let { page ->
