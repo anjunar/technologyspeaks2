@@ -5,7 +5,6 @@ import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import jakarta.annotation.security.RolesAllowed
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -18,17 +17,17 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post, Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::likePost)
+            LinkBuilder.create(PostLikeController::likePost)
                 .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
 
         post.addLinks(
-            LinkBuilder.create(CommentsController::comments)
+            LinkBuilder.create(PostCommentsController::comments)
                 .withVariable("post", post.id)
                 .build(),
-            LinkBuilder.create(CommentController::save)
+            LinkBuilder.create(PostCommentController::save)
                 .withVariable("id", post.id)
                 .build()
         )
@@ -56,17 +55,17 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post, Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::likePost)
+            LinkBuilder.create(PostLikeController::likePost)
                 .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
 
         post.addLinks(
-            LinkBuilder.create(CommentsController::comments)
+            LinkBuilder.create(PostCommentsController::comments)
                 .withVariable("post", post.id)
                 .build(),
-            LinkBuilder.create(CommentController::save)
+            LinkBuilder.create(PostCommentController::save)
                 .withVariable("id", post.id)
                 .build()
         )
@@ -92,17 +91,17 @@ class PostController(val identityHolder: IdentityHolder) {
         val data = Data(post.merge(), Post.schema())
 
         post.addLinks(
-            LinkBuilder.create(LikeController::likePost)
+            LinkBuilder.create(PostLikeController::likePost)
                 .withRel("like")
                 .withVariable("id", post.id)
                 .build()
         )
 
         post.addLinks(
-            LinkBuilder.create(CommentsController::comments)
+            LinkBuilder.create(PostCommentsController::comments)
                 .withVariable("post", post.id)
                 .build(),
-            LinkBuilder.create(CommentController::save)
+            LinkBuilder.create(PostCommentController::save)
                 .withVariable("id", post.id)
                 .build()
         )

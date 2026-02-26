@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CommentController(val identityHolder: IdentityHolder) {
+class PostCommentController(val identityHolder: IdentityHolder) {
 
     @PostMapping(value = ["/timeline/posts/post/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
     @RolesAllowed("User", "Administrator")

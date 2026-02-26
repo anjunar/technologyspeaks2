@@ -124,6 +124,10 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 linkPlugin { }
                                 imagePlugin { }
 
+                                button("save") {
+                                    className { "material-icons hover" }
+                                }
+
                                 subscribeBidirectional(this@form.model.editor, valueProperty)
                                 subscribeBidirectional(this@form.model.editable, editable)
                             }
@@ -132,13 +136,6 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 model(this@form.model.likes, this@form.model.links)
                             }
 
-                            condition(this@form.model.editable) {
-                                then {
-                                    button("send") {
-                                        className { "material-icons hover" }
-                                    }
-                                }
-                            }
                         }
 
 

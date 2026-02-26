@@ -1,0 +1,69 @@
+package com.anjunar.technologyspeaks.documents
+
+import com.anjunar.technologyspeaks.rest.types.Data
+import com.anjunar.technologyspeaks.security.IdentityHolder
+import com.anjunar.technologyspeaks.shared.commentable.FirstComment
+import jakarta.annotation.security.RolesAllowed
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+class IssueCommentController(val identityHolder: IdentityHolder) {
+
+    @PostMapping(value = ["/document/documents/document/issues/issue/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
+    @RolesAllowed("User", "Administrator")
+    fun save(@PathVariable("id") post: Issue, @RequestBody body: FirstComment): Data<FirstComment> {
+
+        body.user = identityHolder.user
+        body.comments.filter {
+            try {
+                it.user == null
+            } catch (e: Exception) {
+                true
+            }
+        }.forEach { it.user = identityHolder.user}
+        body.persist()
+
+        post.comments.add(body)
+
+        return Data(body, FirstComment.schema())
+    }
+
+    @PutMapping(value = ["/document/documents/document/issues/issue/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
+    @RolesAllowed("User", "Administrator")
+    fun update(@PathVariable("id") post: Issue, @RequestBody body: FirstComment): Data<FirstComment> {
+
+        body.user = identityHolder.user
+        body.comments.filter {
+            try {
+                it.user == null
+            } catch (e: Exception) {
+                true
+            }
+        }.forEach { it.user = identityHolder.user }
+
+        post.comments.add(body)
+
+        return Data(body, FirstComment.schema())
+    }
+
+
+    @DeleteMapping(value = ["/document/documents/document/issues/issue/{id}/comment"], produces = ["application/json"], consumes = ["application/json"])
+    @RolesAllowed("User", "Administrator")
+    fun delete(@PathVariable("id") post: Issue, @RequestBody body: FirstComment): ResponseEntity<Unit> {
+
+        post.comments.remove(body)
+
+        body.remove()
+
+        return ResponseEntity.ok().build()
+
+    }
+
+
+}

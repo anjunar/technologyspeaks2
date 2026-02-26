@@ -183,16 +183,13 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         linkPlugin { }
                                                         imagePlugin { }
 
+                                                        button("save") {
+                                                            className { "material-icons" }
+                                                        }
+
                                                         subscribeBidirectional(this@form.model.editor, valueProperty)
                                                         subscribeBidirectional(this@form.model.editable, editable)
                                                     }
-
-                                                    condition(this@form.model.editable) {
-                                                        then {
-                                                            button("send") {}
-                                                        }
-                                                    }
-
 
                                                 }
 

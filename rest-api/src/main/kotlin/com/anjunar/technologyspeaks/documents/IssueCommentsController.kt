@@ -1,22 +1,21 @@
-package com.anjunar.technologyspeaks.timeline
+package com.anjunar.technologyspeaks.documents
 
 import com.anjunar.technologyspeaks.hibernate.search.HibernateSearch
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
-import com.anjunar.technologyspeaks.shared.commentable.CommentSearch
 import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import jakarta.annotation.security.RolesAllowed
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CommentsController(val query: HibernateSearch, val identityHolder: IdentityHolder) {
+class IssueCommentsController(val query: HibernateSearch, val identityHolder: IdentityHolder) {
 
-    @GetMapping(value = ["/timeline/posts/post/{post}/comments"], produces = ["application/json"])
+    @GetMapping(value = ["/document/documents/document/issues/issue/{issue}/comments"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
-    fun comments(search: CommentSearch): Table<CommentRow> {
+    fun comments(search: IssueCommentSearch): Table<CommentRow> {
         val searchContext = query.searchContext(search)
 
         val entities = query.entities(
@@ -33,15 +32,15 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
         for (row in entities) {
 
             row.data.addLinks(
-                LinkBuilder.create(LikeController::likeFirstComment)
+                LinkBuilder.create(IssueLikeController::likeFirstComment)
                     .withRel("like")
                     .withVariable("id", row.data.id)
                     .build(),
-                LinkBuilder.create(CommentController::update)
-                    .withVariable("id", search.post.id)
+                LinkBuilder.create(IssueCommentController::update)
+                    .withVariable("id", search.issue.id)
                     .build(),
-                LinkBuilder.create(CommentController::delete)
-                    .withVariable("id", search.post.id)
+                LinkBuilder.create(IssueCommentController::delete)
+                    .withVariable("id", search.issue.id)
                     .build()
             )
 
@@ -51,15 +50,15 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
                 if (comment.user == identityHolder.user) {
 
                     comment.addLinks(
-                        LinkBuilder.create(LikeController::likeSecondComment)
+                        LinkBuilder.create(IssueLikeController::likeSecondComment)
                             .withRel("like")
                             .withVariable("id", comment.id)
                             .build(),
-                        LinkBuilder.create(CommentController::update)
-                            .withVariable("id", search.post.id)
+                        LinkBuilder.create(IssueCommentController::update)
+                            .withVariable("id", search.issue.id)
                             .build(),
-                        LinkBuilder.create(CommentController::delete)
-                            .withVariable("id", search.post.id)
+                        LinkBuilder.create(IssueCommentController::delete)
+                            .withVariable("id", search.issue.id)
                             .build()
                     )
 
@@ -70,7 +69,7 @@ class CommentsController(val query: HibernateSearch, val identityHolder: Identit
 
         }
 
-        return Table(entities, count, Post.schema())
+        return Table(entities, count, Issue.schema())
     }
 
     companion object {

@@ -1,16 +1,16 @@
-package com.anjunar.technologyspeaks.shared.commentable
+package com.anjunar.technologyspeaks.timeline
 
 import com.anjunar.technologyspeaks.hibernate.search.AbstractSearch
 import com.anjunar.technologyspeaks.hibernate.search.Context
 import com.anjunar.technologyspeaks.hibernate.search.PredicateProvider
 import com.anjunar.technologyspeaks.hibernate.search.annotations.RestPredicate
-import com.anjunar.technologyspeaks.timeline.Post
+import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import jakarta.json.bind.annotation.JsonbProperty
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.PathVariable
 import java.util.UUID
 
-class CommentSearch(
+class PostCommentSearch(
     @JsonbProperty
     @PathVariable("post")
     @RestPredicate(PostPredicate::class)
@@ -46,4 +46,3 @@ class CommentSearch(
     }
 
 }
-

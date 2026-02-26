@@ -27,6 +27,12 @@ class IssueController(val identityHolder: IdentityHolder) {
         entity.addLinks(
             LinkBuilder.create(IssueController::save)
                 .withVariable("id", document.id)
+                .build(),
+            LinkBuilder.create(IssueCommentsController::comments)
+                .withVariable("issue", entity.id)
+                .build(),
+            LinkBuilder.create(IssueCommentController::save)
+                .withVariable("id", entity.id)
                 .build()
         )
 
@@ -43,6 +49,12 @@ class IssueController(val identityHolder: IdentityHolder) {
                 .withVariable("id", entity.document.id)
                 .build(),
             LinkBuilder.create(IssueController::delete)
+                .build(),
+            LinkBuilder.create(IssueCommentsController::comments)
+                .withVariable("issue", entity.id)
+                .build(),
+            LinkBuilder.create(IssueCommentController::save)
+                .withVariable("id", entity.id)
                 .build()
         )
 
