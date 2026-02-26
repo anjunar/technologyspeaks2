@@ -33,7 +33,7 @@ class ListProperty<T>(
         valueListeners[id] = listener
         listener(get())
 
-        if (valueListeners.size > 10) {
+        if (valueListeners.size > 100) {
             console.warn("Too many listeners on ${this::class.simpleName}")
         }
 

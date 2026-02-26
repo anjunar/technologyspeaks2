@@ -20,7 +20,7 @@ class Property<T>(var value: T) : ReadOnlyProperty<T> {
         listeners[id] = listener
         listener(value)
 
-        if (listeners.size > 20) {
+        if (listeners.size > 100) {
             console.warn("Too many listeners on ${this::class.simpleName} : ${listeners.size}")
         }
 

@@ -21,7 +21,8 @@ class WindowRouter(override val node: HTMLDivElement, val ui: UiScope, val route
         fun addRouteToWindows() {
 
             JobRegistry.instance.launch("Router", "Router") {
-                val resolveRoutes = resolveRoutes(routes, window.location.pathname)
+                val pathname = window.location.pathname
+                val resolveRoutes = resolveRoutes(routes, pathname)
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!(routeMatch.params)
                 val page = component as PageInfo
@@ -30,7 +31,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui: UiScope, val route
                         page.name,
                         { component },
                         onClick = {
-                            window.history.pushState(null, "", routeMatch.route.path)
+                            window.history.pushState(null, "", pathname)
                         },
                         resizable = page.resizable
                     )
