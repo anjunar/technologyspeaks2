@@ -2,18 +2,19 @@
 
 package jFx2.modals
 
-import app.pages.timeline.PostsPage
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
+import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.foreach
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
 import jFx2.state.ListProperty
+import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -21,7 +22,9 @@ import kotlin.uuid.Uuid
 class WindowConf(
     val title : String,
     val component : context(NodeScope) () -> Component<*>,
-    val onClose: (() -> Unit)? = null,
+    val zIndex : Property<Int> = Property(0),
+    val onClose: ((Window) -> Unit)? = null,
+    val onClick: ((Window) -> Unit)? = null,
     val resizable: Boolean = false
 ) {
     val id : String = Uuid.generateV4().toString()
@@ -39,12 +42,18 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
 
                 window {
 
+                    subscribeBidirectional(window.zIndex, zIndex)
+
                     title = window.title
                     resizeable = window.resizable
 
-                    onClose {
-                        window.onClose?.invoke()
-                        windows.remove(window)
+                    onCloseWindow {
+                        closeWindow(window)
+                    }
+
+                    onClickWindow {
+                        window.onClick?.invoke(it)
+                        touchWindow(window)
                     }
 
                     div {
@@ -70,18 +79,22 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     companion object {
         private val windows = ListProperty<WindowConf>()
 
+        fun touchWindow(conf: WindowConf) {
+            var index = 0
+            windows.forEach { window -> window.zIndex.set(index++) }
+            conf.zIndex.set(index)
+        }
+
         fun addWindow(conf: WindowConf) {
             windows.add(conf)
         }
 
         fun closeWindow(conf: WindowConf) {
-            conf.onClose?.invoke()
             windows.remove(conf)
         }
 
         fun closeWindowById(id: String) {
             windows.firstOrNull { it.id == id }?.let {
-                it.onClose?.invoke()
                 windows.remove(it)
             }
         }

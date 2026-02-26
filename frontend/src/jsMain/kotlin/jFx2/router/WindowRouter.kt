@@ -12,7 +12,8 @@ import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
-class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val routes: List<Route>) : Component<HTMLDivElement>() {
+class WindowRouter(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route>) :
+    Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
@@ -24,7 +25,16 @@ class WindowRouter(override val node: HTMLDivElement, val ui : UiScope, val rout
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!(routeMatch.params)
                 val page = component as PageInfo
-                ViewPort.addWindow(WindowConf(page.name, {component}, resizable = page.resizable))
+                ViewPort.addWindow(
+                    WindowConf(
+                        page.name,
+                        { component },
+                        onClick = {
+                            window.history.pushState(null, "", routeMatch.route.path)
+                        },
+                        resizable = page.resizable
+                    )
+                )
             }
 
         }

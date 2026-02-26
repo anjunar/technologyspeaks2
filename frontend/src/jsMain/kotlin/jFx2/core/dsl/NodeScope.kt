@@ -2,6 +2,7 @@ package jFx2.core.dsl
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.state.Property
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
@@ -31,6 +32,11 @@ fun className(value: () -> String) {
 }
 
 context(scope: NodeScope)
+fun zIndex(value: Property<Int>) {
+    scope.dispose.register(value.observe { (scope.parent as HTMLElement).style.zIndex = it.toString() })
+}
+
+context(scope: NodeScope)
 fun style(block: CSSStyleDeclaration.() -> Unit) {
     var disposed = false
 
@@ -55,4 +61,12 @@ fun mousedown(block: (MouseEvent) -> Unit) {
     val listener = block as (Event) -> Unit
     scope.parent.addEventListener("mousedown", listener)
     scope.dispose.register { scope.parent.removeEventListener("mousedown", listener) }
+}
+
+@Suppress("UNCHECKED_CAST")
+context(scope: NodeScope)
+fun onClick(block: (MouseEvent) -> Unit) {
+    val listener = block as (Event) -> Unit
+    scope.parent.addEventListener("click", listener)
+    scope.dispose.register { scope.parent.removeEventListener("click", listener) }
 }

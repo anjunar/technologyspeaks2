@@ -9,9 +9,12 @@ import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.renderFields
+import jFx2.core.dsl.zIndex
 import jFx2.core.rendering.condition
 import jFx2.core.template
+import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.browser.window as browserWindow
 import org.w3c.dom.HTMLDivElement
@@ -31,6 +34,8 @@ class Window(
     var draggable = true
     var resizeable = true
 
+    val zIndex = Property(0)
+
     var title : String = ""
 
     var centerOnOpen: Boolean = true
@@ -41,9 +46,11 @@ class Window(
 
     var rememberSize: Boolean = true
 
-    private var onClose: (() -> Unit)? = null
+    private var onClose: ((Window) -> Unit)? = null
+    private var onClick: ((Window) -> Unit)? = null
 
-    fun onClose(block: () -> Unit) { onClose = block }
+    fun onCloseWindow(block: (Window) -> Unit) { onClose = block }
+    fun onClickWindow(block: (Window) -> Unit) { onClick = block }
 
     private fun resolvedPositionStorageKey(): String? {
         if (!rememberPosition) return null
@@ -531,6 +538,13 @@ class Window(
     context(scope: NodeScope)
     fun afterBuild() {
         template {
+
+            zIndex(zIndex)
+
+            onClick {
+                onClick?.invoke(this@Window)
+            }
+
             div {
                 className { "header" }
                 mousedown { e -> dragElementMouseDown(e) }
@@ -545,7 +559,7 @@ class Window(
                         button("close") {
                             className { "material-icons" }
                             onClick {
-                                onClose?.invoke()
+                                onClose?.invoke(this@Window)
                             }
                         }
                     }

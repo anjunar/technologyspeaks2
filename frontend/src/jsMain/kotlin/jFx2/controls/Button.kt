@@ -17,15 +17,6 @@ class Button(override val node: HTMLButtonElement, val ui : UiScope) : Component
         renderFields(*this@Button.children.toTypedArray())
     }
 
-    fun onClick(handler: (MouseEvent) -> Unit) {
-        val h: (dynamic) -> Unit = { e ->
-            handler(e.unsafeCast<MouseEvent>())
-            ui.build.flush()
-        }
-        node.addEventListener("click", h)
-        onDispose { node.removeEventListener("click", h) }
-    }
-
     fun disabled(value: Boolean) {
         node.disabled = value
     }
