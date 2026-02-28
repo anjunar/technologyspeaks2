@@ -50,6 +50,7 @@ class Input(
     val valueProperty = Property(node.value)
 
     val valueAsNumberProperty = Property(node.valueAsNumber)
+    val editable = Property(!node.disabled)
 
     fun onChange(callback : (Event) -> Unit) {
         node.onchange = callback
@@ -77,6 +78,14 @@ class Input(
                 node.valueAsNumber = it
             }
         }
+
+        editable.observe {
+            node.disabled = !it
+        }
+
+        node.addEventListener("change", {
+            editable.set(! node.disabled)
+        })
 
         node.addEventListener("input", {
             val v = node.value

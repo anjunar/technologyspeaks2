@@ -19,6 +19,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.condition
@@ -33,8 +34,10 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.inputContainer
 import jFx2.layout.div
+import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
+import jFx2.router.navigateByRel
 import jFx2.state.JobRegistry
 import jFx2.state.Property
 import jFx2.virtual.RangeDataProvider
@@ -148,6 +151,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                                         when(item.data) {
                                             is Issue -> {
+
                                                 form(model = item.data, clazz = Issue::class) {
 
                                                     style {
@@ -156,10 +160,31 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                     }
 
                                                     vbox {
-                                                        inputContainer("Titel") {
-                                                            input("title") {
-                                                                subscribeBidirectional(model.title, valueProperty)
+                                                        hbox {
+                                                            inputContainer("Titel") {
+                                                                input("title") {
+                                                                    subscribeBidirectional(model.title, valueProperty)
+                                                                    subscribeBidirectional(model.editable, editable)
+                                                                }
                                                             }
+
+                                                            div {
+                                                                style {
+                                                                    flex = "1"
+                                                                }
+                                                            }
+
+                                                            navigateByRel("update", model.links.get()) {
+                                                                button("edit") {
+                                                                    type("button")
+                                                                    className { "material-icons" }
+
+                                                                    onClick {
+                                                                        model.editable.set(! model.editable.get())
+                                                                    }
+                                                                }
+                                                            }
+
                                                         }
 
                                                         editor("editor") {
@@ -179,6 +204,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             }
 
                                                             subscribeBidirectional(model.editor, valueProperty)
+                                                            subscribeBidirectional(model.editable, editable)
                                                         }
                                                     }
                                                 }

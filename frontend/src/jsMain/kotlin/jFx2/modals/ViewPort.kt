@@ -87,6 +87,7 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
 
         fun addWindow(conf: WindowConf) {
             windows.add(conf)
+            touchWindow(conf)
         }
 
         fun closeWindow(conf: WindowConf) {

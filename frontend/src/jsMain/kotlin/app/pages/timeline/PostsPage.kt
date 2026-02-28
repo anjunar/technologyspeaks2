@@ -21,7 +21,9 @@ import jFx2.forms.editor
 import jFx2.forms.editor.plugins.*
 import jFx2.forms.form
 import jFx2.forms.input
+import jFx2.layout.div
 import jFx2.layout.hbox
+import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.router.navigate
 import jFx2.virtual.RangeDataProvider
@@ -68,103 +70,118 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
         val formular = Post()
 
         template {
+            style {
+                height = "100%"
+                width = "100%"
+                setProperty("overflow", "hidden")
+            }
 
-            form(model = formular, clazz = Post::class) {
+            vbox {
 
-                input("post") {
+                form(model = formular, clazz = Post::class) {
 
-                    style {
-                        margin = "12px"
-                        padding = "12px"
-                        width = "calc(100% - 48px)"
-                        backgroundColor = "var(--color-background-secondary)"
-                        fontSize = "24px"
-                        borderRadius = "8px"
-                    }
+                    input("post") {
 
-                    placeholder = "Nach was ist dir heute?"
+                        style {
+                            margin = "12px"
+                            padding = "12px"
+                            width = "calc(100% - 48px)"
+                            backgroundColor = "var(--color-background-secondary)"
+                            fontSize = "24px"
+                            borderRadius = "8px"
+                        }
 
-                    onClick {
-                        navigate("/timeline/posts/post")
+                        placeholder = "Nach was ist dir heute?"
+
+                        onClick {
+                            navigate("/timeline/posts/post")
+                        }
+
                     }
 
                 }
 
-            }
+                div {
+                    style {
+                        flex = "1"
+                        minHeight = "0px"
+                    }
 
-            virtualList(
-                dataProvider = provider,
-                estimateHeightPx = 44,
-                overscanPx = 240,
-                prefetchItems = 80,
-                renderer = { item, index ->
+                    virtualList(
+                        dataProvider = provider,
+                        estimateHeightPx = 44,
+                        overscanPx = 240,
+                        prefetchItems = 80,
+                        renderer = { item, index ->
 
-                    template {
+                            template {
 
-                        form(model = item?.data, clazz = Post::class) {
+                                form(model = item?.data, clazz = Post::class) {
 
-                            className { "glass-border" }
+                                    className { "glass-border" }
 
-                            if (item == null) {
-                                text("Loading...")
-                            } else {
-                                postHeader {
-                                    model(item.data)
-                                }
-
-                                editor("editor", false) {
-                                    style {
-                                        height = "100%"
-                                        width = "100%"
-                                    }
-
-                                    basePlugin { }
-                                    headingPlugin { }
-                                    listPlugin { }
-                                    linkPlugin { }
-                                    imagePlugin { }
-
-                                    subscribeBidirectional(this@form.model.editor, valueProperty)
-
-                                }
-
-
-                                hbox {
-                                    style {
-                                        columnGap = "8px"
-                                        alignItems = "center"
-                                    }
-
-                                    likeButton {
-                                        model(
-                                            likes = this@form.model.likes, links = item.data.links
-                                        )
-                                    }
-
-                                    input("comment") {
-                                        style {
-                                            flex = "1"
-                                            padding = "8px"
-                                            borderRadius = "6px"
-                                            backgroundColor = "var(--color-background-secondary)"
-                                            border = "1px solid var(--color-background-primary)"
-                                        }
-                                        placeholder = "Kommentar schreiben..."
-
-                                        onClick {
-                                            navigate("/timeline/posts/post/${item.data.id?.get()}/view")
+                                    if (item == null) {
+                                        text("Loading...")
+                                    } else {
+                                        postHeader {
+                                            model(item.data)
                                         }
 
-                                    }
-                                }
+                                        editor("editor", false) {
+                                            style {
+                                                height = "100%"
+                                                width = "100%"
+                                            }
 
+                                            basePlugin { }
+                                            headingPlugin { }
+                                            listPlugin { }
+                                            linkPlugin { }
+                                            imagePlugin { }
+
+                                            subscribeBidirectional(this@form.model.editor, valueProperty)
+
+                                        }
+
+
+                                        hbox {
+                                            style {
+                                                columnGap = "8px"
+                                                alignItems = "center"
+                                            }
+
+                                            likeButton {
+                                                model(
+                                                    likes = this@form.model.likes, links = item.data.links
+                                                )
+                                            }
+
+                                            input("comment") {
+                                                style {
+                                                    flex = "1"
+                                                    padding = "8px"
+                                                    borderRadius = "6px"
+                                                    backgroundColor = "var(--color-background-secondary)"
+                                                    border = "1px solid var(--color-background-primary)"
+                                                }
+                                                placeholder = "Kommentar schreiben..."
+
+                                                onClick {
+                                                    navigate("/timeline/posts/post/${item.data.id?.get()}/view")
+                                                }
+
+                                            }
+                                        }
+
+
+                                    }
+
+                                }
 
                             }
-
-                        }
-
-                    }
-                })
+                        })
+                }
+            }
         }
     }
 

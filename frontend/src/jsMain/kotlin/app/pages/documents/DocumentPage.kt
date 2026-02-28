@@ -371,36 +371,49 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                         virtualList(
                             dataProvider = issuesProvider,
-                            estimateHeightPx = 44,
+                            estimateHeightPx = 240,
                             overscanPx = 240,
                             prefetchItems = 80,
                             renderer = { item, index ->
 
                                 template {
 
-                                    form(model = item?.data, clazz = Issue::class) {
+                                    if (item == null) {
+                                        div {
+                                            className { "glass-border" }
+                                            style {
+                                                height = "200px"
+                                            }
 
-                                        className { "glass-border" }
-
-                                        postHeader {
-                                            model(model)
+                                            postHeader {}
                                         }
 
-                                        heading(3) {
-                                            text(model.title.get())
+                                    } else {
+                                        form(model = item.data, clazz = Issue::class) {
+
+                                            className { "glass-border" }
+
+                                            postHeader {
+                                                model(model)
+                                            }
+
+                                            heading(3) {
+                                                text(model.title.get())
+                                            }
+
+                                            editor("editor", false) {
+                                                basePlugin { }
+                                                headingPlugin { }
+                                                listPlugin { }
+                                                linkPlugin { }
+                                                imagePlugin { }
+
+                                                subscribeBidirectional(this@form.model.editor, valueProperty)
+                                            }
+
                                         }
-
-                                        editor("editor", false) {
-                                            basePlugin { }
-                                            headingPlugin { }
-                                            listPlugin { }
-                                            linkPlugin { }
-                                            imagePlugin { }
-
-                                            subscribeBidirectional(this@form.model.editor, valueProperty)
-                                        }
-
                                     }
+
 
                                 }
                             })

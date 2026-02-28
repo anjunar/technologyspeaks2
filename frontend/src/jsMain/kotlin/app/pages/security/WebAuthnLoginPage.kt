@@ -15,6 +15,7 @@ import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
+import jFx2.decodeURIComponent
 import jFx2.forms.EmailValidator
 import jFx2.forms.SizeValidator
 import jFx2.forms.form
@@ -23,9 +24,11 @@ import jFx2.forms.inputContainer
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.router.PageInfo
+import jFx2.router.navigate
 import jFx2.state.JobRegistry
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.url.URLSearchParams
 
 class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
@@ -51,6 +54,11 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
                         ApplicationService.invoke()
 
                         close()
+
+                        val searchParams = URLSearchParams(window.location.search)
+                        searchParams.get("redirect")?.let {
+                            navigate(decodeURIComponent(it))
+                        }
                     } catch (t: Throwable) {
                         console.error("WebAuthn login failed", t)
                     }

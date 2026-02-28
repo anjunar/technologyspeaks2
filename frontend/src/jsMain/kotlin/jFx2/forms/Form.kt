@@ -10,7 +10,9 @@ import jFx2.core.capabitities.FormOwnerKey
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerSubForm
 import jFx2.core.dsl.renderFields
+import jFx2.decodeURIComponent
 import jFx2.state.JobRegistry
+import kotlinx.browser.window
 import org.w3c.dom.HTMLFormElement
 import kotlin.reflect.KClass
 import kotlin.reflect.createInstance
@@ -34,8 +36,12 @@ class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz
     fun initialize() {
         renderFields(*this@Form.children.toTypedArray())
 
+        node.setAttribute("action", window.location.pathname + window.location.search)
+
         node.addEventListener("submit", {
             event -> event.preventDefault();
+
+            window.history.pushState(null, "", node.action)
 
             JobRegistry.instance.launch("Form", "Form") {
                 submitHandler?.invoke()
