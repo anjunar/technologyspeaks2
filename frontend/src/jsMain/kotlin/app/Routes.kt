@@ -7,6 +7,7 @@ import app.domain.documents.Document
 import app.domain.documents.Issue
 import app.domain.timeline.Post
 import app.pages.core.UserPage
+import app.pages.core.userPage
 import app.pages.core.usersPage
 import app.pages.documents.documentPage
 import app.pages.documents.issuePage
@@ -16,7 +17,6 @@ import app.pages.security.passwordLoginPage
 import app.pages.security.passwordRegisterPage
 import app.pages.security.webAuthnLoginPage
 import app.pages.security.webAuthnRegisterPage
-import app.pages.timeline.PostsPage
 import app.pages.timeline.postEditPage
 import app.pages.timeline.postViewPage
 import app.pages.timeline.postsPage
@@ -160,7 +160,7 @@ object Routes {
                                     factory = { params ->
                                         val user =
                                             JsonClient.invoke<Data<User>>("/service/core/users/user/" + params["id"]!!)
-                                        UserPage.page {
+                                        userPage {
                                             model(user)
                                         }
                                     }
