@@ -12,6 +12,7 @@ import app.domain.timeline.Post
 import app.domain.timeline.PostCreated
 import app.domain.timeline.PostUpdated
 import app.services.ApplicationService
+import jFx2.encodeURIComponent
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.heading
@@ -52,24 +53,32 @@ import jFx2.table.tableView
 import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 import kotlin.time.Clock
 
-class DocumentsProvider : DataProvider<Data<Document>> {
+class DocumentsProvider(private val query: Property<String>) : DataProvider<Data<Document>> {
     override val totalCount = Property<Int?>(100_000)
     override val sortState: Property<SortState?> = Property(null)
 
     override suspend fun loadRange(offset: Int, limit: Int): List<Data<Document>> {
-        val table = JsonClient.invoke<Table<Data<Document>>>("/service/document/documents?index=${offset}&limit=$limit&sort=created:desc")
+        val queryValue = query.get().trim()
+        val queryParameter = if (queryValue.isBlank()) "" else "&name=${encodeURIComponent(queryValue)}"
+        val sortParameter = if (queryValue.isBlank()) "&sort=created:desc" else ""
+        val table = JsonClient.invoke<Table<Data<Document>>>(
+            "/service/document/documents?index=${offset}&limit=$limit$sortParameter$queryParameter"
+        )
 
         totalCount.set(table.size)
 
-        return table
-            .rows
+        return table.rows
     }
 }
 
@@ -119,7 +128,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
     fun afterBuild() {
 
         val issuesProvider = IssuesRangeProvider(document = model)
-        val provider = DocumentsProvider()
+        val searchQuery = Property("")
+        val provider = DocumentsProvider(searchQuery)
         val job = SupervisorJob()
         val cs = CoroutineScope(job)
         onDispose { job.cancel() }
@@ -173,6 +183,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                         input("search", "search") {
                             placeholder = "Suche..."
+                            subscribeBidirectional(searchQuery, valueProperty)
                         }
                     }
 
@@ -240,6 +251,20 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     docsTable.node.classList.add("doc-table")
                     docsTable.selectionModel.mode.set(SelectionMode.SINGLE)
 
+                    var searchJob: Job? = null
+                    onDispose(searchQuery.observeWithoutInitial { _ ->
+                        searchJob?.cancel()
+                        searchJob = cs.launch {
+                            delay(250)
+                            (docsTable.node.querySelector(".jfx-table-viewport") as? HTMLElement)?.scrollTop = 0.0
+                            docsTable.selectionModel.clearSelection()
+                            docsTable.focusModel.focus(null)
+                            tableModel.clearCache()
+                            provider.totalCount.set(100_000)
+                        }
+                    })
+                    onDispose { searchJob?.cancel() }
+ 
                     button("") {
                         node.classList.add("doc-new-btn")
                         style {

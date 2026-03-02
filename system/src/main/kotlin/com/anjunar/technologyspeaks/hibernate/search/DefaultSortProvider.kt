@@ -9,7 +9,8 @@ class DefaultSortProvider<E> : SortProvider<MutableList<String>, E> {
     override fun sort(context: Context<MutableList<String>, E>): MutableList<Order> {
         val sortValues = readSortValues(context).orEmpty()
         if (sortValues.isEmpty()) {
-            return mutableListOf()
+            val score = context.selection.firstOrNull()
+            return if (score != null) mutableListOf(context.builder.desc(score)) else mutableListOf()
         }
 
         val orders = ArrayList<Order>(sortValues.size)
