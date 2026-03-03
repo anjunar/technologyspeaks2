@@ -4,14 +4,13 @@ package app.pages.timeline
 
 import app.components.commentable.commentsSection
 import app.components.likeable.likeButton
-import app.components.timeline.postHeader
+import app.components.shared.componentHeader
 import app.domain.core.AbstractEntity
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.shared.FirstComment
 import app.domain.timeline.Post
 import app.services.ApplicationService
-import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.text
 import jFx2.core.Component
@@ -20,7 +19,6 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
-import jFx2.core.rendering.condition
 import jFx2.core.template
 import jFx2.forms.editor
 import jFx2.forms.editor.plugins.basePlugin
@@ -98,7 +96,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                             height = "200px"
                                         }
 
-                                        postHeader {
+                                        componentHeader {
 
                                         }
 
@@ -123,7 +121,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                 }
 
                                                 vbox {
-                                                    postHeader {
+                                                    componentHeader {
                                                         model(model)
                                                     }
 
@@ -144,7 +142,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                 className { "glass-border" }
 
-                                                postHeader {
+                                                componentHeader {
                                                     model(item.data)
 
                                                     onDelete {

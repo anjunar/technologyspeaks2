@@ -1,14 +1,13 @@
 package app.pages.timeline
 
 import app.components.likeable.likeButton
-import app.components.timeline.postHeader
+import app.components.shared.componentHeader
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.timeline.Post
 import app.domain.timeline.PostCreated
 import app.domain.timeline.PostUpdated
 import app.services.ApplicationService
-import jFx2.client.JsonClient
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -122,7 +121,7 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                     if (item == null) {
                                         text("Loading...")
                                     } else {
-                                        postHeader {
+                                        componentHeader {
                                             model(item.data)
                                         }
 

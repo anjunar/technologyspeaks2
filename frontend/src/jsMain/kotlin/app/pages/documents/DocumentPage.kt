@@ -1,22 +1,16 @@
 package app.pages.documents
 
-import app.components.likeable.likeButton
-import app.components.timeline.postHeader
+import app.components.shared.componentHeader
 import app.domain.core.Data
 import app.domain.core.Table
 import app.domain.documents.Document
 import app.domain.documents.Issue
 import app.domain.documents.IssueCreated
 import app.domain.documents.IssueUpdated
-import app.domain.timeline.Post
-import app.domain.timeline.PostCreated
-import app.domain.timeline.PostUpdated
 import app.services.ApplicationService
 import jFx2.encodeURIComponent
-import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.controls.heading
-import jFx2.controls.image
 import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
@@ -40,10 +34,8 @@ import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
-import jFx2.router.navigate
 import jFx2.router.navigateByRel
 import jFx2.router.renderByRel
-import jFx2.state.JobRegistry
 import jFx2.state.Property
 import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
@@ -416,7 +408,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                                                 height = "200px"
                                             }
 
-                                            postHeader {}
+                                            componentHeader {}
                                         }
 
                                     } else {
@@ -424,7 +416,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
                                             className { "glass-border" }
 
-                                            postHeader {
+                                            componentHeader {
                                                 model(model)
                                             }
 

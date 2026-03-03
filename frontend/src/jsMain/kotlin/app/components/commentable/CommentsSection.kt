@@ -3,14 +3,11 @@
 package app.components.commentable
 
 import app.components.likeable.likeButton
-import app.components.timeline.postHeader
+import app.components.shared.componentHeader
 import app.domain.core.AbstractEntity
-import app.domain.core.Data
-import app.domain.core.Link
 import app.domain.shared.FirstComment
 import app.domain.shared.SecondComment
 import app.services.ApplicationService
-import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -92,7 +89,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
                             className { "glass-border" }
 
-                            postHeader {
+                            componentHeader {
                                 model(this@form.model)
 
                                 onDelete {

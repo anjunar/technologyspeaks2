@@ -1,6 +1,5 @@
-package app.components.timeline
+package app.components.shared
 
-import app.domain.core.Data
 import app.domain.shared.OwnerProvider
 import app.domain.timeline.Post
 import jFx2.controls.*
@@ -21,7 +20,7 @@ import kotlinx.datetime.toInstant
 import org.w3c.dom.HTMLDivElement
 import kotlin.time.Clock
 
-class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private val model = Property<OwnerProvider>(Post())
 
@@ -171,10 +170,10 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 }
 
 context(scope: NodeScope)
-fun postHeader(block: context(NodeScope) PostHeader.() -> Unit = {}): PostHeader {
+fun componentHeader(block: context(NodeScope) ComponentHeader.() -> Unit = {}): ComponentHeader {
     val el = scope.create<HTMLDivElement>("div")
     el.classList.add("post-header")
-    val c = PostHeader(el)
+    val c = ComponentHeader(el)
     scope.attach(c)
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
