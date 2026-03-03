@@ -11,9 +11,11 @@ import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
 import jFx2.core.dsl.onClick
 import jFx2.core.dsl.renderFields
+import jFx2.core.dsl.style
 import jFx2.core.dsl.zIndex
 import jFx2.core.rendering.condition
 import jFx2.core.template
+import jFx2.layout.hbox
 import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.browser.window as browserWindow
@@ -30,7 +32,7 @@ class Window(
     val ui: NodeScope
 ) : Component<HTMLDivElement>() {
 
-    var maximizable = false
+    var maximized = Property(false)
     var draggable = true
     var resizeable = true
 
@@ -248,7 +250,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (!maximizable && draggable) {
+        if (draggable) {
             event.preventDefault()
             pointerX = event.clientX
             pointerY = event.clientY
@@ -279,7 +281,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointer = event.clientY
             document.addEventListener("mouseup", closeDragElement)
@@ -316,7 +318,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointerY = event.clientY
             pointerX = event.clientX
@@ -347,7 +349,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointer = event.clientX
             document.addEventListener("mouseup", closeDragElement)
@@ -385,7 +387,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointerY = event.clientY
             pointerX = event.clientX
@@ -424,7 +426,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointerY = event.clientY
             pointerX = event.clientX
@@ -456,7 +458,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointer = event.clientX
             document.addEventListener("mouseup", closeDragElement)
@@ -495,7 +497,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointerY = event.clientY
             pointerX = event.clientX
@@ -527,7 +529,7 @@ class Window(
             persistWindowStateToStorage()
         }
 
-        if (resizeable && !maximizable) {
+        if (resizeable) {
             event.preventDefault()
             pointer = event.clientY
             document.addEventListener("mouseup", closeDragElement)
@@ -539,7 +541,19 @@ class Window(
     fun afterBuild() {
         template {
 
+            kotlinx.browser.window.requestAnimationFrame {
+                maximized.set(true)
+            }
+
             zIndex(zIndex)
+
+            onDispose(maximized.observe {
+                if (it) {
+                    node.classList.remove("is-hidden")
+                } else {
+                    node.classList.add("is-hidden")
+                }
+            })
 
             onClick {
                 onClick?.invoke(this@Window)
@@ -554,16 +568,32 @@ class Window(
                     text { title }
                 }
 
-                condition({this@Window.onClose != null}) {
-                    then {
-                        button("close") {
-                            className { "material-icons" }
-                            onClick {
-                                onClose?.invoke(this@Window)
+                hbox {
+
+                    style {
+                        justifyContent = "flex-end"
+                    }
+
+                    button("stat_minus_1") {
+                        className { "material-icons" }
+                        onClick {
+                            it.stopPropagation()
+                            maximized.set(false)
+                        }
+                    }
+
+                    condition({this@Window.onClose != null}) {
+                        then {
+                            button("close") {
+                                className { "material-icons" }
+                                onClick {
+                                    onClose?.invoke(this@Window)
+                                }
                             }
                         }
                     }
                 }
+
 
 
             }

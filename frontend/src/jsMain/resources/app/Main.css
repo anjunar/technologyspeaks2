@@ -17,6 +17,7 @@ body {
 }
 
 .app-footer-bar {
+    display: flex;
     background-color: var(--color-background-secondary);
     height: 32px;
 }

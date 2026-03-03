@@ -15,6 +15,7 @@ import jFx2.layout.div
 import jFx2.router.PageInfo
 import jFx2.state.ListProperty
 import jFx2.state.Property
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -25,6 +26,7 @@ class WindowConf(
     val zIndex : Property<Int> = Property(0),
     val onClose: ((Window) -> Unit)? = null,
     val onClick: ((Window) -> Unit)? = null,
+    val maximized: Property<Boolean> = Property(false),
     val resizable: Boolean = false
 ) {
     val id : String = Uuid.generateV4().toString()
@@ -43,6 +45,7 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                 window {
 
                     subscribeBidirectional(window.zIndex, zIndex)
+                    subscribeBidirectional(window.maximized, maximized)
 
                     title = window.title
                     resizeable = window.resizable
@@ -85,11 +88,14 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
             var index = 0
             windows.forEach { window -> window.zIndex.set(index++) }
             conf.zIndex.set(index)
+            conf.maximized.set(true)
         }
 
         fun addWindow(conf: WindowConf) {
             windows.add(conf)
-            touchWindow(conf)
+            var index = 0
+            windows.forEach { window -> window.zIndex.set(index++) }
+            conf.zIndex.set(index)
         }
 
         fun closeWindow(conf: WindowConf) {
