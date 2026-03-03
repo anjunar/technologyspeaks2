@@ -49,21 +49,23 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                     alignItems = "center"
                 }
 
-                if (model.get().user == null || model.get().user?.get()!!.image.get() == null) {
-                    div {
-                        style {
-                            fontSize = "48px"
+                link("/core/users/user/${model.get().user?.get()?.id?.get()}") {
+                    if (model.get().user == null || model.get().user?.get()!!.image.get() == null) {
+                        div {
+                            style {
+                                fontSize = "48px"
+                            }
+                            className { "material-icons" }
+                            text("account_circle")
                         }
-                        className { "material-icons" }
-                        text("account_circle")
-                    }
-                } else {
-                    image {
-                        style {
-                            height = "48px"
-                            width = "48px"
+                    } else {
+                        image {
+                            style {
+                                height = "48px"
+                                width = "48px"
+                            }
+                            src = model.get().user!!.get().image.get()?.thumbnailLink()!!
                         }
-                        src = model.get().user!!.get().image.get()?.thumbnailLink()!!
                     }
                 }
 

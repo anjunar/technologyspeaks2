@@ -27,8 +27,22 @@ fun renderFields(vararg field: Component<*>) {
 
 
 context(scope: NodeScope)
-fun className(value: () -> String) {
-    (scope.parent as HTMLElement).className = value()
+fun className(block: () -> String) {
+    var disposed = false
+
+    fun scheduleNextFlush() {
+        if (disposed) return
+        scope.ui.build.dirty {
+            if (disposed) return@dirty
+            (scope.parent as HTMLElement).className = block()
+        }
+        scope.ui.build.afterBuild {
+            scheduleNextFlush()
+        }
+    }
+
+    scheduleNextFlush()
+    scope.dispose.register { disposed = true }
 }
 
 context(scope: NodeScope)

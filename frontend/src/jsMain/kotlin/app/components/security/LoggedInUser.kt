@@ -2,6 +2,7 @@ package app.components.security
 
 import app.services.ApplicationService
 import jFx2.controls.image
+import jFx2.controls.link
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
@@ -32,21 +33,23 @@ class LoggedInUser(override val node: HTMLDivElement) : Component<HTMLDivElement
                         columnGap = "10px"
                     }
 
-                    if (model.user.image.get() == null) {
-                        div {
-                            style {
-                                fontSize = "32px"
+                    link("/core/users/user/${model.user.id!!.get()}") {
+                        if (model.user.image.get() == null) {
+                            div {
+                                style {
+                                    fontSize = "32px"
+                                }
+                                className { "material-icons" }
+                                text("account_circle")
                             }
-                            className { "material-icons" }
-                            text("account_circle")
-                        }
-                    } else {
-                        image {
-                            style {
-                                height = "32px"
-                                width = "32px"
+                        } else {
+                            image {
+                                style {
+                                    height = "32px"
+                                    width = "32px"
+                                }
+                                src = model.user.image.get()?.thumbnailLink()!!
                             }
-                            src = model.user.image.get()?.thumbnailLink()!!
                         }
                     }
 

@@ -55,10 +55,6 @@ fun main() {
                 hbox {
                     className { "app-header-bar" }
 
-                    style {
-                        justifyContent = "flex-end"
-                    }
-
                     loggedInUser {
                         style {
                             marginRight = "10px"
@@ -71,7 +67,7 @@ fun main() {
 
                     observeRender(ApplicationService.app) { app ->
                         div {
-                            className { "glass app-shell-nav" }
+                            className { if (ViewPort.windows.isNotEmpty()) "glass app-shell-nav app-shell-nav-left" else "glass app-shell-nav app-shell-nav-center"  }
 
                             foreach(app.links, { key -> key.id }) { link, index ->
                                 link(link.url) {
@@ -80,10 +76,7 @@ fun main() {
                                         style { alignItems = "center" }
 
                                         span {
-                                            className { "material-icons" }
-                                            style {
-                                                fontSize = "100px"
-                                            }
+                                            className { "material-icons icon" }
                                             text { link.icon }
                                         }
                                         span {
