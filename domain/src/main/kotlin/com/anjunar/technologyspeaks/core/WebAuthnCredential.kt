@@ -18,8 +18,8 @@ class WebAuthnCredential(
 
     var aaguid: UUID,
 
-    var code: String
-) : Credential(), EntityContext<WebAuthnCredential> {
+    code: String
+) : Credential(code), EntityContext<WebAuthnCredential> {
 
     companion object : RepositoryContext<WebAuthnCredential>() {
 

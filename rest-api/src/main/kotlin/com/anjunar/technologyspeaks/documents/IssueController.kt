@@ -40,7 +40,7 @@ class IssueController(val identityHolder: IdentityHolder) {
     }
 
     @GetMapping("/document/documents/document/{document}/issues/issue/{id}", produces = ["application/json"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     @EntityGraph("Issue.full")
     fun read(@PathVariable("document") document: Document, @PathVariable("id") entity : Issue) : Data<Issue> {
 

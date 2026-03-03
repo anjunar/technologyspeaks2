@@ -12,6 +12,7 @@ import app.pages.core.usersPage
 import app.pages.documents.documentPage
 import app.pages.documents.issuePage
 import app.pages.homePage
+import app.pages.security.confirmPage
 import app.pages.security.logoutPage
 import app.pages.security.passwordLoginPage
 import app.pages.security.passwordRegisterPage
@@ -139,7 +140,8 @@ object Routes {
                         Route(path = "register", factory = { passwordRegisterPage {} }),
                         Route(path = "login/options", factory = { webAuthnLoginPage {} }),
                         Route(path = "register/options", factory = { webAuthnRegisterPage {} }),
-                        Route(path = "logout", factory = { logoutPage {} })
+                        Route(path = "logout", factory = { logoutPage {} }),
+                        Route(path = "confirm", factory = { confirmPage { } })
                     )
                 ),
                 Route(

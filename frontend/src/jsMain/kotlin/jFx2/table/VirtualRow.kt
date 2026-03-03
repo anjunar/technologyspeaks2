@@ -167,7 +167,13 @@ internal class VirtualTableFlow<R>(
         }
 
         val count = max(0, endExclusive - start)
-        if (count == 0) return
+        if (count == 0) {
+            for (row in rows) {
+                row.node.classList.add("is-hidden")
+                row.boundIndex = -1
+            }
+            return
+        }
 
         val used = min(count, rows.size)
 

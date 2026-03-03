@@ -4,6 +4,7 @@ import app.domain.core.AbstractLink
 import app.domain.core.Link
 import app.domain.core.UsersLink
 import app.domain.documents.DocumentsLink
+import app.domain.security.ConfirmLink
 import app.domain.security.LogoutLink
 import app.domain.security.PasswordLoginLink
 import app.domain.security.PasswordRegisterLink
@@ -100,6 +101,7 @@ object JsonClient {
                 subclass(WebAuthnRegisterLink::class)
                 subclass(PasswordLoginLink::class)
                 subclass(PasswordRegisterLink::class)
+                subclass(ConfirmLink::class)
                 subclass(UsersLink::class)
                 subclass(LogoutLink::class)
                 subclass(PostsLink::class)

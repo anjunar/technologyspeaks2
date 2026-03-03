@@ -34,16 +34,16 @@ class PasswordRegisterController(val registerService: RegisterService) {
             emailEntity.user = user
             user.emails.add(emailEntity)
 
-            val passwordCredential = PasswordCredential(password)
+            val secure = SecureRandom()
+            val n = secure.nextInt(1_000_000)
+            val code = String.format("$n%06d", n)
+
+            val passwordCredential = PasswordCredential(password, code)
             passwordCredential.email = emailEntity
             passwordCredential.roles.add(guestRole!!)
             emailEntity.credentials.add(passwordCredential)
 
             user.persist()
-
-            val secure = SecureRandom()
-            val n = secure.nextInt(1_000_000)
-            val code = String.format("$n%06d", n)
 
             registerService.register(email, code, nickName)
             return JsonObject()

@@ -18,7 +18,7 @@ class DocumentController(val identityHolder: IdentityHolder) {
 
 
     @GetMapping(value = ["/document/documents/document"], produces = ["application/json"])
-    @RolesAllowed("Document", "Administrator")
+    @RolesAllowed("User", "Administrator")
     @EntityGraph("Document.full")
     fun create(): Data<Document> {
 
@@ -39,7 +39,7 @@ class DocumentController(val identityHolder: IdentityHolder) {
     }
 
     @PostMapping(value = ["/document/documents/document/root"], produces = ["application/json"])
-    @RolesAllowed("Document", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     @EntityGraph("Document.full")
     fun root(): Data<Document> {
 
@@ -71,7 +71,7 @@ class DocumentController(val identityHolder: IdentityHolder) {
     }
 
     @GetMapping(value = ["/document/documents/document/{id}"], produces = ["application/json"])
-    @RolesAllowed("Document", "Administrator")
+    @RolesAllowed("User", "Administrator")
     @EntityGraph("Document.full")
     fun read(@PathVariable("id") entity : Document): Data<Document> {
 
@@ -92,7 +92,7 @@ class DocumentController(val identityHolder: IdentityHolder) {
     }
 
     @PostMapping(value = ["/document/documents/document"], produces = ["application/json"], consumes = ["application/json"])
-    @RolesAllowed("Document", "Administrator")
+    @RolesAllowed("User", "Administrator")
     @EntityGraph("Document.full")
     fun save(@RequestBody entity : Document): Data<Document> {
 
@@ -116,7 +116,7 @@ class DocumentController(val identityHolder: IdentityHolder) {
     }
 
     @PutMapping(value = ["/document/documents/document"], produces = ["application/json"], consumes = ["application/json"])
-    @RolesAllowed("Document", "Administrator")
+    @RolesAllowed("User", "Administrator")
     @EntityGraph("Document.full")
     fun update(@RequestBody entity : Document): Data<Document> {
 

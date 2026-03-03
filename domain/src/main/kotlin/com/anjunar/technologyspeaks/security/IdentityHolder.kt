@@ -17,6 +17,8 @@ class IdentityHolder(val sessionHolder: SessionHolder, val entityManager: Entity
 
     lateinit var roles: List<String>
 
+    lateinit var credential: Credential
+
     fun isAuthenticated() : Boolean {
         return sessionHolder.user != null
     }
@@ -34,11 +36,13 @@ class IdentityHolder(val sessionHolder: SessionHolder, val entityManager: Entity
 
             roles = listOf("Anonymous")
 
+            credential = PasswordCredential("Anonymous", "Anonymous")
+
 
         } else {
             user = User.find(sessionHolder.user!!)!!
 
-            val credential = entityManager.find(Credential::class.java, sessionHolder.credentials!!)!!
+            credential = entityManager.find(Credential::class.java, sessionHolder.credentials!!)!!
 
             roles = credential.roles.map { it.name }
         }

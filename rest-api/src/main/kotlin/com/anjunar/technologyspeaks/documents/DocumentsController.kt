@@ -18,7 +18,7 @@ import javax.print.Doc
 class DocumentsController(val query: HibernateSearch) {
 
     @GetMapping(value = ["/document/documents"], produces = ["application/json"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     @EntityGraph("Document.full")
     fun list(search: DocumentSearch): Table<DocumentRow> {
 

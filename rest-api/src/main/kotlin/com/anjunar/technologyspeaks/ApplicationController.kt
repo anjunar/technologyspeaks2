@@ -5,6 +5,7 @@ import com.anjunar.technologyspeaks.core.UsersController
 import com.anjunar.technologyspeaks.documents.DocumentController
 import com.anjunar.technologyspeaks.documents.DocumentsController
 import com.anjunar.technologyspeaks.rest.EntityGraph
+import com.anjunar.technologyspeaks.security.ConfirmController
 import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LogoutController
 import com.anjunar.technologyspeaks.security.PasswordLoginController
@@ -42,6 +43,9 @@ class ApplicationController(val identityHolder: IdentityHolder) {
                 .build(),
             LinkBuilder.create(LogoutController::logout)
                 .withRel("logout")
+                .build(),
+            LinkBuilder.create(ConfirmController::confirm)
+                .withRel("confirm")
                 .build(),
             LinkBuilder.create(UsersController::list)
                 .withRel("users")

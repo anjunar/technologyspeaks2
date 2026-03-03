@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 class MediaController {
 
     @GetMapping(value = ["/core/media/{id}"], produces = ["image/jpeg", "image/png", "image/gif"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     fun media(@PathVariable("id") media: Media): ResponseEntity<ByteArray> {
         return ResponseEntity.ok()
             .header("Content-Type", media.contentType)
@@ -20,7 +20,7 @@ class MediaController {
     }
 
     @GetMapping(value = ["/core/media/{id}/thumbnail"], produces = ["image/jpeg", "image/png", "image/gif"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     fun thumbnail(@PathVariable("id") media: Media): ResponseEntity<ByteArray> {
         return ResponseEntity.ok()
             .header("Content-Type", media.thumbnail.contentType)

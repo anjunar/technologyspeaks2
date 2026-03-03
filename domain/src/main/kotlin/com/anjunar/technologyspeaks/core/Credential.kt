@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "Core#Credential")
-class Credential() : AbstractEntity() {
+class Credential(var code : String) : AbstractEntity() {
 
     @ManyToMany
     @Size(min = 1, max = 10)

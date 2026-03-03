@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 class IssuesController(val query: HibernateSearch) {
 
     @GetMapping(value = ["/document/documents/document/{id}/issues"], produces = ["application/json"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     @EntityGraph("Issue.full")
     fun list(search: IssueSearch): Table<IssueRow> {
 
