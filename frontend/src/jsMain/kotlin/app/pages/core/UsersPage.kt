@@ -76,12 +76,22 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                             node = scope.create("div"),
                             render = { row, idx, v ->
                                 template {
-                                    image {
-                                        style {
-                                            height = "64px"
-                                            width = "64px"
+                                    if (v == null) {
+                                        div {
+                                            className { "material-icons" }
+                                            style {
+                                                fontSize = "64px"
+                                            }
+                                            text("account_circle")
                                         }
-                                        src = v?.thumbnailLink()!!
+                                    } else {
+                                        image {
+                                            style {
+                                                height = "64px"
+                                                width = "64px"
+                                            }
+                                            src = v.thumbnailLink()
+                                        }
                                     }
                                 }
                             }

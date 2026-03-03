@@ -23,7 +23,7 @@ class User(
     @Serializable(with = PropertySerializer::class)
     val nickName: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
-    val image : Property<Media?> = Property(Media()),
+    val image : Property<Media?> = Property(null),
     var info: UserInfo? = null,
     var address: Address? = null,
     @Serializable(with = ListPropertySerializer::class)
