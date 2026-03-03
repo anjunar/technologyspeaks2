@@ -67,6 +67,9 @@ fun mousedown(block: (MouseEvent) -> Unit) {
 context(scope: NodeScope)
 fun onClick(block: (MouseEvent) -> Unit) {
     val listener = block as (Event) -> Unit
-    scope.parent.addEventListener("click", listener)
+    scope.parent.addEventListener("click", {
+        listener(it)
+        scope.ui.build.flush()
+    })
     scope.dispose.register { scope.parent.removeEventListener("click", listener) }
 }

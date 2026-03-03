@@ -2,11 +2,13 @@
 
 package app
 
+import app.components.security.loggedInUser
 import app.services.ApplicationService
 import jFx2.controls.link
 import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.dsl.className
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.rendering.dynamicOutlet
 import jFx2.core.rendering.foreach
@@ -17,6 +19,7 @@ import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
+import jFx2.modals.ViewPort
 import jFx2.modals.viewport
 import jFx2.router.router
 import jFx2.router.windowRouter
@@ -51,6 +54,16 @@ fun main() {
 
                 hbox {
                     className { "app-header-bar" }
+
+                    style {
+                        justifyContent = "flex-end"
+                    }
+
+                    loggedInUser {
+                        style {
+                            marginRight = "10px"
+                        }
+                    }
                 }
 
                 div {
@@ -95,10 +108,26 @@ fun main() {
                 hbox {
                     className { "app-footer-bar" }
 
-                    foreach(jobs.entries, { key -> key.id }) { job, index ->
+                    foreach(ViewPort.windows, { key -> key.id }) { window, index ->
                         div {
+
+                            style {
+                                background = "var(--color-background-primary)"
+                                color = if (ViewPort.isActive(window)) "var(--color-selected)" else "var(--color-text)"
+                                margin = "2px"
+                                padding = "2px"
+                                lineHeight = "24px"
+                                height = "24px"
+                                width = "200px"
+                                textAlign = "center"
+                            }
+
                             text {
-                                job.label
+                                window.title
+                            }
+
+                            onClick {
+                                ViewPort.touchWindow(window)
                             }
                         }
                     }

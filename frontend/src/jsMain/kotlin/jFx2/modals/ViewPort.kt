@@ -77,7 +77,9 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     }
 
     companion object {
-        private val windows = ListProperty<WindowConf>()
+        val windows = ListProperty<WindowConf>()
+
+        fun isActive(conf: WindowConf) = windows.all { (it == conf) || (it.zIndex.get() < conf.zIndex.get()) }
 
         fun touchWindow(conf: WindowConf) {
             var index = 0
