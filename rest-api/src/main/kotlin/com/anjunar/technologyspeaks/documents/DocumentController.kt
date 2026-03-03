@@ -57,15 +57,24 @@ class DocumentController(val identityHolder: IdentityHolder) {
         val form = Data(entity, Document.schema())
 
         entity.addLinks(
-            LinkBuilder.create(DocumentController::update)
+            LinkBuilder.create(DocumentController::create)
+                .withRel("create-document")
                 .build(),
             LinkBuilder.create(IssuesController::list)
                 .withVariable("id", entity.id)
                 .build(),
             LinkBuilder.create(IssueController::create)
+                .withRel("create-issue")
                 .withVariable("id", entity.id)
                 .build()
         )
+
+        if (identityHolder.user == entity.user) {
+            entity.addLinks(
+                LinkBuilder.create(DocumentController::update)
+                    .build()
+            )
+        }
 
         return form
     }
@@ -78,8 +87,6 @@ class DocumentController(val identityHolder: IdentityHolder) {
         val form = Data(entity, Document.schema())
 
         entity.addLinks(
-            LinkBuilder.create(DocumentController::update)
-                .build(),
             LinkBuilder.create(IssuesController::list)
                 .withVariable("id", entity.id)
                 .build(),
@@ -87,6 +94,13 @@ class DocumentController(val identityHolder: IdentityHolder) {
                 .withVariable("id", entity.id)
                 .build()
         )
+
+        if (identityHolder.user == entity.user) {
+            entity.addLinks(
+                LinkBuilder.create(DocumentController::update)
+                    .build()
+            )
+        }
 
         return form
     }

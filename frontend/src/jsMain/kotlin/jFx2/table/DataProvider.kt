@@ -5,7 +5,6 @@ import kotlinx.coroutines.*
 import kotlin.math.floor
 
 interface DataProvider<T> {
-    /** null => unknown/infinite */
     val totalCount: Property<Int?>
     val sortState: Property<SortState?>  // NEW
     suspend fun loadRange(offset: Int, limit: Int): List<T>
@@ -18,6 +17,7 @@ class LazyTableModel<T>(
     private val pageSize: Int = 200,
     private val prefetchPages: Int = 2
 ) {
+
     val totalCount: Property<Int?> get() = provider.totalCount
 
     val invalidateTick = Property(0L)

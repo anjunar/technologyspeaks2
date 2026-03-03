@@ -40,24 +40,18 @@ import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
 
 private class RangeProvider(
-    private val listUrl: String,
+    private val post: Post,
     override val maxItems: Int = 5000,
     override val pageSize: Int = 50
 ) : RangeDataProvider<Data<out AbstractEntity>>() {
 
     override suspend fun fetch(index: Int, limit: Int): Table<out Data<out AbstractEntity>> =
-        JsonClient.invoke<Table<Data<FirstComment>>>(
-            "${listUrl}?index=${index - 1}&limit=$limit&sort=created:asc"
-        )
-
+        FirstComment.list(index, limit, post)
 }
-
-private fun serviceUrl(url: String): String =
-    if (url.startsWith("/service/")) url else "/service$url"
 
 class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
-    override val name: String = "Posts"
+    override val name: String = "Post"
     override val width: Int = - 1
     override val height: Int = -1
     override val resizable: Boolean = true
@@ -74,9 +68,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val createLink = model.get().data.links.get().firstOrNull { it.rel == createRel } ?: return
-        val listLink = model.get().data.links.firstOrNull { it.rel == "comments" } ?: return
-        val provider = RangeProvider(serviceUrl(listLink.url))
+        val provider = RangeProvider(model.get().data)
         provider.upsert(model.get())
 
         template {
@@ -157,8 +149,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                     onDelete {
                                                         JobRegistry.instance.launch("Comment Remove", "Comment") {
-                                                            val deleteLink = item.data.links.find { it.rel == "delete" }
-                                                            JsonClient.delete("/service" + deleteLink!!.url, item.data)
+                                                            item.data.delete(this@PostViewPage.model.get().data)
                                                             provider.remove(item)
                                                         }
                                                     }
@@ -171,7 +162,11 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                                                 form(model = item.data, clazz = FirstComment::class) {
                                                     onSubmit {
-                                                        JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, this@form.model)
+                                                        if (model.id == null) {
+                                                            model.save(this@PostViewPage.model.get().data)
+                                                        } else {
+                                                            model.update(this@PostViewPage.model.get().data)
+                                                        }
                                                         item.data.editable.set(false)
                                                     }
 
@@ -198,7 +193,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                 }
 
                                                 commentsSection {
-                                                    model(item.data)
+                                                    model(item.data, this@PostViewPage.model.get().data)
                                                 }
 
                                             }

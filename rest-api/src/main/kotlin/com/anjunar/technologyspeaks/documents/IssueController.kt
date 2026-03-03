@@ -27,12 +27,6 @@ class IssueController(val identityHolder: IdentityHolder) {
         entity.addLinks(
             LinkBuilder.create(IssueController::save)
                 .withVariable("id", document.id)
-                .build(),
-            LinkBuilder.create(IssueCommentsController::comments)
-                .withVariable("issue", entity.id)
-                .build(),
-            LinkBuilder.create(IssueCommentController::save)
-                .withVariable("id", entity.id)
                 .build()
         )
 
@@ -44,12 +38,18 @@ class IssueController(val identityHolder: IdentityHolder) {
     @EntityGraph("Issue.full")
     fun read(@PathVariable("document") document: Document, @PathVariable("id") entity : Issue) : Data<Issue> {
 
+
+        if (identityHolder.user == entity.user) {
+            entity.addLinks(
+                LinkBuilder.create(IssueController::update)
+                    .withVariable("id", entity.document.id)
+                    .build(),
+                LinkBuilder.create(IssueController::delete)
+                    .build()
+            )
+        }
+
         entity.addLinks(
-            LinkBuilder.create(IssueController::update)
-                .withVariable("id", entity.document.id)
-                .build(),
-            LinkBuilder.create(IssueController::delete)
-                .build(),
             LinkBuilder.create(IssueCommentsController::comments)
                 .withVariable("issue", entity.id)
                 .build(),

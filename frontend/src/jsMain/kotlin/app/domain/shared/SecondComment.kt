@@ -1,8 +1,12 @@
 package app.domain.shared
 
 import app.domain.core.AbstractEntity
+import app.domain.core.Data
 import app.domain.core.Link
 import app.domain.core.User
+import app.domain.documents.Document
+import app.domain.timeline.Post
+import jFx2.client.JsonClient
 import jFx2.forms.editor.EditorNode
 import jFx2.forms.editor.NodeSerializer
 import jFx2.state.ListProperty
@@ -39,6 +43,23 @@ class SecondComment(
 
     @Transient
     val editable = Property(false)
+
+    suspend fun save(document : Document) : Data<FirstComment> {
+        return JsonClient.post("/service/document/documents/document/issues/issue/${document.id!!.get()}/comment", this)
+    }
+
+    suspend fun save(post : Post) : Data<FirstComment> {
+        return JsonClient.post("/service//timeline/posts/post/${post.id!!.get()}/comment", this)
+    }
+
+    suspend fun update(document : Document) : Data<FirstComment> {
+        return JsonClient.put("/service/document/documents/document/issues/issue/${document.id!!.get()}/comment", this)
+    }
+
+    suspend fun update(post : Post) : Data<FirstComment> {
+        return JsonClient.put("/service//timeline/posts/post/${post.id!!.get()}/comment", this)
+    }
+
 
 }
 

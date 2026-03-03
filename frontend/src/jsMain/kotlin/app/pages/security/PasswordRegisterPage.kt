@@ -45,7 +45,8 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                 onSubmit {
 
-                    val post : JsonResponse = JsonClient.post("/service/security/register", this@form.model)
+                    model.save()
+
                     close()
 
                 }

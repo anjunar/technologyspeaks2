@@ -38,6 +38,7 @@ import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.router.navigateByRel
+import jFx2.router.renderByRel
 import jFx2.state.JobRegistry
 import jFx2.state.Property
 import jFx2.virtual.RangeDataProvider
@@ -45,15 +46,13 @@ import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
 
 private class RangeProvider(
-    private val listUrl: String,
+    private val issue : Issue,
     override val maxItems: Int = 5000,
     override val pageSize: Int = 50
 ) : RangeDataProvider<Data<out AbstractEntity>>() {
 
     override suspend fun fetch(index: Int, limit: Int): Table<out Data<out AbstractEntity>> =
-        JsonClient.invoke<Table<Data<FirstComment>>>(
-            "${listUrl}?index=${index - 1}&limit=$limit&sort=created:asc"
-        )
+        FirstComment.list(index, limit, issue)
 
 }
 
@@ -78,9 +77,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
     context(scope: NodeScope)
     fun afterBuild() {
 
-        val createLink = model.get().links.get().firstOrNull { it.rel == "save" } ?: return
-        val listLink = model.get().links.firstOrNull { it.rel == "comments" } ?: return
-        val provider = RangeProvider("/service" + listLink.url)
+        val provider = RangeProvider(model.get())
         provider.upsert(Data(model.get()))
 
         template {
@@ -219,8 +216,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                                                         onDelete {
                                                             JobRegistry.instance.launch("Comment Remove", "Comment") {
-                                                                val deleteLink = item.data.links.find { it.rel == "delete" }
-                                                                JsonClient.delete("/service" + deleteLink!!.url, item.data)
+                                                                item.data.delete(this@IssuePage.model.get())
                                                                 provider.remove(item)
                                                             }
                                                         }
@@ -233,7 +229,12 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                                                     form(model = item.data, clazz = FirstComment::class) {
                                                         onSubmit {
-                                                            JsonClient.post<FirstComment, Data<FirstComment>>("/service" + createLink.url, model)
+                                                            if (model.id == null) {
+                                                                model.save(model)
+                                                            } else {
+                                                                model.update(model)
+                                                            }
+
                                                             item.data.editable.set(false)
                                                         }
 
@@ -260,7 +261,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                     }
 
                                                     commentsSection {
-                                                        model(item.data)
+                                                        model(item.data, this@IssuePage.model.get())
                                                     }
 
                                                 }
@@ -272,31 +273,33 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                         )
                     }
 
-                    input("newComment") {
-                        style {
-                            margin = "12px"
-                            padding = "12px"
-                            width = "calc(100% - 48px)"
-                            backgroundColor = "var(--color-background-secondary)"
-                            fontSize = "24px"
-                            borderRadius = "8px"
-                        }
+                    renderByRel("save", model.links.get()) {
+                        input("newComment") {
+                            style {
+                                margin = "12px"
+                                padding = "12px"
+                                width = "calc(100% - 48px)"
+                                backgroundColor = "var(--color-background-secondary)"
+                                fontSize = "24px"
+                                borderRadius = "8px"
+                            }
 
-                        placeholder = "Neuer Kommentar..."
-                        onClick {
-                            val lastItem = provider.getOrNull(provider.items.size - 1)
-                            if (lastItem!!.data is FirstComment) {
-                                if (! lastItem.data.editable.get()) {
+                            placeholder = "Neuer Kommentar..."
+                            onClick {
+                                val lastItem = provider.getOrNull(provider.items.size - 1)
+                                if (lastItem!!.data is FirstComment) {
+                                    if (! lastItem.data.editable.get()) {
+                                        val firstComment = FirstComment()
+                                        firstComment.editable.set(true)
+                                        firstComment.user = Property(ApplicationService.app.get().user)
+                                        provider.upsert(Data(firstComment))
+                                    }
+                                } else {
                                     val firstComment = FirstComment()
                                     firstComment.editable.set(true)
                                     firstComment.user = Property(ApplicationService.app.get().user)
                                     provider.upsert(Data(firstComment))
                                 }
-                            } else {
-                                val firstComment = FirstComment()
-                                firstComment.editable.set(true)
-                                firstComment.user = Property(ApplicationService.app.get().user)
-                                provider.upsert(Data(firstComment))
                             }
                         }
                     }

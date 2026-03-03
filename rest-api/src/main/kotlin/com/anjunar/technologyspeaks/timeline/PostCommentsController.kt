@@ -37,23 +37,35 @@ class PostCommentsController(val query: HibernateSearch, val identityHolder: Ide
                     .withVariable("id", row.data.id)
                     .build(),
                 LinkBuilder.create(PostCommentController::update)
+                    .withRel("updateChildren")
                     .withVariable("id", search.post.id)
                     .build(),
-                LinkBuilder.create(PostCommentController::delete)
-                    .withVariable("id", search.post.id)
-                    .build()
-            )
+                )
+
+            if (row.data.user == identityHolder.user) {
+                row.data.addLinks(
+                    LinkBuilder.create(PostCommentController::update)
+                        .withVariable("id", search.post.id)
+                        .build(),
+                    LinkBuilder.create(PostCommentController::delete)
+                        .withVariable("id", search.post.id)
+                        .build()
+                )
+            }
 
 
             row.data.comments.forEach { comment ->
 
+                comment.addLinks(
+                    LinkBuilder.create(PostLikeController::likeSecondComment)
+                        .withRel("like")
+                        .withVariable("id", comment.id)
+                        .build()
+                )
+
                 if (comment.user == identityHolder.user) {
 
                     comment.addLinks(
-                        LinkBuilder.create(PostLikeController::likeSecondComment)
-                            .withRel("like")
-                            .withVariable("id", comment.id)
-                            .build(),
                         LinkBuilder.create(PostCommentController::update)
                             .withVariable("id", search.post.id)
                             .build(),

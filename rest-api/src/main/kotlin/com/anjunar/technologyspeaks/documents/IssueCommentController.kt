@@ -38,7 +38,6 @@ class IssueCommentController(val identityHolder: IdentityHolder) {
     @RolesAllowed("User", "Administrator")
     fun update(@PathVariable("id") post: Issue, @RequestBody body: FirstComment): Data<FirstComment> {
 
-        body.user = identityHolder.user
         body.comments.filter {
             try {
                 it.user == null

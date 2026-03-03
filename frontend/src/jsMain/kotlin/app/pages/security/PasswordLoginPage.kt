@@ -49,7 +49,7 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                 onSubmit {
 
-                    val post : JsonResponse = JsonClient.post("/service/security/login", this@form.model)
+                    loginForm.save()
 
                     ApplicationService.invoke()
 

@@ -50,12 +50,12 @@ class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement
 
                 onSubmit {
                     if (model.id == null) {
-                        val saved = JsonClient.post<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
+                        val saved = model.save()
                         ApplicationService.messageBus.publish(PostCreated(saved))
                         close()
                     } else {
-                        val saved = JsonClient.put<Post, Data<Post>>("/service/timeline/posts/post", this@form.model)
-                        ApplicationService.messageBus.publish(PostUpdated(saved))
+                        val updated = model.update()
+                        ApplicationService.messageBus.publish(PostUpdated(updated))
                         close()
                     }
                 }

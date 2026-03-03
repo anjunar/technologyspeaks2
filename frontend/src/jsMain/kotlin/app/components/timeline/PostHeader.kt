@@ -50,7 +50,7 @@ class PostHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     alignItems = "center"
                 }
 
-                if (model.get().user == null) {
+                if (model.get().user == null || model.get().user?.get()!!.image.get() == null) {
                     div {
                         style {
                             fontSize = "48px"

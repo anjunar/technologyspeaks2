@@ -4,6 +4,7 @@ import com.anjunar.technologyspeaks.hibernate.search.HibernateSearch
 import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.rest.types.Table
+import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import jakarta.annotation.security.RolesAllowed
 import jakarta.json.bind.annotation.JsonbProperty
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class IssuesController(val query: HibernateSearch) {
+class IssuesController(val query: HibernateSearch, val identityHolder: IdentityHolder) {
 
     @GetMapping(value = ["/document/documents/document/{id}/issues"], produces = ["application/json"])
     @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
@@ -37,10 +38,15 @@ class IssuesController(val query: HibernateSearch) {
                 LinkBuilder.create(IssueController::read)
                     .withVariable("document", entity.data.document.id)
                     .withVariable("id", entity.data.id)
-                    .build(),
-                LinkBuilder.create(IssueController::delete)
                     .build()
             )
+
+            if (identityHolder.user == entity.data.user) {
+                entity.data.addLinks(
+                    LinkBuilder.create(IssueController::delete)
+                        .build()
+                )
+            }
         }
 
         val table = Table(entities, count, Issue.schema())

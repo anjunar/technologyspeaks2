@@ -24,8 +24,9 @@ class SecondComment : AbstractComment(), EntityContext<SecondComment>, LikeConta
     companion object : RepositoryContext<SecondComment>(), SchemaProvider {
 
         class Schema : AbstractEntitySchema<SecondComment>() {
-            val user = property(SecondComment::user)
-            val editor = property(SecondComment::editor, DefaultWritableRule())
+            @JsonbProperty val user = property(SecondComment::user)
+            @JsonbProperty val editor = property(SecondComment::editor, DefaultWritableRule())
+            @JsonbProperty val likes = property(SecondComment::likes)
         }
     }
 }

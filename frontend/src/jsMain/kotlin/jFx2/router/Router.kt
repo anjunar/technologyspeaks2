@@ -67,6 +67,13 @@ fun router(routes: List<Route>, block: context(NodeScope) Router.() -> Unit = {}
     return c
 }
 
+fun renderByRel(rel : String, links : List<Link>, body : () -> Unit) {
+    val find = links.find { it.rel == rel }
+    if (find != null) {
+        body()
+    }
+}
+
 fun navigateByRel(rel : String, links : List<Link>, body : (() -> Unit) -> Unit) {
     val find = links.find { it.rel == rel }
     if (find != null) {

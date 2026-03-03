@@ -44,12 +44,13 @@ object Routes {
                                         Route(
                                             path = "root",
                                             factory = {
-                                                val document = JsonClient.invoke<Data<Document>>("/service/document/documents/document/root",
-                                                    RequestInit("POST")
-                                                )
+
+                                                val root = Document.root()
+
+                                                val documents = Document.list(0, 200)
 
                                                 documentPage {
-                                                    model(document.data)
+                                                    model(root.data, documents)
                                                 }
                                             }
                                         )
@@ -64,7 +65,7 @@ object Routes {
                                                 Route(
                                                     path = "issue",
                                                     factory = { params ->
-                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/${params["documentId"]!!}/issues/issue")
+                                                        val issue = Issue.read(params["documentId"]!!)
 
                                                         issuePage {
                                                             documentId(params["documentId"]!!)
@@ -75,7 +76,7 @@ object Routes {
                                                 Route(
                                                     path = "issue/:id",
                                                     factory = { params ->
-                                                        val issue = JsonClient.invoke<Data<Issue>>("/service/document/documents/document/${params["documentId"]!!}/issues/issue/" + params["id"]!!)
+                                                        val issue = Issue.read(params["documentId"]!!, params["id"]!!)
 
                                                         issuePage {
                                                             documentId(params["documentId"]!!)
@@ -97,7 +98,7 @@ object Routes {
                         Route(
                             path = "posts",
                             factory = {
-                                val table = JsonClient.invoke<Table<Data<Post>>>("/service/timeline/posts?index=0&limit=50&sort=created:desc")
+                                val table = Post.list(0, 200)
                                 postsPage {
                                     model(table)
                                 }
@@ -112,8 +113,8 @@ object Routes {
                                 Route(
                                     path = "post/:id",
                                     factory = { params ->
-                                        val post =
-                                            JsonClient.invoke<Data<Post>>("/service/timeline/posts/post/" + params["id"]!!)
+                                        val post = Post.read(params["id"]!!)
+
                                         postEditPage {
                                             model(post)
                                         }
@@ -122,8 +123,8 @@ object Routes {
                                 Route(
                                     path = "post/:id/view",
                                     factory = { params ->
-                                        val post =
-                                            JsonClient.invoke<Data<Post>>("/service/timeline/posts/post/" + params["id"]!!)
+                                        val post = Post.read(params["id"]!!)
+
                                         postViewPage {
                                             model(post)
                                         }
@@ -150,7 +151,7 @@ object Routes {
                         Route(
                             path = "users",
                             factory = {
-                                val table = JsonClient.invoke<Table<Data<User>>>("/service/core/users")
+                                val table = User.list(0, 50)
 
                                 usersPage {
                                     model(table)
@@ -160,8 +161,8 @@ object Routes {
                                 Route(
                                     path = "user/:id",
                                     factory = { params ->
-                                        val user =
-                                            JsonClient.invoke<Data<User>>("/service/core/users/user/" + params["id"]!!)
+                                        val user = User.read(params["id"]!!)
+
                                         userPage {
                                             model(user)
                                         }

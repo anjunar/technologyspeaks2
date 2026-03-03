@@ -34,7 +34,7 @@ class UsersProvider : DataProvider<Data<User>> {
     override val sortState: Property<SortState?> = Property(null)
 
     override suspend fun loadRange(offset: Int, limit: Int): List<Data<User>> {
-        val table = JsonClient.invoke<Table<Data<User>>>("/service/core/users?index=${offset}&limit=$limit&sort=created:desc")
+        val table = User.list(offset, limit)
 
         totalCount.set(table.size)
 

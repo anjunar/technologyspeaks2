@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 class IssueCommentsController(val query: HibernateSearch, val identityHolder: IdentityHolder) {
 
     @GetMapping(value = ["/document/documents/document/issues/issue/{issue}/comments"], produces = ["application/json"])
-    @RolesAllowed("User", "Administrator")
+    @RolesAllowed("Anonymous", "Guest", "User", "Administrator")
     fun comments(search: IssueCommentSearch): Table<CommentRow> {
         val searchContext = query.searchContext(search)
 
@@ -37,23 +37,35 @@ class IssueCommentsController(val query: HibernateSearch, val identityHolder: Id
                     .withVariable("id", row.data.id)
                     .build(),
                 LinkBuilder.create(IssueCommentController::update)
-                    .withVariable("id", search.issue.id)
-                    .build(),
-                LinkBuilder.create(IssueCommentController::delete)
+                    .withRel("updateChildren")
                     .withVariable("id", search.issue.id)
                     .build()
             )
 
+            if (row.data.user == identityHolder.user) {
+                row.data.addLinks(
+                    LinkBuilder.create(IssueCommentController::update)
+                        .withVariable("id", search.issue.id)
+                        .build(),
+                    LinkBuilder.create(IssueCommentController::delete)
+                        .withVariable("id", search.issue.id)
+                        .build()
+                )
+            }
+
 
             row.data.comments.forEach { comment ->
+
+                comment.addLinks(
+                    LinkBuilder.create(IssueLikeController::likeSecondComment)
+                        .withRel("like")
+                        .withVariable("id", comment.id)
+                        .build()
+                    )
 
                 if (comment.user == identityHolder.user) {
 
                     comment.addLinks(
-                        LinkBuilder.create(IssueLikeController::likeSecondComment)
-                            .withRel("like")
-                            .withVariable("id", comment.id)
-                            .build(),
                         LinkBuilder.create(IssueCommentController::update)
                             .withVariable("id", search.issue.id)
                             .build(),

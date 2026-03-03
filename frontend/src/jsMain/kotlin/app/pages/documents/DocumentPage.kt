@@ -42,6 +42,7 @@ import jFx2.layout.vbox
 import jFx2.router.PageInfo
 import jFx2.router.navigate
 import jFx2.router.navigateByRel
+import jFx2.router.renderByRel
 import jFx2.state.JobRegistry
 import jFx2.state.Property
 import jFx2.table.ComponentCell
@@ -72,9 +73,7 @@ class DocumentsProvider(private val query: Property<String>) : DataProvider<Data
         val queryValue = query.get().trim()
         val queryParameter = if (queryValue.isBlank()) "" else "&name=${encodeURIComponent(queryValue)}"
         val sortParameter = if (queryValue.isBlank()) "&sort=created:desc" else ""
-        val table = JsonClient.invoke<Table<Data<Document>>>(
-            "/service/document/documents?index=${offset}&limit=$limit$sortParameter$queryParameter"
-        )
+        val table = Document.list(offset, limit)
 
         totalCount.set(table.size)
 
@@ -88,7 +87,8 @@ class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSi
         val documentId = document.get().id?.get()
         if (documentId.isNullOrBlank()) return Table<Data<Issue>>(size = 0)
 
-        return JsonClient.invoke<Table<Data<Issue>>>("/service/document/documents/document/$documentId/issues?index=$index&limit=$limit&sort=created:desc")
+        return Issue.list(index, limit, document.get())
+
     }
 }
 
@@ -103,8 +103,16 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
     private val model = Property(Document())
 
-    fun model(value : Document) {
+    private val searchQuery = Property("")
+    private val provider = DocumentsProvider(searchQuery)
+    private val job = SupervisorJob()
+    private val cs = CoroutineScope(job)
+    private val tableModel = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
+
+    fun model(value : Document, documents : Table<Data<Document>>) {
         model.set(value)
+        tableModel.setAll(documents.rows)
+        tableModel.totalCount.set(documents.size)
     }
 
     fun timeAgo(dateTime: LocalDateTime, clock: Clock = Clock.System): String {
@@ -128,12 +136,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
     fun afterBuild() {
 
         val issuesProvider = IssuesRangeProvider(document = model)
-        val searchQuery = Property("")
-        val provider = DocumentsProvider(searchQuery)
-        val job = SupervisorJob()
-        val cs = CoroutineScope(job)
         onDispose { job.cancel() }
-        val tableModel = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
         scope.dispose.register(
             ApplicationService.messageBus.subscribe { message ->
@@ -264,37 +267,40 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                         }
                     })
                     onDispose { searchJob?.cancel() }
- 
-                    button("") {
-                        node.classList.add("doc-new-btn")
-                        style {
-                            marginBottom = "12px"
-                            display = "flex"
-                            alignItems = "center"
-                            justifyContent = "center"
-                            columnGap = "10px"
-                        }
-                        type("button")
 
-                        span {
-                            node.classList.add("material-icons")
+                    navigateByRel("create-document", model.get().links) {
+                        button("") {
+                            node.classList.add("doc-new-btn")
                             style {
-                                fontSize = "20px"
-                                opacity = "0.85"
+                                marginBottom = "12px"
+                                display = "flex"
+                                alignItems = "center"
+                                justifyContent = "center"
+                                columnGap = "10px"
                             }
-                            text("add")
-                        }
-                        span {
-                            text("Neues Dokument")
-                        }
+                            type("button")
 
-                        onClick {
-                            docsTable.selectionModel.clearSelection()
-                            val document = Document()
-                            document.editable.set(true)
-                            model.set(document)
+                            span {
+                                node.classList.add("material-icons")
+                                style {
+                                    fontSize = "20px"
+                                    opacity = "0.85"
+                                }
+                                text("add")
+                            }
+                            span {
+                                text("Neues Dokument")
+                            }
+
+                            onClick {
+                                docsTable.selectionModel.clearSelection()
+                                val document = Document()
+                                document.editable.set(true)
+                                model.set(document)
+                            }
                         }
                     }
+
                 }
 
                 observeRender(model) { observedModel ->
@@ -302,12 +308,10 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                         node.classList.add("doc-panel")
 
                         onSubmit {
-                            val updateLink = this@form.model.links.find { it.rel == "update" }
-
-                            if (updateLink == null) {
-                                JsonClient.post("/service/document/documents/document", this@form.model)
+                            if (model.id == null) {
+                                model.save()
                             } else {
-                                JsonClient.invoke(updateLink, this@form.model)
+                                model.update()
                             }
                         }
 
@@ -333,20 +337,22 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                                 onDispose(model.editable.observe { editable -> node.disabled = !editable })
                             }
 
-                            button("edit") {
+                            renderByRel("update", model.links) {
+                                button("edit") {
 
-                                type("button")
+                                    type("button")
 
-                                onClick { model.editable.set(!model.editable.get()) }
+                                    onClick { model.editable.set(!model.editable.get()) }
 
-                                node.classList.add("material-icons")
-                                node.classList.add("doc-icon-btn")
-                                onDispose(
-                                    model.editable.observe { editable ->
-                                        text(if (editable) "done" else "edit")
-                                        if (editable) node.classList.add("active") else node.classList.remove("active")
-                                    }
-                                )
+                                    node.classList.add("material-icons")
+                                    node.classList.add("doc-icon-btn")
+                                    onDispose(
+                                        model.editable.observe { editable ->
+                                            text(if (editable) "done" else "edit")
+                                            if (editable) node.classList.add("active") else node.classList.remove("active")
+                                        }
+                                    )
+                                }
                             }
                         }
 
@@ -444,33 +450,36 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             })
                     }
 
-                    button("") {
-                        node.classList.add("doc-new-btn")
-                        style {
-                            marginBottom = "12px"
-                            display = "flex"
-                            alignItems = "center"
-                            justifyContent = "center"
-                            columnGap = "10px"
-                        }
-                        type("button")
-
-                        span {
-                            node.classList.add("material-icons")
+                    navigateByRel("create-issue", model.get().links) { navigate ->
+                        button("") {
+                            node.classList.add("doc-new-btn")
                             style {
-                                fontSize = "20px"
-                                opacity = "0.85"
+                                marginBottom = "12px"
+                                display = "flex"
+                                alignItems = "center"
+                                justifyContent = "center"
+                                columnGap = "10px"
                             }
-                            text("add")
-                        }
-                        span {
-                            text("Neue Aufgabe")
-                        }
+                            type("button")
 
-                        onClick {
-                            navigate("/document/documents/document/${model.get().id!!.get()}/issues/issue")
+                            span {
+                                node.classList.add("material-icons")
+                                style {
+                                    fontSize = "20px"
+                                    opacity = "0.85"
+                                }
+                                text("add")
+                            }
+                            span {
+                                text("Neue Aufgabe")
+                            }
+
+                            onClick {
+                                navigate()
+                            }
                         }
                     }
+
                 }
 
             }

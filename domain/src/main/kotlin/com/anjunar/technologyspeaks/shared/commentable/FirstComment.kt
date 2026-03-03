@@ -31,9 +31,10 @@ class FirstComment : AbstractComment(), EntityContext<FirstComment>, LikeContain
     companion object : RepositoryContext<FirstComment>(), SchemaProvider {
 
         class Schema : AbstractEntitySchema<FirstComment>() {
-            val user = property(FirstComment::user)
-            val editor = property(FirstComment::editor, DefaultWritableRule())
-            val comments = property(FirstComment::comments, DefaultWritableRule())
+            @JsonbProperty val user = property(FirstComment::user)
+            @JsonbProperty val editor = property(FirstComment::editor, DefaultWritableRule())
+            @JsonbProperty val comments = property(FirstComment::comments, DefaultWritableRule())
+            @JsonbProperty val likes = property(FirstComment::likes)
         }
     }
 }

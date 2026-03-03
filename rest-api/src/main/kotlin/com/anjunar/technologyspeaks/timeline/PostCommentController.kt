@@ -2,10 +2,12 @@ package com.anjunar.technologyspeaks.timeline
 
 import com.anjunar.technologyspeaks.rest.types.Data
 import com.anjunar.technologyspeaks.security.IdentityHolder
+import com.anjunar.technologyspeaks.security.LinkBuilder
 import com.anjunar.technologyspeaks.shared.commentable.FirstComment
 import jakarta.annotation.security.RolesAllowed
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -38,7 +40,6 @@ class PostCommentController(val identityHolder: IdentityHolder) {
     @RolesAllowed("User", "Administrator")
     fun update(@PathVariable("id") post: Post, @RequestBody body: FirstComment): Data<FirstComment> {
 
-        body.user = identityHolder.user
         body.comments.filter {
             try {
                 it.user == null

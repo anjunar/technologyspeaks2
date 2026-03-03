@@ -32,7 +32,7 @@ object ApplicationService {
     val messageBus = MessageBus()
 
     suspend fun invoke() {
-        app.set(JsonClient.invoke("/service"))
+        app.set(Application.read())
     }
 
 }

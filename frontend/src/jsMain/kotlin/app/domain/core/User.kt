@@ -1,5 +1,6 @@
 package app.domain.core
 
+import jFx2.client.JsonClient
 import jFx2.state.ListProperty
 import jFx2.state.ListPropertySerializer
 import jFx2.state.Property
@@ -13,7 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
-class User(
+data class User(
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
@@ -33,7 +34,26 @@ class User(
     override val links : ListProperty<Link> = ListProperty()
 )  : AbstractEntity {
 
-    override fun toString(): String {
-        return "User(id=$id, nickName=$nickName, image=$image, info=$info, address=$address, emails=$emails)"
+    suspend fun save() : Data<User> {
+        return JsonClient.post("/service/core/users/user", this)
+    }
+
+    suspend fun update() : Data<User> {
+        return JsonClient.put("/service/core/users/user", this)
+    }
+
+    suspend fun delete() {
+        JsonClient.delete("/service/core/users/user", this)
+    }
+
+    companion object {
+
+        suspend fun read(id : String) : Data<User> {
+            return JsonClient.invoke<Data<User>>("/service/core/users/user/$id")
+        }
+
+        suspend fun list(index : Int, limit : Int) : Table<Data<User>> {
+            return JsonClient.invoke<Table<Data<User>>>("/service/core/users?index=$index&limit=$limit&sort=created:desc")
+        }
     }
 }

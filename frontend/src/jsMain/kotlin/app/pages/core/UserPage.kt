@@ -53,9 +53,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                 onSubmit {
 
-                    JobRegistry.instance.launch("Save User") {
-                        JsonClient.put("/service/core/users/user", this@form.model)
-                    }
+                    this@form.model.update()
 
                 }
 

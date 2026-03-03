@@ -35,8 +35,7 @@ class PostRangeProvider(
 ) : RangeDataProvider<Data<Post>>() {
 
     override suspend fun fetch(index: Int, limit: Int): Table<Data<Post>> {
-        val table =
-            JsonClient.invoke<Table<Data<Post>>>("/service/timeline/posts?index=${items.size}&limit=$limit&sort=created:desc")
+        val table = Post.list(index, limit)
 
         knownCount = table.size
         hasKnownCount = true
