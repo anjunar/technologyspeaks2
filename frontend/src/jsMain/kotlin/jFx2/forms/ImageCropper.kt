@@ -37,6 +37,8 @@ class ImageCropper(
 
     val validatorsProperty = ListProperty<Validator>()
 
+    val editable = Property(true)
+
     // If set, crop rectangle keeps this width/height ratio.
     var aspectRatio: Double? = null
 
@@ -65,6 +67,12 @@ class ImageCropper(
     private lateinit var clearBtn: HTMLButtonElement
 
     override var placeholder: String = ""
+
+    override var disabled: Boolean
+        get() = ! editable.get()
+        set(value) {
+            editable.set(!value)
+        }
 
     override fun observeValue(listener: (Media?) -> Unit): Disposable = valueProperty.observe(listener)
 
@@ -97,9 +105,17 @@ class ImageCropper(
             it.classList.add("hover")
         }
 
-        toolbar.appendChild(fileInput)
-        toolbar.appendChild(cropBtn)
-        toolbar.appendChild(clearBtn)
+        onDispose(editable.observe { editable ->
+            if (editable) {
+                toolbar.appendChild(fileInput)
+                toolbar.appendChild(cropBtn)
+                toolbar.appendChild(clearBtn)
+            } else {
+                toolbar.removeChild(fileInput)
+                toolbar.removeChild(cropBtn)
+                toolbar.removeChild(clearBtn)
+            }
+        })
 
         previewImg = scope.create<HTMLImageElement>("img").also { it.classList.add("preview") }
 

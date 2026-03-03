@@ -56,6 +56,12 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
     private var editorView: ProseMirrorEditorView? = null
     private var domSerializer: DOMSerializer? = null
 
+    override var disabled: Boolean
+        get() = ! editable.get()
+        set(value) {
+            editable.set(!value)
+        }
+
     private fun parseDoc(schema: Schema, value: EditorNode?): Node? {
         return runCatching {
             schema.asDynamic().nodeFromJSON(value).unsafeCast<Node>()

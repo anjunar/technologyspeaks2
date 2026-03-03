@@ -2,6 +2,7 @@ package com.anjunar.technologyspeaks.core
 
 import com.anjunar.technologyspeaks.rest.EntityGraph
 import com.anjunar.technologyspeaks.rest.types.Data
+import com.anjunar.technologyspeaks.security.IdentityHolder
 import com.anjunar.technologyspeaks.security.LinkBuilder
 import jakarta.annotation.security.RolesAllowed
 import jakarta.json.bind.annotation.JsonbProperty
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class UserController {
+class UserController(val identityHolder: IdentityHolder) {
 
     @GetMapping(value = ["/core/users/user/{id}"], produces = ["application/json"])
     @RolesAllowed("User", "Administrator")
@@ -22,13 +23,12 @@ class UserController {
 
         val form = Data(user, User.schema())
 
-        user.addLinks(
-            LinkBuilder.create(UserController::update)
-                .build(),
-            LinkBuilder.create(ManagedPropertyController::read)
-                .withVariable("id", "")
-                .build()
-        )
+        if (identityHolder.user == user) {
+            user.addLinks(
+                LinkBuilder.create(UserController::update)
+                    .build()
+            )
+        }
 
         return form
     }

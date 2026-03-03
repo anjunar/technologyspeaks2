@@ -25,6 +25,7 @@ import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
 import jFx2.router.PageInfo
+import jFx2.router.renderByRel
 import jFx2.state.JobRegistry
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
@@ -50,6 +51,8 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
     fun afterBuild() {
         template {
             form(model = model.get().data, clazz = User::class) {
+
+                disabled = model.links.find { it.rel == "update" } == null
 
                 onSubmit {
 
@@ -196,17 +199,20 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                     }
 
-                    hbox {
+                    renderByRel("update", model.links) {
+                        hbox {
 
-                        style {
-                            justifyContent = "flex-end"
+                            style {
+                                justifyContent = "flex-end"
+                            }
+
+                            button("Speichern") {
+
+                            }
+
                         }
-
-                        button("Speichern") {
-
-                        }
-
                     }
+
                 }
             }
         }

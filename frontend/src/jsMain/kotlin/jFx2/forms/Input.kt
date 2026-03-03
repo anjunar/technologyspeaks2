@@ -52,6 +52,12 @@ class Input(
     val valueAsNumberProperty = Property(node.valueAsNumber)
     val editable = Property(!node.disabled)
 
+    override var disabled: Boolean
+        get() = ! editable.get()
+        set(value) {
+            editable.set(!value)
+        }
+
     fun onChange(callback : (Event) -> Unit) {
         node.onchange = callback
     }

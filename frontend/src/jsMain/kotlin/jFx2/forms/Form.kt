@@ -12,6 +12,7 @@ import jFx2.core.dsl.registerSubForm
 import jFx2.core.dsl.renderFields
 import jFx2.decodeURIComponent
 import jFx2.state.JobRegistry
+import jFx2.state.Property
 import kotlinx.browser.window
 import org.w3c.dom.HTMLFormElement
 import kotlin.reflect.KClass
@@ -24,17 +25,31 @@ class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz
 
     var submitHandler: (suspend () -> Unit)? = null
 
+    val editable = Property(true)
+
     fun onSubmit(handler: suspend () -> Unit) { submitHandler = handler }
 
     var disabled : Boolean
-        get() = node.hasAttribute("disabled")
+        get() = ! editable.get()
         set(v) {
-            if (v) node.setAttribute("disabled", "true") else node.removeAttribute("disabled")
+            editable.set(!v)
         }
 
     context(scope: NodeScope)
     fun initialize() {
         renderFields(*this@Form.children.toTypedArray())
+
+        onDispose(editable.observe { v ->
+            if (v) {
+                node.removeAttribute("disabled")
+            } else {
+                node.setAttribute("disabled", "true")
+            }
+
+            fields.forEach { it.value.disabled = ! v }
+            subForms.forEach { it.value.disabled = !v }
+        })
+
 
         node.setAttribute("action", window.location.pathname + window.location.search)
 

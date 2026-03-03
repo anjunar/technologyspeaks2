@@ -14,6 +14,12 @@ class Select(override val node: HTMLSelectElement) : FormField<String?, HTMLSele
 
     val value = Property<String?>(null)
 
+    override var disabled: Boolean
+        get() = node.disabled
+        set(value) {
+            node.disabled = value
+        }
+
     context(scope: NodeScope)
     fun initialize() {
         node.onchange = { value.set(node.value) }

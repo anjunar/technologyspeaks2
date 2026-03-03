@@ -11,6 +11,8 @@ abstract class FormField<V, N : Element> : Component<N>() {
     val statusProperty = ListProperty<String>()
     val errorsProperty = ListProperty<String>()
 
+    abstract var disabled : Boolean
+
     abstract fun read(): V
     abstract fun observeValue(listener: (V) -> Unit): Disposable
 }
