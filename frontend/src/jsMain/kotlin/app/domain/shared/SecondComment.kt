@@ -23,7 +23,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
 
 @Serializable
-class SecondComment(
+data class SecondComment(
     @Serializable(with = PropertySerializer::class)
     override var id: Property<String>? = null,
     @Serializable(with = PropertySerializer::class)

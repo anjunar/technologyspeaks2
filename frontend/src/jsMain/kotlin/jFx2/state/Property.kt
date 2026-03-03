@@ -38,6 +38,11 @@ class Property<T>(var value: T) : ReadOnlyProperty<T> {
         return { listeners.remove(id) }
     }
 
+    override fun toString(): String {
+        return "Property(value=$value)"
+    }
+
+
 }
 
 fun <T> Property<T>.subscribeBidirectional(

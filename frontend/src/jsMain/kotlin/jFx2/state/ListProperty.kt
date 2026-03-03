@@ -254,8 +254,6 @@ class ListProperty<T>(
         return old
     }
 
-    override fun toString(): String = backing.toString()
-
     private fun fireValue() {
         val snapshot = valueListeners.values.toList()
         val v = get() // snapshot list
@@ -266,6 +264,12 @@ class ListProperty<T>(
         val snapshot = changeListeners.values.toList()
         snapshot.forEach { it(change) }
     }
+
+    override fun toString(): String {
+        return "ListProperty(backing=$backing)"
+    }
+
+
 }
 
 fun <T> ListProperty<T>.subscribe(target: ListProperty<T>): Disposable {

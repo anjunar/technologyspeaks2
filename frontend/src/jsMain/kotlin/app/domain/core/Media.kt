@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
-class Media(
+data class Media(
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)

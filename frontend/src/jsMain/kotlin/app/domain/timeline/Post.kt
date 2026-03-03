@@ -23,7 +23,7 @@ import org.w3c.fetch.RequestInit
 import kotlin.time.Clock
 
 @Serializable
-class Post (
+data class Post (
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)

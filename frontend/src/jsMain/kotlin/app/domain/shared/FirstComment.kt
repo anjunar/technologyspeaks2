@@ -24,7 +24,7 @@ import kotlinx.serialization.Transient
 import kotlin.time.Clock
 
 @Serializable
-class FirstComment(
+data class FirstComment(
     @Serializable(with = PropertySerializer::class)
     override var id: Property<String>? = null,
     @Serializable(with = PropertySerializer::class)

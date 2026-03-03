@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
-class Email(
+data class Email(
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
@@ -25,9 +25,4 @@ class Email(
     @SerialName($$"$links")
     @Serializable(with = ListPropertySerializer::class)
     override val links : ListProperty<Link> = ListProperty()
-)  : AbstractEntity {
-
-    override fun toString(): String {
-        return "Email(value=${value.get()})"
-    }
-}
+)  : AbstractEntity

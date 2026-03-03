@@ -8,7 +8,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 @Serializable
-class PasswordRegister(
+data class PasswordRegister(
     @Serializable(with = PropertySerializer::class)
     val email : Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)

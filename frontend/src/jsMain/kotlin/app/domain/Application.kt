@@ -9,7 +9,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Application(
+data class Application(
     val user: User = User(),
     @SerialName($$"$links")
     @Serializable(with = ListPropertySerializer::class)

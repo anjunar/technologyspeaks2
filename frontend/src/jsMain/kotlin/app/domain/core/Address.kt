@@ -15,7 +15,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 @Serializable
-class Address(
+data class Address(
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
@@ -33,9 +33,4 @@ class Address(
     @SerialName($$"$links")
     @Serializable(with = ListPropertySerializer::class)
     override val links : ListProperty<Link> = ListProperty()
-) : AbstractEntity {
-
-    override fun toString(): String {
-        return "Address(id=$id, street=$street, number=$number, zipCode=$zipCode, country=$country)"
-    }
-}
+) : AbstractEntity

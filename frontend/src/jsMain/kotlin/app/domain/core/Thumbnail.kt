@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
-open class Thumbnail(
+data class Thumbnail(
     @Serializable(with = PropertySerializer::class)
     override var id : Property<String>? = null,
     @Serializable(with = PropertySerializer::class)
