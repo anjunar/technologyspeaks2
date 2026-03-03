@@ -128,19 +128,22 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                     }
                                 }
 
-                                button("close") {
-                                    type("button")
-                                    className { "material-icons" }
-                                    onClick {
-                                        if (infoDisabled.get()) {
-                                            this@form.model.info = this@form.subForms["info"]!!.model as UserInfo
-                                            infoDisabled.set(false)
-                                        } else {
-                                            this@form.model.info = null
-                                            infoDisabled.set(true)
+                                renderByRel("update", this@UserPage.model.get().data.links) {
+                                    button("close") {
+                                        type("button")
+                                        className { "material-icons" }
+                                        onClick {
+                                            if (infoDisabled.get()) {
+                                                this@form.model.info = this@form.subForms["info"]!!.model as UserInfo
+                                                infoDisabled.set(false)
+                                            } else {
+                                                this@form.model.info = null
+                                                infoDisabled.set(true)
+                                            }
                                         }
                                     }
                                 }
+
                             }
 
                             hbox {
@@ -180,16 +183,18 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                     }
                                 }
 
-                                button("close") {
-                                    type("button")
-                                    className { "material-icons" }
-                                    onClick {
-                                        if (addressDisabled.get()) {
-                                            this@form.model.address = this@form.subForms["address"]!!.model as Address
-                                            addressDisabled.set(false)
-                                        } else {
-                                            this@form.model.address = null
-                                            addressDisabled.set(true)
+                                renderByRel("update", this@UserPage.model.get().data.links) {
+                                    button("close") {
+                                        type("button")
+                                        className { "material-icons" }
+                                        onClick {
+                                            if (addressDisabled.get()) {
+                                                this@form.model.address = this@form.subForms["address"]!!.model as Address
+                                                addressDisabled.set(false)
+                                            } else {
+                                                this@form.model.address = null
+                                                addressDisabled.set(true)
+                                            }
                                         }
                                     }
                                 }
