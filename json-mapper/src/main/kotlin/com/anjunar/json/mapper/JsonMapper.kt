@@ -7,6 +7,7 @@ import com.anjunar.json.mapper.serializers.Serializer
 import com.anjunar.json.mapper.serializers.SerializerRegistry
 import com.anjunar.kotlin.universe.ResolvedClass
 import jakarta.persistence.EntityGraph
+import jakarta.validation.ConstraintViolationException
 import jakarta.validation.Validator
 
 @Suppress("UNCHECKED_CAST")
@@ -17,8 +18,15 @@ object JsonMapper {
 
         val context = JsonContext(type, instance, graph, loader, validator, null, null)
 
-        return deserializer.deserialize(jsonNode, context)
+        if (context.violations.isEmpty()) {
+            return deserializer.deserialize(jsonNode, context)
+        } else {
+            val errorRequests = context.flatten()
+                .flatMap { context -> context.violations }
+                .map { violation -> ErrorRequest(context.pathWithIndexes(), violation.message) }
 
+            throw ErrorRequestException(errorRequests)
+        }
     }
 
     fun serialize(instance : Any, type : ResolvedClass, graph : EntityGraph<*>?) : String {

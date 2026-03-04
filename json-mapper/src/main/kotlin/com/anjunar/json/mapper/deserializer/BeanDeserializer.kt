@@ -106,39 +106,44 @@ class BeanDeserializer : Deserializer<Any> {
         }
     }
 
-    private fun  handleNormalProperty(
+    private fun handleNormalProperty(
         node: JsonNode?,
         property: BeanProperty,
         context: JsonContext,
         oldValue: Any?
     ) {
         if (node == null) {
-            if (context.instance != null) {
-                property.set(context.instance, null)
-            }
-        } else {
+            return
+        }
 
-            val converterAnnotation = property.findAnnotation(UseConverter::class.java)
-
-            if (converterAnnotation == null) {
-                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
-
-                property.set(context.instance!!, value)
-            } else {
-                val value = deserializeValue(TypeResolver.resolve(String::class.java), property.name, oldValue, context, node)
-
-                if (value is String) {
-
-                    val converter = converterAnnotation.value.primaryConstructor?.call()
-
-                    val convertedValue = converter?.toJava(value, property.propertyType)
-
-                    property.set(context.instance!!, convertedValue)
-
-                } else {
-                    throw IllegalArgumentException("Converter only support string type")
+        if (node is JsonNull) {
+            context.instance?.let { instance ->
+                context.checkForViolations(instance.javaClass, property.name, null) {
+                    property.set(instance, null)
                 }
             }
+            return
+        }
+
+        val instance = context.instance!!
+
+        val useConverter = property.findAnnotation(UseConverter::class.java)
+        if (useConverter == null) {
+            val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
+            context.checkForViolations(instance.javaClass, property.name, value) {
+                property.set(instance, value)
+            }
+            return
+        }
+
+        val rawValue = deserializeValue(TypeResolver.resolve(String::class.java), property.name, oldValue, context, node)
+        val stringValue = rawValue as? String ?: throw IllegalArgumentException("Converter only support string type")
+
+        val converter = useConverter.value.primaryConstructor?.call()
+        val convertedValue = converter?.toJava(stringValue, property.propertyType)
+
+        context.checkForViolations(instance.javaClass, property.name, convertedValue) {
+            property.set(instance, convertedValue)
         }
     }
 
@@ -149,19 +154,21 @@ class BeanDeserializer : Deserializer<Any> {
         oldValue: Any?
     ) {
         val instance = context.instance!!
+
         if (node == null) {
-            val collection = property.get(instance) as MutableCollection<Any?>
-            collection.clear()
-        } else {
-            if (oldValue == null) {
-                throw IllegalStateException("Collection property must be initialized")
-            } else {
-                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
-                val originalCollection = property.get(instance) as MutableCollection<Any>
-                originalCollection.clear()
-                originalCollection.addAll(value as Collection<Any>)
-                synchronizeBidirectionalRelations(instance, property, originalCollection)
-            }
+            return
+        }
+
+        val existingCollection = oldValue ?: throw IllegalStateException("Collection property must be initialized")
+        val deserialized = deserializeValue(property.propertyType, property.name, existingCollection, context, node) as Collection<Any>
+
+        val targetCollection = property.get(instance) as MutableCollection<Any>
+
+        context.checkForViolations(instance.javaClass, property.name, targetCollection) {
+            targetCollection.clear()
+            targetCollection.addAll(deserialized)
+
+            synchronizeBidirectionalRelations(instance, property, targetCollection)
         }
     }
 
@@ -172,19 +179,21 @@ class BeanDeserializer : Deserializer<Any> {
         oldValue: Any?
     ) {
         val instance = context.instance!!
+
         if (node == null) {
-            val originalCollection = property.get(instance) as MutableMap<String, Any?>
-            originalCollection.clear()
-        } else {
-            if (oldValue == null) {
-                throw IllegalStateException("Collection property must be initialized")
-            } else {
-                val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
-                val originalCollection = property.get(instance) as MutableMap<String, Any?>
-                originalCollection.clear()
-                originalCollection.putAll(value as Map<String, Any>)
-                synchronizeBidirectionalRelations(instance, property, originalCollection)
-            }
+            return
+        }
+
+        val existingMap = oldValue ?: throw IllegalStateException("Collection property must be initialized")
+        val deserialized = deserializeValue(property.propertyType, property.name, existingMap, context, node) as Map<String, Any>
+
+        val targetMap = property.get(instance) as MutableMap<String, Any?>
+
+        context.checkForViolations(instance.javaClass, property.name, targetMap) {
+            targetMap.clear()
+            targetMap.putAll(deserialized)
+
+            synchronizeBidirectionalRelations(instance, property, targetMap)
         }
     }
 
@@ -198,43 +207,59 @@ class BeanDeserializer : Deserializer<Any> {
     ) {
         val instance = context.instance!!
 
-        when(node) {
-            null -> {}
-            is JsonNull -> {
+        if (node == null) return
+
+        if (node is JsonNull) {
+
+            context.checkForViolations(instance.javaClass, property.name, null) {
                 property.set(instance, null)
             }
-            else -> {
-                if (oldValue == null) {
-                    val jsonObject = node as JsonObject
-                    val jsonId = jsonObject.value["id"]
 
-                    if (jsonId == null) {
-                        val newInstance = propertyType.java.getConstructor().newInstance()
-                        val value = deserializeValue(property.propertyType, property.name, newInstance, context, node)
-                        property.set(instance, value)
-                        synchronizeBidirectionalRelations(instance, property, value)
-                    } else {
-                        val id = UUID.fromString(jsonId!!.value.toString())
-                        val entity = context.loader.load(id, propertyType.java)
-                        if (entity == null) {
-                            val newInstance = propertyType.java.getConstructor().newInstance()
-                            val value = deserializeValue(property.propertyType, property.name, newInstance, context, node)
-                            property.set(instance, value)
-                            synchronizeBidirectionalRelations(instance, property, value)
-                        } else {
-                            property.set(instance, entity)
-                        }
-                    }
+            return
+        }
 
+        if (oldValue != null) {
+            val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
+            context.checkForViolations(instance.javaClass, property.name, value) {
+                setPropertyAndSynchronize(instance, property, value)
+            }
+            return
+        }
 
-                } else {
-                    val value = deserializeValue(property.propertyType, property.name, oldValue, context, node)
-                    property.set(instance, value)
-                    synchronizeBidirectionalRelations(instance, property, value)
+        val jsonObject = node as JsonObject
+        val jsonId = jsonObject.value["id"]
+
+        if (jsonId != null) {
+            val id = UUID.fromString(jsonId.value.toString())
+            val entity = context.loader.load(id, propertyType.java)
+            if (entity != null) {
+                context.checkForViolations(instance.javaClass, property.name, entity) {
+                    property.set(instance, entity)
                 }
+                return
             }
         }
 
+        val value = deserializeNewEntity(propertyType, property, context, node)
+
+        context.checkForViolations(instance.javaClass, property.name, value) {
+            setPropertyAndSynchronize(instance, property, value)
+        }
+    }
+
+    private fun deserializeNewEntity(
+        propertyType: KClass<*>,
+        property: BeanProperty,
+        context: JsonContext,
+        node: JsonNode
+    ): Any {
+        val newInstance = propertyType.java.getConstructor().newInstance()
+        return deserializeValue(property.propertyType, property.name, newInstance, context, node)
+    }
+
+    private fun setPropertyAndSynchronize(owner: Any, property: BeanProperty, value: Any?) {
+        property.set(owner, value)
+        synchronizeBidirectionalRelations(owner, property, value)
     }
 
     private fun synchronizeBidirectionalRelations(owner: Any, property: BeanProperty, value: Any?) {

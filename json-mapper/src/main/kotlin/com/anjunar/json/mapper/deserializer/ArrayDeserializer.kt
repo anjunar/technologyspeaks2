@@ -24,7 +24,7 @@ class ArrayDeserializer : Deserializer<Collection<*>> {
                 val elementResolvedClass = context.type.typeArguments[0]
                 DeserializerRegistry.findDeserializer(elementResolvedClass.raw, json)
 
-                for (node in json.value) {
+                json.value.forEachIndexed { index, node ->
 
                     when (node) {
                         is JsonObject -> {
@@ -41,7 +41,7 @@ class ArrayDeserializer : Deserializer<Collection<*>> {
                                 entityCollection.find { it.id == entityId } ?: elementResolvedClass.raw.getConstructor().newInstance()
                             }
 
-                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context.validator, context, context.name)
+                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context.validator, context, context.name, index)
 
                             collection.add(DeserializerRegistry
                                 .findDeserializer(elementResolvedClass.raw, node)
