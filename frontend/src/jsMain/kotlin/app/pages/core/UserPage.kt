@@ -25,6 +25,7 @@ import jFx2.forms.subForm
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
+import jFx2.modals.Viewport
 import jFx2.router.PageInfo
 import jFx2.router.renderByRel
 import jFx2.state.JobRegistry
@@ -59,6 +60,8 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                 onSubmit {
 
                     this@form.model.update()
+
+                    Viewport.notify("Benutzer gespeichert!", Viewport.Companion.NotificationKind.SUCCESS)
 
                 }
 

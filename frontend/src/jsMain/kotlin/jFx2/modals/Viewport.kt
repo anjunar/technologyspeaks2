@@ -2,9 +2,12 @@
 
 package jFx2.modals
 
+import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.codegen.JfxComponentBuilder
+import jFx2.core.dsl.className
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
@@ -15,6 +18,7 @@ import jFx2.layout.div
 import jFx2.router.PageInfo
 import jFx2.state.ListProperty
 import jFx2.state.Property
+import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -62,12 +66,51 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                     }
                 }
             }
+
+            div {
+                className { "jfx2-notification-host" }
+
+                foreach(notifications, { key -> key.id }) { notification, index ->
+                    div {
+                        className { "jfx2-notification kind-${notification.kind.cssClass}" }
+
+                        onDispose(notification.visible.observe { visible ->
+                            if (visible) {
+                                node.classList.remove("is-hidden")
+                            } else {
+                                node.classList.add("is-hidden")
+                            }
+                        })
+
+                        onClick {
+                            closeNotification(notification)
+                        }
+
+                        text(notification.message)
+                    }
+                }
+            }
         }
 
 
     }
 
     companion object {
+        enum class NotificationKind(val cssClass: String) {
+            INFO("info"),
+            SUCCESS("success"),
+            WARNING("warning"),
+            ERROR("error")
+        }
+
+        class NotificationConf(
+            val message: String,
+            val kind: NotificationKind = NotificationKind.INFO,
+        ) {
+            val id: String = Uuid.generateV4().toString()
+            val visible: Property<Boolean> = Property(true)
+        }
+
         class WindowConf(
             val title : String,
             val component : context(NodeScope) () -> Component<*>,
@@ -81,6 +124,28 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
         }
 
         val windows = ListProperty<WindowConf>()
+        val notifications = ListProperty<NotificationConf>()
+
+        private const val notificationFadeOutMs: Int = 250
+
+        fun notify(
+            message: String,
+            kind: NotificationKind = NotificationKind.INFO,
+            durationMs: Int = 3000,
+        ): NotificationConf {
+            val conf = NotificationConf(message = message, kind = kind)
+            notifications.add(conf)
+
+            window.setTimeout({ conf.visible.set(false) }, durationMs)
+            window.setTimeout({ notifications.remove(conf) }, durationMs + notificationFadeOutMs)
+
+            return conf
+        }
+
+        fun closeNotification(conf: NotificationConf) {
+            conf.visible.set(false)
+            window.setTimeout({ notifications.remove(conf) }, notificationFadeOutMs)
+        }
 
         fun isActive(conf: WindowConf) = windows.all { (it == conf) || (it.zIndex.get() < conf.zIndex.get()) }
 
