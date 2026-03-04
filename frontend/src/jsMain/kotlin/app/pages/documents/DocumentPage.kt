@@ -299,6 +299,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     form(model = observedModel, clazz = Document::class) {
                         node.classList.add("doc-panel")
 
+                        subscribeBidirectional(model.editable, editable)
+
                         onSubmit {
                             if (model.id == null) {
                                 model.save()
@@ -348,7 +350,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             }
                         }
 
-                        editor("editor", model.editable.get()) {
+                        editor("editor") {
                             node.classList.add("doc-editor")
 
                             basePlugin { }

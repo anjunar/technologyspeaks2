@@ -80,7 +80,7 @@ fun main() {
                                             text { link.icon }
                                         }
                                         span {
-                                            style { fontSize = "10px" }
+                                            className { "app-shell-nav-text" }
                                             text {
                                                 link.name
                                             }

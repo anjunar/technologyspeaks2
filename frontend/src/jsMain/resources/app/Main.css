@@ -44,6 +44,11 @@ body {
         font-size: 300px;
         transition: font-size 0.6s ease;
     }
+
+    .app-shell-nav-text {
+        font-size: 30px;
+    }
+
 }
 
 .app-shell-nav-left {
@@ -54,6 +59,10 @@ body {
 
     .icon {
         font-size: 100px;
+    }
+
+    .app-shell-nav-text {
+        font-size: 10px;
     }
 
 }
@@ -68,4 +77,9 @@ body {
     .icon {
         font-size: 300px;
     }
+
+    .app-shell-nav-text {
+        font-size: 30px;
+    }
+
 }
