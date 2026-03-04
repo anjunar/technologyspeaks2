@@ -16,11 +16,10 @@ import jFx2.core.template
 import jFx2.forms.editor.prosemirror.*
 import jFx2.forms.form
 import jFx2.forms.input
-import jFx2.forms.jsObject
+import jFx2.jsObject
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.modals.Viewport
-import jFx2.modals.WindowConf
 import jFx2.state.Property
 import kotlinx.browser.window
 import org.w3c.dom.Element
@@ -46,87 +45,94 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
         val dimensions = Dimensions()
 
         Viewport.addWindow(
-            WindowConf(
-            "Add Image",
-            {
+            Viewport.Companion.WindowConf(
+                "Add Image",
+                {
 
-                form(model = dimensions, clazz = Dimensions::class) {
-                    var myImage : Image? = null
+                    form(model = dimensions, clazz = Dimensions::class) {
+                        var myImage: Image? = null
 
-                    onSubmit {
-                        insertImage(myImage!!.src, this@form.model.width.value.toInt(), this@form.model.height.value.toInt())
-                    }
-
-                    div {
-                        style {
-                            display = "flex"
-                            justifyContent = "center"
-                            width = "320px"
-                            height = "240px"
+                        onSubmit {
+                            insertImage(
+                                myImage!!.src,
+                                this@form.model.width.value.toInt(),
+                                this@form.model.height.value.toInt()
+                            )
                         }
 
-                        myImage = image {
-                            if (attrs["src"] != null) {
-                                src = attrs["src"] as String
-                            }
+                        div {
                             style {
-                                maxWidth = "320px"
-                                maxHeight = "240px"
+                                display = "flex"
+                                justifyContent = "center"
+                                width = "320px"
+                                height = "240px"
                             }
 
-                            window.setTimeout({
-                                this@form.model.width.set(myImage!!.node.width.toDouble())
-                                this@form.model.height.set(myImage!!.node.height.toDouble())
-                            }, 100)
-
-                        }
-                    }
-
-
-                    input("image", "file") {
-
-                        onChange { event ->
-                            val input = event.target as HTMLInputElement
-
-                            val reader = FileReader()
-
-                            reader.onload = {
-                                myImage!!.src = reader.result as String
+                            myImage = image {
+                                if (attrs["src"] != null) {
+                                    src = attrs["src"] as String
+                                }
+                                style {
+                                    maxWidth = "320px"
+                                    maxHeight = "240px"
+                                }
 
                                 window.setTimeout({
-                                    dimensions.width.set(myImage.node.width.toDouble())
-                                    dimensions.height.set(myImage.node.height.toDouble())
+                                    this@form.model.width.set(myImage!!.node.width.toDouble())
+                                    this@form.model.height.set(myImage!!.node.height.toDouble())
                                 }, 100)
 
                             }
-
-                            reader.readAsDataURL(input.files?.item(0)!!)
                         }
 
-                    }
 
-                    hbox {
-                        input("width", "number") {
-                            placeholder = "Width"
-                            subscribeBidirectional(this@form.model.width, valueAsNumberProperty)
+                        input("image") {
+                            type("file")
+
+                            onChange { event ->
+                                val input = event.target as HTMLInputElement
+
+                                val reader = FileReader()
+
+                                reader.onload = {
+                                    myImage!!.src = reader.result as String
+
+                                    window.setTimeout({
+                                        dimensions.width.set(myImage.node.width.toDouble())
+                                        dimensions.height.set(myImage.node.height.toDouble())
+                                    }, 100)
+
+                                }
+
+                                reader.readAsDataURL(input.files?.item(0)!!)
+                            }
+
                         }
 
-                        input("height", "number") {
-                            placeholder = "Height"
-                            subscribeBidirectional(this@form.model.height, valueAsNumberProperty)
-                        }
-                    }
+                        hbox {
+                            input("width") {
+                                type("number")
+                                placeholder = "Width"
+                                subscribeBidirectional(this@form.model.width, valueAsNumberProperty)
+                            }
 
-                    button("Submit") {
-                        style {
-                            marginLeft = "10px"
+                            input("height") {
+                                type("number")
+                                placeholder = "Height"
+                                subscribeBidirectional(this@form.model.height, valueAsNumberProperty)
+                            }
                         }
+
+                        button("Submit") {
+                            style {
+                                marginLeft = "10px"
+                            }
+                        }
+
                     }
 
                 }
-
-            }
-        ))
+            ))
     }
 
     fun insertImage(source: String, width: Int, height: Int) {
@@ -228,7 +234,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
     }
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
         template {
 
             button("image") {

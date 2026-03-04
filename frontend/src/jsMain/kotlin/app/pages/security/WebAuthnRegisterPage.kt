@@ -94,7 +94,8 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                     inputContainer("Email") {
 
-                        input("email", "email") {
+                        input("email") {
+                            type("email")
                             validatorsProperty.add(EmailValidator())
                             subscribeBidirectional(this@form.model.email, valueProperty)
                         }

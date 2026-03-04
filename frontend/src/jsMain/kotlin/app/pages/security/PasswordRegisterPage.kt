@@ -89,7 +89,8 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                     inputContainer("Email") {
 
-                        input("email", "email") {
+                        input("email") {
+                            type("email")
                             validatorsProperty.add(EmailValidator())
                             subscribeBidirectional(this@form.model.email, valueProperty)
                         }
@@ -98,7 +99,8 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
                     inputContainer("Password") {
 
-                        input("password", "password") {
+                        input("password") {
+                            type("password")
                             validatorsProperty.add(SizeValidator(5, 30))
                             subscribeBidirectional(this@form.model.password, valueProperty)
                         }

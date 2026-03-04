@@ -15,12 +15,11 @@ import jFx2.forms.editor.prosemirror.NodeSpec
 import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.PluginKey
 import jFx2.forms.editor.prosemirror.PluginSpec
-import jFx2.forms.editor.prosemirror.Schema
 //import jFx2.forms.editor.prosemirror.toggleMark
 import jFx2.forms.editor.prosemirror.undo
 import jFx2.forms.editor.prosemirror.redo
 import jFx2.forms.editor.prosemirror.toggleMark
-import jFx2.forms.jsObject
+import jFx2.jsObject
 import jFx2.layout.hbox
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement

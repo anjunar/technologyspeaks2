@@ -31,20 +31,6 @@ import jFx2.virtual.RangeDataProvider
 import jFx2.virtual.virtualList
 import org.w3c.dom.HTMLDivElement
 
-class PostRangeProvider(
-    override val maxItems: Int = 5000, override val pageSize: Int = 50
-) : RangeDataProvider<Data<Post>>() {
-
-    override suspend fun fetch(index: Int, limit: Int): Table<Data<Post>> {
-        val table = Post.list(index, limit)
-
-        knownCount = table.size
-        hasKnownCount = true
-
-        return table
-    }
-}
-
 @JfxComponentBuilder(classes = ["posts-page"])
 class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
     override val name: String = "Posts"
@@ -184,6 +170,22 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                             }
                         })
                 }
+            }
+        }
+    }
+
+    companion object {
+        class PostRangeProvider(
+            override val maxItems: Int = 5000, override val pageSize: Int = 50
+        ) : RangeDataProvider<Data<Post>>() {
+
+            override suspend fun fetch(index: Int, limit: Int): Table<Data<Post>> {
+                val table = Post.list(index, limit)
+
+                knownCount = table.size
+                hasKnownCount = true
+
+                return table
             }
         }
     }

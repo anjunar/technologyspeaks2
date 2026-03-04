@@ -3,10 +3,8 @@ package jFx2.forms
 import app.domain.core.Media
 import app.domain.core.Thumbnail
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.registerField
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.modals.Viewport
-import jFx2.modals.WindowConf
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
@@ -20,9 +18,8 @@ import org.w3c.dom.events.Event
 import org.w3c.files.File
 import org.w3c.files.FileReader
 
-class ImageCropper(
-    override val node: HTMLDivElement,
-) : FormField<Media?, HTMLDivElement>(), HasPlaceholder {
+@JfxComponentBuilder(classes = ["image-cropper-field"])
+class ImageCropper(override val node: HTMLDivElement, override val name: String) : FormField<Media?, HTMLDivElement>(), HasPlaceholder {
 
     // Cropped (or original) result as Media (base64 in Media.data).
     val valueProperty = Property<Media?>(null)
@@ -76,7 +73,7 @@ class ImageCropper(
     override fun read(): Media? = valueProperty.get()
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
         defaultData = valueProperty.get()?.data?.get()
 
         node.classList.add("image-cropper")
@@ -197,10 +194,10 @@ class ImageCropper(
     private fun openCropWindow(source: Media) {
         if (source.data.get().isBlank()) return
 
-        val session = ImageCropperSession(initialValue = valueProperty.get())
+        val session = ImageCropperDialog.Companion.ImageCropperSession(initialValue = valueProperty.get())
 
-        lateinit var conf: WindowConf
-        conf = WindowConf(
+        lateinit var conf: Viewport.Companion.WindowConf
+        conf = Viewport.Companion.WindowConf(
             title = windowTitle,
             component = {
                 imageCropperDialog(this@ImageCropper, conf, source, session)
@@ -332,27 +329,4 @@ class ImageCropper(
             }
         }
     }
-}
-
-context(scope: NodeScope)
-fun imageCropper(
-    name: String,
-    block: context(NodeScope) ImageCropper.() -> Unit = {},
-): ImageCropper {
-    val el = scope.create<HTMLDivElement>("div").also {
-        it.classList.add("image-cropper-field")
-    }
-    val c = ImageCropper(el)
-
-    scope.attach(c)
-    registerField(name, c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    scope.ui.build.afterBuild {
-        with(childScope) { c.initialize() }
-    }
-
-    return c
 }

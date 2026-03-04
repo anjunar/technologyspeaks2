@@ -58,33 +58,6 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import kotlin.time.Clock
 
-class DocumentsProvider(private val query: Property<String>) : DataProvider<Data<Document>> {
-    override val totalCount = Property<Int?>(100_000)
-    override val sortState: Property<SortState?> = Property(null)
-
-    override suspend fun loadRange(offset: Int, limit: Int): List<Data<Document>> {
-        val queryValue = query.get().trim()
-        val queryParameter = if (queryValue.isBlank()) "" else "&name=${encodeURIComponent(queryValue)}"
-        val sortParameter = if (queryValue.isBlank()) "&sort=created:desc" else ""
-        val table = Document.list(offset, limit)
-
-        totalCount.set(table.size)
-
-        return table.rows
-    }
-}
-
-class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSize: Int = 50,val document: Property<Document>) : RangeDataProvider<Data<Issue>>() {
-
-    override suspend fun fetch(index: Int, limit: Int): Table<Data<Issue>> {
-        val documentId = document.get().id?.get()
-        if (documentId.isNullOrBlank()) return Table<Data<Issue>>(size = 0)
-
-        return Issue.list(index, limit, document.get())
-
-    }
-}
-
 @JfxComponentBuilder(classes = ["document-page"])
 class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
@@ -177,7 +150,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             text("search")
                         }
 
-                        input("search", "search") {
+                        input("search") {
+                            type("search")
                             placeholder = "Suche..."
                             subscribeBidirectional(searchQuery, valueProperty)
                         }
@@ -483,4 +457,34 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
 
     }
+
+    companion object {
+        class DocumentsProvider(private val query: Property<String>) : DataProvider<Data<Document>> {
+            override val totalCount = Property<Int?>(100_000)
+            override val sortState: Property<SortState?> = Property(null)
+
+            override suspend fun loadRange(offset: Int, limit: Int): List<Data<Document>> {
+                val queryValue = query.get().trim()
+                val queryParameter = if (queryValue.isBlank()) "" else "&name=${encodeURIComponent(queryValue)}"
+                val sortParameter = if (queryValue.isBlank()) "&sort=created:desc" else ""
+                val table = Document.list(offset, limit)
+
+                totalCount.set(table.size)
+
+                return table.rows
+            }
+        }
+
+        class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSize: Int = 50,val document: Property<Document>) : RangeDataProvider<Data<Issue>>() {
+
+            override suspend fun fetch(index: Int, limit: Int): Table<Data<Issue>> {
+                val documentId = document.get().id?.get()
+                if (documentId.isNullOrBlank()) return Table<Data<Issue>>(size = 0)
+
+                return Issue.list(index, limit, document.get())
+
+            }
+        }
+    }
+
 }

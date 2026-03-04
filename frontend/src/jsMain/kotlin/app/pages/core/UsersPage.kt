@@ -30,19 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import org.w3c.dom.CustomEvent
 import org.w3c.dom.HTMLDivElement
 
-class UsersProvider : DataProvider<Data<User>> {
-    override val totalCount = Property<Int?>(100_000)
-    override val sortState: Property<SortState?> = Property(null)
-
-    override suspend fun loadRange(offset: Int, limit: Int): List<Data<User>> {
-        val table = User.list(offset, limit)
-
-        totalCount.set(table.size)
-
-        return table.rows
-    }
-}
-
 @JfxComponentBuilder(classes = ["users-page"])
 class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
@@ -142,6 +129,21 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
 
 
+    }
+
+    companion object {
+        class UsersProvider : DataProvider<Data<User>> {
+            override val totalCount = Property<Int?>(100_000)
+            override val sortState: Property<SortState?> = Property(null)
+
+            override suspend fun loadRange(offset: Int, limit: Int): List<Data<User>> {
+                val table = User.list(offset, limit)
+
+                totalCount.set(table.size)
+
+                return table.rows
+            }
+        }
     }
 
 }

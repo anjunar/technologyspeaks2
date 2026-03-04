@@ -14,3 +14,10 @@ external fun encodeURIComponent(str: String): String
 
 @JsName("decodeURIComponent")
 external fun decodeURIComponent(str: String): String
+
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+fun <T : Any> jsObject(block: T.() -> Unit): T {
+    val o = js("({})") as T
+    block(o)
+    return o
+}

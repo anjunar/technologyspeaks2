@@ -8,6 +8,8 @@ import org.w3c.dom.Element
 abstract class FormField<V, N : Element> : Component<N>() {
     abstract override val node: N
 
+    abstract val name : String
+
     val statusProperty = ListProperty<String>()
     val errorsProperty = ListProperty<String>()
 
@@ -17,6 +19,3 @@ abstract class FormField<V, N : Element> : Component<N>() {
     abstract fun observeValue(listener: (V) -> Unit): Disposable
 }
 
-interface HasPlaceholder {
-    var placeholder: String
-}

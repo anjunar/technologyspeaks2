@@ -12,18 +12,18 @@ import org.w3c.fetch.INCLUDE
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 
-private val json = Json {
-    ignoreUnknownKeys = true
-    encodeDefaults = true
-}
-
-@Serializable
-data class RegisterOptionsRequest(
-    val email: String,
-    val nickName: String
-)
-
 object WebAuthnRegistrationClient {
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
+
+    @Serializable
+    data class RegisterOptionsRequest(
+        val email: String,
+        val nickName: String
+    )
 
     suspend fun register(
         email: String,

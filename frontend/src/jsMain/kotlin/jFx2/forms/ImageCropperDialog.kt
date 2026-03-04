@@ -6,9 +6,8 @@ import app.domain.core.Media
 import app.domain.core.Thumbnail
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.modals.Viewport
-import jFx2.modals.WindowConf
 import jFx2.state.Property
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -26,38 +25,11 @@ import kotlin.math.roundToInt
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-private data class CropRect(
-    val x: Double,
-    val y: Double,
-    val w: Double,
-    val h: Double,
-) {
-    fun normalize(): CropRect {
-        val nx = if (w >= 0) x else x + w
-        val ny = if (h >= 0) y else y + h
-        return CropRect(nx, ny, abs(w), abs(h))
-    }
-}
-
-private data class DragState(
-    val mode: DragMode,
-    val startX: Double,
-    val startY: Double,
-    val startRect: CropRect?,
-)
-
-private enum class DragMode { New, Move, ResizeNW, ResizeNE, ResizeSW, ResizeSE }
-
-class ImageCropperSession(
-    var applied: Boolean = false,
-    var closed: Boolean = false,
-    val initialValue: Media?,
-)
-
+@JfxComponentBuilder(classes = ["image-cropper-dialog"])
 class ImageCropperDialog(
     override val node: HTMLDivElement,
     private val field: ImageCropper,
-    private val windowConf: WindowConf,
+    private val windowConf: Viewport.Companion.WindowConf,
     private val source: Media,
     private val session: ImageCropperSession,
 ) : Component<HTMLDivElement>() {
@@ -77,7 +49,7 @@ class ImageCropperDialog(
     private lateinit var closeBtn: HTMLButtonElement
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
         node.classList.add("image-cropper")
         node.classList.add("image-cropper-dialog")
 
@@ -513,21 +485,34 @@ class ImageCropperDialog(
         if (comma < 0) return null
         return dataUrl.substring(comma + 1)
     }
-}
 
-context(scope: NodeScope)
-fun imageCropperDialog(
-    field: ImageCropper,
-    windowConf: WindowConf,
-    source: Media,
-    session: ImageCropperSession,
-): ImageCropperDialog {
-    val el = scope.create<HTMLDivElement>("div")
-    val c = ImageCropperDialog(el, field, windowConf, source, session)
-    scope.attach(c)
+    companion object {
+        private data class CropRect(
+            val x: Double,
+            val y: Double,
+            val w: Double,
+            val h: Double,
+        ) {
+            fun normalize(): CropRect {
+                val nx = if (w >= 0) x else x + w
+                val ny = if (h >= 0) y else y + h
+                return CropRect(nx, ny, abs(w), abs(h))
+            }
+        }
 
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, insertPoint = ElementInsertPoint(c.node))
-    scope.ui.build.afterBuild { with(childScope) { c.initialize() } }
+        private data class DragState(
+            val mode: DragMode,
+            val startX: Double,
+            val startY: Double,
+            val startRect: CropRect?,
+        )
 
-    return c
+        private enum class DragMode { New, Move, ResizeNW, ResizeNE, ResizeSW, ResizeSE }
+
+        class ImageCropperSession(
+            var applied: Boolean = false,
+            var closed: Boolean = false,
+            val initialValue: Media?,
+        )
+    }
 }

@@ -1,9 +1,7 @@
 package jFx2.forms
 
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.capabilities.UiScope
-import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.registerField
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.state.Disposable
 import jFx2.state.ListChange
 import jFx2.state.ListProperty
@@ -12,36 +10,9 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 
-enum class Status { valid, invalid, dirty, empty, focus }
-
-interface Validator {
-    fun validate(value: String): Boolean
-    fun message(): String
-}
-
-class SizeValidator(val min: Int, val max: Int) : Validator {
-    override fun validate(value: String): Boolean = value.length in min..max
-    override fun message(): String = "must be between $min and $max characters"
-}
-
-class PatternValidator(val pattern: String) : Validator {
-    override fun validate(value: String): Boolean = value.matches(pattern.toRegex())
-    override fun message(): String = "must match pattern '$pattern'"
-}
-
-class NotBlankValidator : Validator {
-    override fun validate(value: String): Boolean = value.isNotBlank()
-    override fun message(): String = "must not be blank"
-}
-
-class EmailValidator : Validator {
-    override fun validate(value: String): Boolean = value.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))
-    override fun message(): String = "must be a valid email address"
-}
-
+@JfxComponentBuilder
 class Input(
-    val name: String,
-    val type: String,
+    override val name: String,
     override val node: HTMLInputElement
 ) : FormField<String, HTMLInputElement>(), HasPlaceholder {
 
@@ -50,6 +21,10 @@ class Input(
 
     val valueAsNumberProperty = Property(node.valueAsNumber)
     val editable = Property(!node.disabled)
+
+    init {
+        node.name = name
+    }
 
     override var disabled: Boolean
         get() = ! editable.get()
@@ -61,12 +36,14 @@ class Input(
         node.onchange = callback
     }
 
+    fun type(type : String) {
+        node.type = type
+    }
+
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
     context(scope: NodeScope)
     fun afterBuild() {
-        node.type = type
-        node.name = name
         val defaultValue = valueProperty.get()
 
         valueProperty.observe {
@@ -168,21 +145,5 @@ class Input(
         set(v) { node.placeholder = v }
 
     override fun read(): String = node.value
-}
 
-context(scope : NodeScope)
-fun input(name: String, type : String = "text", block: context(NodeScope) Input.() -> Unit = {}): Input {
-    val el = scope.create<HTMLInputElement>("input").also { it.name = name }
-    val c = Input(name, type, el)
-
-    scope.ui.build.afterBuild { c.afterBuild() }
-
-    registerField(name, c)
-
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    scope.attach(c)
-    return c
 }

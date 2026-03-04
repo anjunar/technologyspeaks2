@@ -8,12 +8,12 @@ import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.renderFields
 import org.w3c.dom.HTMLDivElement
 
-@JfxComponentBuilder
-class Div(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+@JfxComponentBuilder(name = "hbox", classes = ["hbox"])
+class HBox(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
-        renderFields(*this@Div.children.toTypedArray())
+        renderFields(*this@HBox.children.toTypedArray())
     }
 
 

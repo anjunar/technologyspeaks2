@@ -4,9 +4,6 @@ package jFx2.forms
 
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.codegen.JfxComponentBuilder
-import jFx2.core.dom.ElementInsertPoint
-import jFx2.core.dsl.className
-import jFx2.core.dsl.registerField
 import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
@@ -33,6 +30,7 @@ import jFx2.forms.editor.prosemirror.sinkListItem
 import jFx2.forms.editor.prosemirror.splitBlock
 import jFx2.forms.editor.prosemirror.splitListItem
 import jFx2.forms.editor.prosemirror.undo
+import jFx2.jsObject
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.hr
@@ -45,10 +43,11 @@ import kotlin.js.json
 import kotlin.js.unsafeCast
 import jFx2.forms.editor.prosemirror.EditorView as ProseMirrorEditorView
 
-class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormField<EditorNode?, HTMLDivElement>() {
+@JfxComponentBuilder(classes = ["editor"])
+class Editor(override val node: HTMLDivElement, override val name: String) : FormField<EditorNode?, HTMLDivElement>() {
 
     val valueProperty = Property<EditorNode?>(null)
-    val editable = Property(edit)
+    val editable = Property(true)
 
     private var editorSchema: Schema? = null
     private var editorPlugins: Array<Plugin<Any?>> = emptyArray()
@@ -311,32 +310,3 @@ class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormFie
 
 }
 
-
-context(scope : NodeScope)
-fun editor(name: String, editable: Boolean = true, block: context(NodeScope) Editor.() -> Unit = {}): Editor {
-    val el = scope.create<HTMLDivElement>("div").also {
-        it.classList.add("editor")
-    }
-    val c = Editor(el, editable)
-    scope.attach(c)
-
-    registerField(name, c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    return c
-}
-
-@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-fun <T : Any> jsObject(block: T.() -> Unit): T {
-    val o = js("({})") as T
-    block(o)
-    return o
-}

@@ -31,6 +31,7 @@ import jFx2.state.JobRegistry
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.url.URLSearchParams
+import kotlin.reflect.typeOf
 
 @JfxComponentBuilder(classes = ["password-login-page"])
 class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
@@ -90,7 +91,8 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                     inputContainer("Email") {
 
-                        input("email", "email") {
+                        input("email") {
+                            type("email")
                             validatorsProperty.add(EmailValidator())
                             subscribeBidirectional(this@form.model.email, valueProperty)
                         }
@@ -99,7 +101,8 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
                     inputContainer("Password") {
 
-                        input("password", "password") {
+                        input("password") {
+                            type("password")
                             validatorsProperty.add(SizeValidator(5, 30))
                             subscribeBidirectional(this@form.model.password, valueProperty)
                         }

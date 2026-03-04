@@ -22,10 +22,9 @@ import jFx2.forms.editor.prosemirror.Selection
 import jFx2.forms.editor.prosemirror.toggleMark
 import jFx2.forms.form
 import jFx2.forms.input
-import jFx2.forms.jsObject
+import jFx2.jsObject
 import jFx2.layout.hbox
 import jFx2.modals.Viewport
-import jFx2.modals.WindowConf
 import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
@@ -48,7 +47,7 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
         val formular = LinkDescriptor()
 
         Viewport.addWindow(
-            WindowConf(
+            Viewport.Companion.WindowConf(
                 "Add Link",
                 {
 

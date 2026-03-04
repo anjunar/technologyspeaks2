@@ -6,6 +6,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.mousedown
@@ -27,10 +28,8 @@ import kotlin.js.unsafeCast
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class Window(
-    override val node: HTMLDivElement,
-    val ui: NodeScope
-) : Component<HTMLDivElement>() {
+@JfxComponentBuilder(classes = ["window"])
+class Window(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     var maximized = Property(false)
     var draggable = true
@@ -618,34 +617,11 @@ class Window(
             }
 
         }
-    }
-}
 
-context(scope: NodeScope)
-fun window(block: context(NodeScope) Window.() -> Unit = {}): Window {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("window")
-    val c = Window(el, scope)
-    scope.attach(c)
-
-    val childScope = scope.fork(
-        parent = c.node,
-        owner = c,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(c.node)
-    )
-
-    block(childScope, c)
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
+        restoreSizeFromStorage()
+        if (!restorePositionFromStorage()) {
+            centerInViewport()
         }
-        c.restoreSizeFromStorage()
-        if (!c.restorePositionFromStorage()) {
-            c.centerInViewport()
-        }
-    }
 
-    return c
+    }
 }

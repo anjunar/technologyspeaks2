@@ -4,7 +4,6 @@ import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.codegen.JfxComponentBuilder
-import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.template
 import jFx2.forms.Select
 import jFx2.forms.editor.prosemirror.EditorState
@@ -14,7 +13,7 @@ import jFx2.forms.editor.prosemirror.Plugin
 import jFx2.forms.editor.prosemirror.PluginKey
 import jFx2.forms.editor.prosemirror.setBlockType
 import jFx2.forms.editor.prosemirror.PluginSpec
-import jFx2.forms.jsObject
+import jFx2.jsObject
 import jFx2.forms.option
 import jFx2.forms.select
 import org.w3c.dom.HTMLDivElement
@@ -104,7 +103,7 @@ class HeadingPlugin(override val node: HTMLDivElement) : Component<HTMLDivElemen
     override val nodeSpec: NodeSpec? = null
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
 
         template {
             selectComponent = select("heading") {

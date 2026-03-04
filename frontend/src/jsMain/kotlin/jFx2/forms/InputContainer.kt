@@ -6,6 +6,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.renderComponent
@@ -17,6 +18,7 @@ import jFx2.state.ListProperty
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
 
+@JfxComponentBuilder(classes = ["input-container"])
 class InputContainer(
     override val node: HTMLDivElement,
     val placeholder: String
@@ -25,16 +27,14 @@ class InputContainer(
     private lateinit var field: FormField<*, *>
     private lateinit var errorsSpan: Span
 
-    fun initialize() {
+    context(scope: NodeScope)
+    fun afterBuild() {
         children.firstOrNull()?.let { field = it as FormField<*, *> } ?: error("No field found in container")
         (field as? HasPlaceholder)?.placeholder = placeholder
 
         onDispose(field.errorsProperty.observeChanges { syncErrors() })
         syncErrors()
-    }
 
-    context(scope: NodeScope)
-    fun afterBuild() {
         template {
             div {
                 className { "label" }
@@ -111,28 +111,4 @@ class InputContainer(
             }
         }
     }
-}
-
-context(scope: NodeScope)
-fun inputContainer(
-    placeholder: String,
-    block: context(NodeScope) InputContainer.() -> Unit
-): InputContainer {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("input-container")
-
-    val c = InputContainer(el, placeholder)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    scope.ui.build.afterBuild {
-        c.initialize()
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    return c
 }

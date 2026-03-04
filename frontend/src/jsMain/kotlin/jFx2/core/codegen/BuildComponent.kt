@@ -2,8 +2,16 @@ package jFx2.core.codegen
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.capabitities.ArrayFormOwnerKey
+import jFx2.core.capabitities.FormContextKey
 import jFx2.core.dom.DomInsertPoint
 import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.dsl.registerField
+import jFx2.core.dsl.registerSubForm
+import jFx2.forms.ArrayForm
+import jFx2.forms.FormContext
+import jFx2.forms.FormField
+import jFx2.forms.Formular
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
@@ -24,14 +32,39 @@ inline fun <E : Element, C : Component<E>> buildComponent(
     }
 
     val component = create(el)
+
     scope.attach(component)
 
-    val childScope = scope.fork(
-        parent = component.node,
-        owner = component,
-        ctx = scope.ctx,
-        insertPoint = insertPointFactory(component.node)
-    )
+
+    val childScope = when (component) {
+        is FormField<*, *> -> {
+            registerField(component.name, component)
+            scope.fork(
+                parent = component.node,
+                owner = component,
+                ctx = scope.ctx,
+                insertPoint = insertPointFactory(component.node)
+            )
+        }
+        is ArrayForm -> {
+            scope.fork(
+                parent = component.node,
+                owner = component,
+                ctx = scope.ctx.fork().also {
+                    it.set(ArrayFormOwnerKey, component)
+                },
+                ElementInsertPoint(component.node)
+            )
+        }
+        else -> {
+            scope.fork(
+                parent = component.node,
+                owner = component,
+                ctx = scope.ctx,
+                insertPoint = insertPointFactory(component.node)
+            )
+        }
+    }
 
     block(childScope, component)
 

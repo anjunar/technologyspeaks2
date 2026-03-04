@@ -12,17 +12,17 @@ import org.w3c.fetch.INCLUDE
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 
-private val json = Json {
-    ignoreUnknownKeys = true
-    encodeDefaults = true
-}
-
-@Serializable
-data class LoginOptionsRequest(
-    val email: String
-)
-
 object WebAuthnLoginClient {
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
+
+    @Serializable
+    data class LoginOptionsRequest(
+        val email: String
+    )
 
     suspend fun login(
         email: String,

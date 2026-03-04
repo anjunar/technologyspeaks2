@@ -4,6 +4,7 @@ import app.domain.core.Link
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.rendering.dynamicOutlet
 import jFx2.state.Property
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.CustomEvent
 import org.w3c.dom.HTMLDivElement
 
+@JfxComponentBuilder(classes = ["router"])
 class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: List<Route>) :
     Component<HTMLDivElement>() {
 
@@ -45,26 +47,6 @@ class Router(override val node: HTMLDivElement, val ui: UiScope, val routes: Lis
         extracted()
     }
 
-}
-
-context(scope: NodeScope)
-fun router(routes: List<Route>, block: context(NodeScope) Router.() -> Unit = {}): Router {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("router")
-    val c = Router(el, scope.ui, routes)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }
 
 fun renderByRel(rel : String, links : List<Link>, body : () -> Unit) {

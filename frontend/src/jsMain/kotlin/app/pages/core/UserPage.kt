@@ -123,7 +123,8 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                         }
 
                                         inputContainer("Geburtsdatum") {
-                                            input("birthdate", "date") {
+                                            input("birthdate") {
+                                                type("date")
                                                 subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
                                             }
                                         }

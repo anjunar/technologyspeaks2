@@ -19,18 +19,6 @@ import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class WindowConf(
-    val title : String,
-    val component : context(NodeScope) () -> Component<*>,
-    val zIndex : Property<Int> = Property(0),
-    val onClose: ((Window) -> Unit)? = null,
-    val onClick: ((Window) -> Unit)? = null,
-    val maximized: Property<Boolean> = Property(false),
-    val resizable: Boolean = false
-) {
-    val id : String = Uuid.generateV4().toString()
-}
-
 @JfxComponentBuilder(classes = ["view-port"])
 class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
@@ -80,6 +68,18 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     }
 
     companion object {
+        class WindowConf(
+            val title : String,
+            val component : context(NodeScope) () -> Component<*>,
+            val zIndex : Property<Int> = Property(0),
+            val onClose: ((Window) -> Unit)? = null,
+            val onClick: ((Window) -> Unit)? = null,
+            val maximized: Property<Boolean> = Property(false),
+            val resizable: Boolean = false
+        ) {
+            val id : String = Uuid.generateV4().toString()
+        }
+
         val windows = ListProperty<WindowConf>()
 
         fun isActive(conf: WindowConf) = windows.all { (it == conf) || (it.zIndex.get() < conf.zIndex.get()) }

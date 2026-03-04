@@ -4,9 +4,11 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabitities.ArrayFormOwnerKey
 import jFx2.core.capabitities.FormContextKey
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import org.w3c.dom.HTMLFieldSetElement
 
+@JfxComponentBuilder(classes = ["array-form"], tag = "fieldset")
 class ArrayForm(override val node: HTMLFieldSetElement) : Component<HTMLFieldSetElement>(), Formular {
 
     val subForms: MutableList<Form<*>> = mutableListOf()
@@ -19,32 +21,4 @@ class ArrayForm(override val node: HTMLFieldSetElement) : Component<HTMLFieldSet
         subForms.remove(form)
     }
 
-}
-
-context(scope: NodeScope)
-fun arrayForm(
-    namespace: String,
-    block: context(NodeScope) ArrayForm.() -> Unit
-): ArrayForm {
-    val el = scope.create<HTMLFieldSetElement>("fieldset")
-    el.classList.add("array-form")
-
-    val c = ArrayForm(el)
-    scope.attach(c)
-
-    val formContextParent = runCatching { scope.ctx.get(FormContextKey) }.getOrNull()
-    val formContext = FormContext(formContextParent, namespace)
-    val childScope = scope.fork(
-        parent = c.node,
-        owner = c,
-        ctx = scope.ctx.fork().also {
-            it.set(FormContextKey, formContext)
-            it.set(ArrayFormOwnerKey, c)
-        },
-        ElementInsertPoint(c.node)
-    )
-
-    block(childScope, c)
-
-    return c
 }

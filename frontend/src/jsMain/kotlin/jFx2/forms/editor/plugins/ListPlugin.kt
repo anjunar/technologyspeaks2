@@ -5,7 +5,6 @@ import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.codegen.JfxComponentBuilder
-import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.template
@@ -18,7 +17,7 @@ import jFx2.forms.editor.prosemirror.PluginKey
 import jFx2.forms.editor.prosemirror.PluginSpec
 import jFx2.forms.editor.prosemirror.liftListItem
 import jFx2.forms.editor.prosemirror.wrapInList
-import jFx2.forms.jsObject
+import jFx2.jsObject
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import kotlin.js.json
