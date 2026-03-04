@@ -46,6 +46,12 @@ fun className(block: () -> String) {
 }
 
 context(scope: NodeScope)
+fun className(value : String) {
+    (scope.parent as HTMLElement).className = value
+}
+
+
+context(scope: NodeScope)
 fun zIndex(value: Property<Int>) {
     scope.dispose.register(value.observe { (scope.parent as HTMLElement).style.zIndex = it.toString() })
 }

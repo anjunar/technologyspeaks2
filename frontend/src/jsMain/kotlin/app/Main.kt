@@ -59,7 +59,10 @@ fun main() {
 
                     observeRender(ApplicationService.app) { app ->
                         div {
-                            className { if (Viewport.windows.isNotEmpty()) "glass app-shell-nav app-shell-nav-left" else "glass app-shell-nav app-shell-nav-center"  }
+
+                            onDispose(Viewport.windows.observe { windows ->
+                                className (if (windows.isNotEmpty()) "glass app-shell-nav app-shell-nav-left" else "glass app-shell-nav app-shell-nav-center"  )
+                            })
 
                             foreach(app.links, { key -> key.id }) { link, index ->
                                 link(link.url) {

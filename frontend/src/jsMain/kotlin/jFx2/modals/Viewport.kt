@@ -164,7 +164,10 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
         }
 
         fun closeWindow(conf: WindowConf) {
-            windows.remove(conf)
+            conf.maximized.set(false)
+            window.setTimeout({
+                windows.remove(conf)
+            }, 300)
         }
 
         fun closeWindowById(id: String) {

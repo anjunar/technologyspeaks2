@@ -586,6 +586,7 @@ class Window(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
                             button("close") {
                                 className { "material-icons" }
                                 onClick {
+                                    it.stopPropagation()
                                     onClose?.invoke(this@Window)
                                 }
                             }
