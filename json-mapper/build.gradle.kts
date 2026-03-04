@@ -19,6 +19,7 @@ dependencies {
     api("com.google.guava:guava:33.5.0-jre")
     api("jakarta.json.bind:jakarta.json.bind-api:3.0.0")
     api("jakarta.persistence:jakarta.persistence-api:3.2.0")
+    api("jakarta.validation:jakarta.validation-api:3.1.1")
     api("tools.jackson.core:jackson-databind:3.0.3")
     api("tools.jackson.module:jackson-module-kotlin:3.0.3")
 

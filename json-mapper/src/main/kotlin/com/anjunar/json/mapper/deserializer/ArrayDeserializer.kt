@@ -41,7 +41,7 @@ class ArrayDeserializer : Deserializer<Collection<*>> {
                                 entityCollection.find { it.id == entityId } ?: elementResolvedClass.raw.getConstructor().newInstance()
                             }
 
-                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context, context.name)
+                            val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context.validator, context, context.name)
 
                             collection.add(DeserializerRegistry
                                 .findDeserializer(elementResolvedClass.raw, node)

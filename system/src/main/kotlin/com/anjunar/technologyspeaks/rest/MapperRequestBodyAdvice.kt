@@ -6,6 +6,7 @@ import com.anjunar.json.mapper.intermediate.JsonParser
 import com.anjunar.json.mapper.intermediate.model.JsonObject
 import com.anjunar.kotlin.universe.TypeResolver
 import jakarta.persistence.EntityManager
+import jakarta.validation.Validator
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.converter.HttpMessageConverter
@@ -17,7 +18,7 @@ import java.lang.reflect.Type
 import java.util.UUID
 
 @ControllerAdvice
-class MapperRequestBodyAdvice(val entityManager: EntityManager) : RequestBodyAdvice {
+class MapperRequestBodyAdvice(val entityManager: EntityManager, val validator: Validator) : RequestBodyAdvice {
 
     override fun supports(
         methodParameter: MethodParameter,
@@ -79,7 +80,7 @@ class MapperRequestBodyAdvice(val entityManager: EntityManager) : RequestBodyAdv
                             }
                         }
 
-                        JsonMapper.deserialize(jsonNode, instance, resolvedClass, entityGraph, loader)
+                        JsonMapper.deserialize(jsonNode, instance, resolvedClass, entityGraph, loader, validator)
 
                     }
 

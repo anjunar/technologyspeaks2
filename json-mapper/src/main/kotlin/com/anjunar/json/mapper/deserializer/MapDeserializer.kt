@@ -25,7 +25,7 @@ class MapDeserializer : Deserializer<Map<String, *>> {
 
                     val entity = entityCollection[key] ?: elementResolvedClass.raw.getConstructor().newInstance()
 
-                    val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context, context.name)
+                    val jsonContext = JsonContext(elementResolvedClass, entity, context.graph, context.loader, context.validator, context, context.name)
 
                     collection.put(key, DeserializerRegistry
                         .findDeserializer(elementResolvedClass.raw, node)

@@ -385,7 +385,7 @@ class BeanDeserializer : Deserializer<Any> {
         node: JsonNode
     ) : Any {
         val deserializer = DeserializerRegistry.findDeserializer(propertyType.raw, node)
-        val jsonContext = JsonContext(propertyType, existingInstance, context.graph, context.loader,context, name)
+        val jsonContext = JsonContext(propertyType, existingInstance, context.graph, context.loader, context.validator,context, name)
         return deserializer.deserialize(node, jsonContext)
     }
 
