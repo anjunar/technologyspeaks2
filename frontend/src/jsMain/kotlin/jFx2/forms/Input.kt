@@ -62,10 +62,6 @@ class Input(
         node.onchange = callback
     }
 
-    fun onClick(callback: (Event) -> Unit) {
-        node.onclick = callback
-    }
-
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
     fun initialize() {
@@ -86,11 +82,11 @@ class Input(
         }
 
         editable.observe {
-            node.disabled = !it
+            node.readOnly = !it
         }
 
         node.addEventListener("change", {
-            editable.set(! node.disabled)
+            editable.set(! node.readOnly)
         })
 
         node.addEventListener("input", {

@@ -149,6 +149,8 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                                                 form(model = item.data, clazz = Issue::class) {
 
+                                                    subscribeBidirectional(model.editable, editable)
+
                                                     style {
                                                         padding = "10px"
                                                         height = "calc(100% - 20px)"
@@ -199,7 +201,6 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             }
 
                                                             subscribeBidirectional(model.editor, valueProperty)
-                                                            subscribeBidirectional(model.editable, editable)
                                                         }
                                                     }
                                                 }
@@ -226,6 +227,9 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                     }
 
                                                     form(model = item.data, clazz = FirstComment::class) {
+
+                                                        subscribeBidirectional(model.editable, editable)
+
                                                         onSubmit {
                                                             if (model.id == null) {
                                                                 model.save(model)
@@ -236,7 +240,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             item.data.editable.set(false)
                                                         }
 
-                                                        editor("editor", false) {
+                                                        editor("editor") {
 
                                                             basePlugin { }
                                                             headingPlugin { }
@@ -249,7 +253,6 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             }
 
                                                             subscribeBidirectional(model.editor, valueProperty)
-                                                            subscribeBidirectional(model.editable, editable)
                                                         }
 
                                                     }

@@ -416,6 +416,8 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                                     } else {
                                         form(model = item.data, clazz = Issue::class) {
 
+                                            disabled = true
+
                                             className { "glass-border" }
 
                                             componentHeader {
@@ -426,7 +428,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                                                 text(model.title.get())
                                             }
 
-                                            editor("editor", false) {
+                                            editor("editor") {
                                                 basePlugin { }
                                                 headingPlugin { }
                                                 listPlugin { }

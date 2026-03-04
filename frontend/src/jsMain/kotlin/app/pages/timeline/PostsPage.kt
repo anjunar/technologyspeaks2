@@ -13,6 +13,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
@@ -116,6 +117,8 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                                 form(model = item?.data, clazz = Post::class) {
 
+                                    disabled = true
+
                                     className { "glass-border" }
 
                                     if (item == null) {
@@ -125,7 +128,7 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                             model(item.data)
                                         }
 
-                                        editor("editor", false) {
+                                        editor("editor") {
                                             style {
                                                 height = "100%"
                                                 width = "100%"

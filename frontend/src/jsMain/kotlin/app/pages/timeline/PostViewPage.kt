@@ -17,6 +17,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
+import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
@@ -115,6 +116,8 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                         is Post -> {
                                             form(model = item.data, clazz = Post::class) {
 
+                                                disabled = true
+
                                                 style {
                                                     padding = "10px"
                                                     height = "calc(100% - 20px)"
@@ -125,7 +128,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         model(model)
                                                     }
 
-                                                    editor("editor", false) {
+                                                    editor("editor") {
                                                         basePlugin { }
                                                         headingPlugin { }
                                                         listPlugin { }
@@ -159,6 +162,9 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                 }
 
                                                 form(model = item.data, clazz = FirstComment::class) {
+
+                                                    subscribeBidirectional(this@form.model.editable, editable)
+
                                                     onSubmit {
                                                         if (model.id == null) {
                                                             model.save(this@PostViewPage.model.get().data)
@@ -168,7 +174,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         item.data.editable.set(false)
                                                     }
 
-                                                    editor("editor", false) {
+                                                    editor("editor") {
 
                                                         basePlugin { }
                                                         headingPlugin { }
@@ -181,7 +187,6 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         }
 
                                                         subscribeBidirectional(this@form.model.editor, valueProperty)
-                                                        subscribeBidirectional(this@form.model.editable, editable)
                                                     }
 
                                                 }

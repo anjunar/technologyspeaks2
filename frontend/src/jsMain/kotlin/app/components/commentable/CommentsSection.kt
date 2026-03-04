@@ -75,6 +75,8 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
                     form(model = comment, clazz = SecondComment::class) {
 
+                        subscribeBidirectional(this@form.model.editable, editable)
+
                         vbox {
                             onSubmit {
                                 busy.set(true)
@@ -106,7 +108,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
                             }
 
-                            editor("editor", false) {
+                            editor("editor") {
 
                                 style {
                                     flex = "1"
@@ -124,7 +126,6 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 }
 
                                 subscribeBidirectional(this@form.model.editor, valueProperty)
-                                subscribeBidirectional(this@form.model.editable, editable)
                             }
 
                             likeButton {
