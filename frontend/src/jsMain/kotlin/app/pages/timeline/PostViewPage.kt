@@ -184,8 +184,7 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                                                         linkPlugin { }
                                                         imagePlugin { }
 
-                                                        button {
-                                                            name("save")
+                                                        button("save") {
                                                             className { "material-icons" }
                                                         }
 

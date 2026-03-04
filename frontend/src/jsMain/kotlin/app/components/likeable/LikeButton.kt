@@ -65,8 +65,7 @@ class LikeButton(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     columnGap = "6px"
                 }
 
-                val icon = button {
-                    name("favorite_border")
+                val icon = button("favorite_border") {
                     type("button")
                     className { "material-icons container hover" }
 

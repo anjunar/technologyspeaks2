@@ -100,10 +100,9 @@ class ListPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     }
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
         template {
-            bulletBtn = button {
-                name("format_list_bulleted")
+            bulletBtn = button("format_list_bulleted") {
                 className { "material-icons" }
                 type("button")
                 onClick { toggleBulletList() }

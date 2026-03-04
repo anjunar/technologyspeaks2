@@ -262,7 +262,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     onDispose { searchJob?.cancel() }
 
                     navigateByRel("create-document", model.get().links) {
-                        button {
+                        button("") {
                             node.classList.add("doc-new-btn")
                             style {
                                 marginBottom = "12px"
@@ -333,8 +333,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             }
 
                             renderByRel("update", model.links) {
-                                button {
-                                    name("edit")
+                                button("edit") {
                                     type("button")
 
                                     onClick { model.editable.set(!model.editable.get()) }
@@ -360,8 +359,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                             linkPlugin { }
                             imagePlugin { }
 
-                            button {
-                                name("save")
+                            button("save") {
                                 node.classList.add("material-icons")
                                 node.classList.add("doc-icon-btn")
                             }
@@ -449,7 +447,7 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
                     }
 
                     navigateByRel("create-issue", model.get().links) { navigate ->
-                        button {
+                        button("") {
                             node.classList.add("doc-new-btn")
                             style {
                                 marginBottom = "12px"

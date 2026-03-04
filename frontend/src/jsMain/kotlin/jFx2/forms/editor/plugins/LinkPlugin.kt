@@ -82,13 +82,11 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                         }
 
                         hbox {
-                            button {
-                                name("Save")
+                            button("Save") {
                                 style { marginLeft = "10px" }
                             }
 
-                            button {
-                                name("Remove")
+                            button("Remove") {
                                 style { marginLeft = "10px" }
                                 type("button")
                                 onClick { removeLink() }
@@ -231,10 +229,9 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     }
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
         template {
-            button {
-                name("link")
+            button("link") {
                 className { "material-icons" }
                 type("button")
                 onClick { openFromSelection() }

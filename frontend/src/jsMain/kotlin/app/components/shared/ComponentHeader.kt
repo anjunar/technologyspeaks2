@@ -129,8 +129,7 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("read", model.get().links) { navigate ->
-                    button {
-                        name("edit")
+                    button("edit") {
                         type("button")
                         className { "material-icons" }
                         onClick {
@@ -140,8 +139,7 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("update", model.get().links) { navigate ->
-                    button {
-                        name("edit")
+                    button("edit") {
                         type("button")
                         className { "material-icons" }
                         onClick {
@@ -155,8 +153,7 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("delete", model.get().links) { navigate ->
-                    button {
-                        name("delete")
+                    button("delete") {
                         type("button")
                         className { "material-icons" }
                         onClick {

@@ -105,16 +105,14 @@ class WebAuthnRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
                 div {
                     className { "button-container" }
 
-                    button {
-                        name("Abbrechen")
+                    button("Abbrechen") {
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button {
-                        name("Registrieren")
+                    button("Registrieren") {
                         className { "btn-danger" }
                     }
                 }

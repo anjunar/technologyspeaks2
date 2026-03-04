@@ -81,16 +81,14 @@ class ConfirmPage(override val node: HTMLDivElement) : Component<HTMLDivElement>
                 div {
                     className { "button-container" }
 
-                    button {
-                        name("Abbrechen")
+                    button("Abbrechen") {
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button {
-                        name("Bestätigen")
+                    button("Bestätigen") {
                         className { "btn-danger" }
                     }
                 }

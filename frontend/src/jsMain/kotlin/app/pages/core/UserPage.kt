@@ -131,8 +131,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                 }
 
                                 renderByRel("update", this@UserPage.model.get().data.links) {
-                                    button {
-                                        name("close")
+                                    button("close") {
                                         type("button")
                                         className { "material-icons" }
                                         onClick {
@@ -187,8 +186,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                 }
 
                                 renderByRel("update", this@UserPage.model.get().data.links) {
-                                    button {
-                                        name("close")
+                                    button("close") {
                                         type("button")
                                         className { "material-icons" }
                                         onClick {
@@ -215,8 +213,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                 justifyContent = "flex-end"
                             }
 
-                            button {
-                                name("Speichern")
+                            button("Speichern") {
                             }
 
                         }

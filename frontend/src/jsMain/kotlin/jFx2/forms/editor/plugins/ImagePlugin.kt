@@ -117,8 +117,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                         }
                     }
 
-                    button {
-                        name("Submit")
+                    button("Submit") {
                         style {
                             marginLeft = "10px"
                         }
@@ -232,8 +231,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
     fun initialize() {
         template {
 
-            button {
-                name("image")
+            button("image") {
                 className { "material-icons" }
                 type("button")
                 onClick { openFromSelection() }

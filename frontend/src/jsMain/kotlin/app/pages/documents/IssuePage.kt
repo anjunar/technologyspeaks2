@@ -174,8 +174,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             }
 
                                                             navigateByRel("update", model.links.get()) {
-                                                                button {
-                                                                    name("edit")
+                                                                button("edit") {
                                                                     type("button")
                                                                     className { "material-icons" }
 
@@ -199,8 +198,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             linkPlugin { }
                                                             imagePlugin { }
 
-                                                            button {
-                                                                name("save")
+                                                            button("save") {
                                                                 className { "material-icons" }
                                                             }
 
@@ -252,8 +250,7 @@ class IssuePage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                                                             linkPlugin { }
                                                             imagePlugin { }
 
-                                                            button {
-                                                                name("save")
+                                                            button("save") {
                                                                 className { "material-icons" }
                                                             }
 

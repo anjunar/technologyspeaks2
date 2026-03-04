@@ -85,8 +85,7 @@ class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement
                         subscribeBidirectional(this@form.model.editor, valueProperty)
                     }
 
-                    button {
-                        name("Senden")
+                    button("Senden") {
                         style {
                             width = "100%"
                         }

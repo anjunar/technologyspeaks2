@@ -57,8 +57,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                         alignItems = "flex-end"
                     }
 
-                    button {
-                        name("Kommentieren")
+                    button("Kommentieren") {
                         type("button")
                         onClick {
                             val lastComment = firstComment.get().comments.lastOrNull()
@@ -124,8 +123,7 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 linkPlugin { }
                                 imagePlugin { }
 
-                                button {
-                                    name("save")
+                                button("save") {
                                     className { "material-icons hover" }
                                 }
 

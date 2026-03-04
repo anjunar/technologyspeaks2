@@ -12,7 +12,11 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.events.MouseEvent
 
 @JfxComponentBuilder
-class Button(override val node: HTMLButtonElement) : Component<HTMLButtonElement>() {
+class Button(val name : String, override val node: HTMLButtonElement) : Component<HTMLButtonElement>() {
+
+    init {
+        node.textContent = name
+    }
 
     context(scope: NodeScope)
     fun afterBuild() {

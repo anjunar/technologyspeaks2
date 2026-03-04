@@ -110,16 +110,14 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
                 div {
                     className { "button-container" }
 
-                    button {
-                        name("Abbrechen")
+                    button("Abbrechen") {
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button {
-                        name("Anmelden")
+                    button("Anmelden") {
                         className { "btn-danger" }
                     }
                 }

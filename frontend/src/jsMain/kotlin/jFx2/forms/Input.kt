@@ -42,7 +42,6 @@ class EmailValidator : Validator {
 class Input(
     val name: String,
     val type: String,
-    val ui: UiScope,
     override val node: HTMLInputElement
 ) : FormField<String, HTMLInputElement>(), HasPlaceholder {
 
@@ -64,7 +63,8 @@ class Input(
 
     override fun observeValue(listener: (String) -> Unit): Disposable = valueProperty.observe(listener)
 
-    fun initialize() {
+    context(scope: NodeScope)
+    fun afterBuild() {
         node.type = type
         node.name = name
         val defaultValue = valueProperty.get()
@@ -102,16 +102,16 @@ class Input(
             }
 
             validate()
-            ui.build.flush()
+            scope.ui.build.flush()
         })
 
         node.addEventListener("focus", {
             statusProperty.add(Status.focus.name)
-            ui.build.flush()
+            scope.ui.build.flush()
         })
         node.addEventListener("blur", {
             statusProperty.remove(Status.focus.name)
-            ui.build.flush()
+            scope.ui.build.flush()
         })
 
         onDispose(bindStatusClasses(node, statusProperty))
@@ -173,11 +173,12 @@ class Input(
 context(scope : NodeScope)
 fun input(name: String, type : String = "text", block: context(NodeScope) Input.() -> Unit = {}): Input {
     val el = scope.create<HTMLInputElement>("input").also { it.name = name }
-    val c = Input(name, type, scope.ui, el)
+    val c = Input(name, type, el)
 
-    scope.ui.build.afterBuild { c.initialize() }
+    scope.ui.build.afterBuild { c.afterBuild() }
 
     registerField(name, c)
+
 
     val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
     block(childScope, c)
