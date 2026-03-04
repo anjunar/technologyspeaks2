@@ -9,6 +9,7 @@ import app.services.ApplicationService
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.style
@@ -26,6 +27,7 @@ import jFx2.router.PageInfo
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 
+@JfxComponentBuilder(classes = ["post-edit-page", "container"])
 class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Posts"
@@ -97,23 +99,4 @@ class PostEditPage(override val node: HTMLDivElement) : Component<HTMLDivElement
         }
 
     }
-}
-
-context(scope: NodeScope)
-fun postEditPage(block: context(NodeScope) PostEditPage.() -> Unit = {}): PostEditPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("post-page")
-    el.classList.add("container")
-    val c = PostEditPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }

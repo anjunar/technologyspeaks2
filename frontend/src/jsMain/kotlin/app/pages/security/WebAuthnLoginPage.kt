@@ -9,6 +9,7 @@ import jFx2.controls.image
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -30,6 +31,7 @@ import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.url.URLSearchParams
 
+@JfxComponentBuilder(classes = ["webauthn-login-page"])
 class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Login mit WebAuthn"
@@ -125,22 +127,4 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
     }
 
-}
-
-context(scope: NodeScope)
-fun webAuthnLoginPage(block: context(NodeScope) WebAuthnLoginPage.() -> Unit = {}): WebAuthnLoginPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("login-page")
-    val c = WebAuthnLoginPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    with(childScope) {
-        c.afterBuild()
-    }
-
-    block(childScope, c)
-
-    return c
 }

@@ -8,6 +8,7 @@ import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -30,6 +31,7 @@ import jFx2.state.JobRegistry
 import jFx2.state.Property
 import org.w3c.dom.HTMLDivElement
 
+@JfxComponentBuilder(classes = ["user-page"])
 class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
     override val name: String = "User"
     override val width: Int = -1
@@ -224,22 +226,4 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
             }
         }
     }
-}
-
-context(scope: NodeScope)
-fun userPage(block: context(NodeScope) UserPage.() -> Unit = {}): UserPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("user-page")
-    val c = UserPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }

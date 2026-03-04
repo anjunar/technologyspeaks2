@@ -15,6 +15,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -84,7 +85,7 @@ class IssuesRangeProvider(override val maxItems: Int = 5000, override val pageSi
     }
 }
 
-
+@JfxComponentBuilder(classes = ["document-page"])
 class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Document"
@@ -484,24 +485,4 @@ class DocumentPage(override var node: HTMLDivElement) : Component<HTMLDivElement
 
 
     }
-}
-
-context(scope: NodeScope)
-fun documentPage(block: context(NodeScope) DocumentPage.() -> Unit = {}): DocumentPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("document-page")
-    val c = DocumentPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }

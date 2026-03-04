@@ -98,9 +98,5 @@ class ConfirmPage(override val node: HTMLDivElement) : Component<HTMLDivElement>
 
             }
         }
-
-
-
     }
-
 }

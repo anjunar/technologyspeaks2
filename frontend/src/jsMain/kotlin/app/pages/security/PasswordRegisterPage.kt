@@ -9,6 +9,7 @@ import jFx2.controls.image
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -27,6 +28,7 @@ import jFx2.state.JobRegistry
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 
+@JfxComponentBuilder(classes = ["password-register-page"])
 class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Register"
@@ -128,24 +130,4 @@ class PasswordRegisterPage(override val node: HTMLDivElement) : Component<HTMLDi
 
     }
 
-}
-
-context(scope: NodeScope)
-fun passwordRegisterPage(block: context(NodeScope) PasswordRegisterPage.() -> Unit = {}): PasswordRegisterPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("logout-page")
-    val c = PasswordRegisterPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }

@@ -10,6 +10,7 @@ import jFx2.controls.image
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -31,6 +32,7 @@ import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.url.URLSearchParams
 
+@JfxComponentBuilder(classes = ["password-login-page"])
 class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Login"
@@ -129,22 +131,4 @@ class PasswordLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
 
     }
 
-}
-
-context(scope: NodeScope)
-fun passwordLoginPage(block: context(NodeScope) PasswordLoginPage.() -> Unit = {}): PasswordLoginPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("login-page")
-    val c = PasswordLoginPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    with(childScope) {
-        c.afterBuild()
-    }
-
-    block(childScope, c)
-
-    return c
 }

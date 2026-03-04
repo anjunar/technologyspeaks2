@@ -8,6 +8,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -23,6 +24,7 @@ import kotlinx.coroutines.await
 import org.w3c.dom.HTMLDivElement
 import org.w3c.fetch.RequestInit
 
+@JfxComponentBuilder(classes = ["logout-page"])
 class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Abmelden"
@@ -89,22 +91,4 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 
     }
 
-}
-
-context(scope: NodeScope)
-fun logoutPage(block: context(NodeScope) LogoutPage.() -> Unit = {}): LogoutPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("login-page")
-    val c = LogoutPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    with(childScope) {
-        c.afterBuild()
-    }
-
-    block(childScope, c)
-
-    return c
 }

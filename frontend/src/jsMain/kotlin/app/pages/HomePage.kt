@@ -2,13 +2,15 @@ package app.pages
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.style
 import jFx2.core.template
 import jFx2.router.PageInfo
 import org.w3c.dom.HTMLDivElement
 
-class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
+@JfxComponentBuilder(classes = ["home-page"])
+class HomePage(override var node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Home"
     override val width: Int = -1
@@ -28,24 +30,4 @@ class Home(override var node: HTMLDivElement) : Component<HTMLDivElement>(), Pag
 
 
     }
-}
-
-context(scope: NodeScope)
-fun homePage(block: context(NodeScope) Home.() -> Unit = {}): Home {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("home-page")
-    val c = Home(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }

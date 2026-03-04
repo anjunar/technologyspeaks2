@@ -15,6 +15,7 @@ import jFx2.controls.button
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -48,6 +49,7 @@ private class RangeProvider(
         FirstComment.list(index, limit, post)
 }
 
+@JfxComponentBuilder(classes = ["post-view-page", "container"])
 class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Post"
@@ -243,23 +245,4 @@ class PostViewPage(override val node: HTMLDivElement) : Component<HTMLDivElement
         }
 
     }
-}
-
-context(scope: NodeScope)
-fun postViewPage(block: context(NodeScope) PostViewPage.() -> Unit = {}): PostViewPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("post-page")
-    el.classList.add("container")
-    val c = PostViewPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }
