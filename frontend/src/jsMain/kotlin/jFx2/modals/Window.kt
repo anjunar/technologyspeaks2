@@ -540,9 +540,9 @@ class Window(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
     fun afterBuild() {
         template {
 
-            kotlinx.browser.window.requestAnimationFrame {
+            kotlinx.browser.window.setTimeout({
                 maximized.set(true)
-            }
+            }, 300)
 
             zIndex(zIndex)
 
