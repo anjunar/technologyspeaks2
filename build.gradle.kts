@@ -5,6 +5,7 @@ plugins {
     kotlin("plugin.allopen") version "2.3.20-RC" apply false
     kotlin("plugin.noarg") version "2.3.20-RC" apply false
     kotlin("plugin.jpa") version "2.3.20-RC" apply false
+    id("com.google.devtools.ksp") version "2.3.6" apply false
 }
 
 subprojects {

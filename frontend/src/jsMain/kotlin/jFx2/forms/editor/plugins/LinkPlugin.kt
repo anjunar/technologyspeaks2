@@ -4,13 +4,12 @@ import jFx2.controls.Button
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
 import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.template
-import jFx2.forms.Input
 import jFx2.forms.editor.prosemirror.EditorState
 import jFx2.forms.editor.prosemirror.EditorView
 import jFx2.forms.editor.prosemirror.Mark
@@ -25,7 +24,7 @@ import jFx2.forms.form
 import jFx2.forms.input
 import jFx2.forms.jsObject
 import jFx2.layout.hbox
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.WindowConf
 import jFx2.state.Property
 import org.w3c.dom.HTMLButtonElement
@@ -35,6 +34,7 @@ import kotlin.js.json
 
 class LinkDescriptor(val href : Property<String> = Property(""), val title : Property<String> = Property(""))
 
+@JfxComponentBuilder(classes = ["link-plugin"])
 class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
     override lateinit var view: EditorView
@@ -47,7 +47,7 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
 
         val formular = LinkDescriptor()
 
-        ViewPort.addWindow(
+        Viewport.addWindow(
             WindowConf(
                 "Add Link",
                 {
@@ -82,11 +82,13 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                         }
 
                         hbox {
-                            button("Save") {
+                            button {
+                                name("Save")
                                 style { marginLeft = "10px" }
                             }
 
-                            button("Remove") {
+                            button {
+                                name("Remove")
                                 style { marginLeft = "10px" }
                                 type("button")
                                 onClick { removeLink() }
@@ -231,7 +233,8 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     context(scope: NodeScope)
     fun initialize() {
         template {
-            button("link") {
+            button {
+                name("link")
                 className { "material-icons" }
                 type("button")
                 onClick { openFromSelection() }
@@ -242,27 +245,4 @@ class LinkPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     companion object {
         val KEY = PluginKey<Unit>("link-plugin")
     }
-}
-
-context(scope: NodeScope)
-fun linkPlugin(block: context(NodeScope) LinkPlugin.() -> Unit = {}): LinkPlugin {
-    val el = scope.create<HTMLDivElement>("div")
-    val plugin = LinkPlugin(el)
-    scope.attach(plugin)
-
-    val childScope = scope.fork(
-        parent = plugin.node,
-        owner = plugin,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(plugin.node)
-    )
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            plugin.initialize()
-        }
-    }
-
-    block(childScope, plugin)
-    return plugin
 }

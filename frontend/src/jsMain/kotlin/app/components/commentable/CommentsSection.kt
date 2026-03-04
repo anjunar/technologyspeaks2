@@ -11,6 +11,7 @@ import app.services.ApplicationService
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -30,6 +31,7 @@ import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@JfxComponentBuilder(classes = ["comments-section"])
 class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private val firstComment = Property(FirstComment())
@@ -55,7 +57,8 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                         alignItems = "flex-end"
                     }
 
-                    button("Kommentieren") {
+                    button {
+                        name("Kommentieren")
                         type("button")
                         onClick {
                             val lastComment = firstComment.get().comments.lastOrNull()
@@ -121,7 +124,8 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
                                 linkPlugin { }
                                 imagePlugin { }
 
-                                button("save") {
+                                button {
+                                    name("save")
                                     className { "material-icons hover" }
                                 }
 
@@ -141,21 +145,4 @@ class CommentsSection(override val node: HTMLDivElement) : Component<HTMLDivElem
 
         }
     }
-}
-
-context(scope: NodeScope)
-fun commentsSection(block: context(NodeScope) CommentsSection.() -> Unit = {}): CommentsSection {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("comments-section")
-    val c = CommentsSection(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }

@@ -3,6 +3,7 @@
 package jFx2.forms
 
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.registerField
@@ -44,8 +45,6 @@ import kotlin.js.json
 import kotlin.js.unsafeCast
 import jFx2.forms.editor.prosemirror.EditorView as ProseMirrorEditorView
 
-
-@Suppress("CAST_NEVER_SUCCEEDS")
 class Editor(override val node: HTMLDivElement, edit : Boolean = true) : FormField<EditorNode?, HTMLDivElement>() {
 
     val valueProperty = Property<EditorNode?>(null)

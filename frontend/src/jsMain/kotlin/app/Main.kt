@@ -10,25 +10,17 @@ import jFx2.controls.text
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
-import jFx2.core.rendering.dynamicOutlet
 import jFx2.core.rendering.foreach
 import jFx2.core.rendering.observeRender
 import jFx2.core.runtime.component
-import jFx2.forms.editor
-import jFx2.forms.form
 import jFx2.layout.div
 import jFx2.layout.hbox
 import jFx2.layout.vbox
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.viewport
-import jFx2.router.router
 import jFx2.router.windowRouter
 import jFx2.state.JobRegistry
 import kotlinx.browser.document
-import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlin.js.Promise
@@ -67,7 +59,7 @@ fun main() {
 
                     observeRender(ApplicationService.app) { app ->
                         div {
-                            className { if (ViewPort.windows.isNotEmpty()) "glass app-shell-nav app-shell-nav-left" else "glass app-shell-nav app-shell-nav-center"  }
+                            className { if (Viewport.windows.isNotEmpty()) "glass app-shell-nav app-shell-nav-left" else "glass app-shell-nav app-shell-nav-center"  }
 
                             foreach(app.links, { key -> key.id }) { link, index ->
                                 link(link.url) {
@@ -100,12 +92,12 @@ fun main() {
                 hbox {
                     className { "app-footer-bar" }
 
-                    foreach(ViewPort.windows, { key -> key.id }) { window, index ->
+                    foreach(Viewport.windows, { key -> key.id }) { window, index ->
                         div {
 
                             style {
                                 background = "var(--color-background-primary)"
-                                color = if (ViewPort.isActive(window)) "var(--color-selected)" else "var(--color-text)"
+                                color = if (Viewport.isActive(window)) "var(--color-selected)" else "var(--color-text)"
                                 margin = "2px"
                                 padding = "2px"
                                 lineHeight = "24px"
@@ -119,7 +111,7 @@ fun main() {
                             }
 
                             onClick {
-                                ViewPort.touchWindow(window)
+                                Viewport.touchWindow(window)
                             }
                         }
                     }

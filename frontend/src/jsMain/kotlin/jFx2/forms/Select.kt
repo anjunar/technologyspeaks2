@@ -1,11 +1,9 @@
 package jFx2.forms
 
-import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
 import jFx2.core.dsl.renderFields
-import jFx2.forms.editor.plugins.Heading
 import jFx2.state.Disposable
 import jFx2.state.Property
 import org.w3c.dom.HTMLSelectElement

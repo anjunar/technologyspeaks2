@@ -11,6 +11,7 @@ import app.services.ApplicationService
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -44,6 +45,7 @@ class PostRangeProvider(
     }
 }
 
+@JfxComponentBuilder(classes = ["posts-page"])
 class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
     override val name: String = "Posts"
     override val width: Int = -1
@@ -186,22 +188,4 @@ class PostsPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
         }
     }
 
-}
-
-context(scope: NodeScope)
-fun postsPage(block: context(NodeScope) PostsPage.() -> Unit = {}): PostsPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("users-page")
-    val c = PostsPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }

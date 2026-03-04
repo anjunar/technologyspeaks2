@@ -4,6 +4,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "2.3.20-RC"
     kotlin("plugin.js-plain-objects") version "2.3.20-RC"
+    id("com.google.devtools.ksp")
 }
 
 repositories {
@@ -64,4 +65,8 @@ kotlin {
             freeCompilerArgs.add("-Xcontext-parameters")
         }
     }
+}
+
+dependencies {
+    add("kspJs", project(":jfx2-component-ksp"))
 }

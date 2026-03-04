@@ -3,10 +3,9 @@ package jFx2.forms
 import app.domain.core.Media
 import app.domain.core.Thumbnail
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.registerField
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.WindowConf
 import jFx2.state.Disposable
 import jFx2.state.ListChange
@@ -22,8 +21,6 @@ import org.w3c.files.File
 import org.w3c.files.FileReader
 
 class ImageCropper(
-    val name: String,
-    val ui: UiScope,
     override val node: HTMLDivElement,
 ) : FormField<Media?, HTMLDivElement>(), HasPlaceholder {
 
@@ -139,7 +136,7 @@ class ImageCropper(
                     valueProperty.set(media)
                     openCropWindow(media)
                 }
-                ui.build.flush()
+                scope.ui.build.flush()
             }
             reader.readAsDataURL(f)
         }
@@ -151,14 +148,14 @@ class ImageCropper(
             val data = src?.data?.get()
             if (src == null || data.isNullOrBlank()) return@onCropClick
             openCropWindow(src)
-            ui.build.flush()
+            scope.ui.build.flush()
         }
         cropBtn.addEventListener("click", onCropClick)
         onDispose { cropBtn.removeEventListener("click", onCropClick) }
 
         val onClearClick: (Event) -> Unit = {
             clear()
-            ui.build.flush()
+            scope.ui.build.flush()
         }
         clearBtn.addEventListener("click", onClearClick)
         onDispose { clearBtn.removeEventListener("click", onClearClick) }
@@ -187,8 +184,8 @@ class ImageCropper(
         })
 
         // Focus handling for InputContainer styles.
-        val onFocusIn: (Event) -> Unit = { statusProperty.add(Status.focus.name); ui.build.flush() }
-        val onFocusOut: (Event) -> Unit = { statusProperty.remove(Status.focus.name); ui.build.flush() }
+        val onFocusIn: (Event) -> Unit = { statusProperty.add(Status.focus.name); scope.ui.build.flush() }
+        val onFocusOut: (Event) -> Unit = { statusProperty.remove(Status.focus.name); scope.ui.build.flush() }
         node.addEventListener("focusin", onFocusIn)
         node.addEventListener("focusout", onFocusOut)
         onDispose {
@@ -213,11 +210,10 @@ class ImageCropper(
                 if (!session.applied) {
                     valueProperty.set(session.initialValue)
                 }
-                ui.build.flush()
             }
         )
 
-        ViewPort.addWindow(conf)
+        Viewport.addWindow(conf)
     }
 
     private fun mediaFromFile(file: File, dataUrl: String): Media {
@@ -346,7 +342,7 @@ fun imageCropper(
     val el = scope.create<HTMLDivElement>("div").also {
         it.classList.add("image-cropper-field")
     }
-    val c = ImageCropper(name, scope.ui, el)
+    val c = ImageCropper(el)
 
     scope.attach(c)
     registerField(name, c)

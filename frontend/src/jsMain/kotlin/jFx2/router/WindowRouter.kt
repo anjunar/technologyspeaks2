@@ -4,7 +4,7 @@ import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.capabilities.UiScope
 import jFx2.core.dom.ElementInsertPoint
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.WindowConf
 import jFx2.state.JobRegistry
 import kotlinx.browser.window
@@ -26,7 +26,7 @@ class WindowRouter(override val node: HTMLDivElement, val ui: UiScope, val route
                 val routeMatch = resolveRoutes.matches.last()
                 val component = routeMatch.route.factory!!(routeMatch.params)
                 val page = component as PageInfo
-                ViewPort.addWindow(
+                Viewport.addWindow(
                     WindowConf(
                         page.name,
                         { component },

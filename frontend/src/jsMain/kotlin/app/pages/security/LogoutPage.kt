@@ -67,14 +67,16 @@ class LogoutPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                 div {
                     className { "button-container" }
 
-                    button("Abbrechen") {
+                    button {
+                        name("Abbrechen")
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button("Abmelden") {
+                    button {
+                        name("Abmelden")
                         className { "btn-danger" }
                     }
                 }

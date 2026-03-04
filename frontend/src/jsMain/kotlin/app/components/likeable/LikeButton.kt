@@ -8,6 +8,7 @@ import jFx2.controls.button
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -21,6 +22,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
 
+@JfxComponentBuilder(classes = ["like-button"])
 class LikeButton(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private var likes: ListProperty<Like>? = null
@@ -63,7 +65,8 @@ class LikeButton(override val node: HTMLDivElement) : Component<HTMLDivElement>(
                     columnGap = "6px"
                 }
 
-                val icon = button("favorite_border") {
+                val icon = button {
+                    name("favorite_border")
                     type("button")
                     className { "material-icons container hover" }
 
@@ -103,20 +106,4 @@ class LikeButton(override val node: HTMLDivElement) : Component<HTMLDivElement>(
             }
         }
     }
-}
-
-context(scope: NodeScope)
-fun likeButton(block: context(NodeScope) LikeButton.() -> Unit = {}): LikeButton {
-    val el = scope.create<HTMLDivElement>("div")
-    val c = LikeButton(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }

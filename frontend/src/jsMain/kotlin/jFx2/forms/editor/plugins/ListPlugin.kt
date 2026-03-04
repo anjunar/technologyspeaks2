@@ -4,6 +4,7 @@ import jFx2.controls.Button
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -22,6 +23,7 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import kotlin.js.json
 
+@JfxComponentBuilder(classes = ["list-plugin"])
 class ListPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
     override lateinit var view: EditorView
@@ -100,7 +102,8 @@ class ListPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     context(scope: NodeScope)
     fun initialize() {
         template {
-            bulletBtn = button("format_list_bulleted") {
+            bulletBtn = button {
+                name("format_list_bulleted")
                 className { "material-icons" }
                 type("button")
                 onClick { toggleBulletList() }
@@ -111,27 +114,4 @@ class ListPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     companion object {
         val KEY = PluginKey<Unit>("bullet-list-plugin")
     }
-}
-
-context(scope: NodeScope)
-fun listPlugin(block: context(NodeScope) ListPlugin.() -> Unit = {}): ListPlugin {
-    val el = scope.create<HTMLDivElement>("div")
-    val plugin = ListPlugin(el)
-    scope.attach(plugin)
-
-    val childScope = scope.fork(
-        parent = plugin.node,
-        owner = plugin,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(plugin.node)
-    )
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            plugin.initialize()
-        }
-    }
-
-    block(childScope, plugin)
-    return plugin
 }

@@ -7,7 +7,7 @@ import jFx2.controls.button
 import jFx2.controls.image
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
@@ -19,7 +19,7 @@ import jFx2.forms.input
 import jFx2.forms.jsObject
 import jFx2.layout.div
 import jFx2.layout.hbox
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.WindowConf
 import jFx2.state.Property
 import kotlinx.browser.window
@@ -34,6 +34,7 @@ import kotlin.uuid.ExperimentalUuidApi
 
 class Dimensions(val width : Property<Double> = Property(320.0), val height : Property<Double> = Property(240.0))
 
+@JfxComponentBuilder(classes = ["image-plugin"])
 class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
     override lateinit var view: EditorView
@@ -44,7 +45,7 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
 
         val dimensions = Dimensions()
 
-        ViewPort.addWindow(
+        Viewport.addWindow(
             WindowConf(
             "Add Image",
             {
@@ -116,7 +117,8 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
                         }
                     }
 
-                    button("Submit") {
+                    button {
+                        name("Submit")
                         style {
                             marginLeft = "10px"
                         }
@@ -230,7 +232,8 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
     fun initialize() {
         template {
 
-            button("image") {
+            button {
+                name("image")
                 className { "material-icons" }
                 type("button")
                 onClick { openFromSelection() }
@@ -242,30 +245,4 @@ class ImagePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>
     companion object {
         val KEY = PluginKey<Unit>("image-plugin")
     }
-}
-
-context(scope: NodeScope)
-fun imagePlugin(
-    block: context(NodeScope) ImagePlugin.() -> Unit = {}
-): ImagePlugin {
-
-    val el = scope.create<HTMLDivElement>("div")
-    val plugin = ImagePlugin(el)
-    scope.attach(plugin)
-
-    val childScope = scope.fork(
-        parent = plugin.node,
-        owner = plugin,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(plugin.node)
-    )
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            plugin.initialize()
-        }
-    }
-
-    block(childScope, plugin)
-    return plugin
 }

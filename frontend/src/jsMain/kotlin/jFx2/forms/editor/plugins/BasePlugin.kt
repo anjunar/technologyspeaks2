@@ -4,7 +4,7 @@ import jFx2.controls.Button
 import jFx2.controls.button
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.template
@@ -25,8 +25,9 @@ import jFx2.layout.hbox
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import kotlin.js.json
-import kotlin.js.unsafeCast
 
+
+@JfxComponentBuilder(classes = ["base-plugin"])
 class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
     override lateinit var view: EditorView
@@ -139,30 +140,34 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     }
 
     context(scope: NodeScope)
-    fun initialize() {
+    fun afterBuild() {
 
         template {
             hbox {
 
-                boldBtn = button("format_bold") {
+                boldBtn = button {
+                    name("format_bold")
                     type("button")
                     className { "material-icons" }
                     onClick { toggleMarkCommand("strong") }
                 }
 
-                italicBtn = button("format_italic") {
+                italicBtn = button {
+                    name("format_italic")
                     type("button")
                     className { "material-icons" }
                     onClick { toggleMarkCommand("em") }
                 }
 
-                undoBtn = button("undo") {
+                undoBtn = button {
+                    name("undo")
                     type("button")
                     className { "material-icons" }
                     onClick { undoCommand() }
                 }
 
-                redoBtn = button("redo") {
+                redoBtn = button {
+                    name("redo")
                     type("button")
                     className { "material-icons" }
                     onClick { redoCommand() }
@@ -175,28 +180,4 @@ class BasePlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(
     companion object {
         val KEY = PluginKey<Unit>("base-sync")
     }
-}
-
-context(scope: NodeScope)
-fun basePlugin(block: context(NodeScope) BasePlugin.() -> Unit = {}): BasePlugin {
-    val el = scope.create<HTMLDivElement>("div")
-    val c = BasePlugin(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(
-        parent = c.node,
-        owner = c,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(c.node)
-    )
-
-    block(childScope, c)
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.initialize()
-        }
-    }
-
-    return c
 }

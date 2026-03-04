@@ -8,6 +8,7 @@ import jFx2.controls.span
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -27,6 +28,7 @@ import kotlinx.coroutines.await
 import org.w3c.dom.HTMLDivElement
 import org.w3c.fetch.RequestInit
 
+@JfxComponentBuilder(classes = ["confirm-page"])
 class ConfirmPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(), PageInfo {
 
     override val name: String = "Bestätigen"
@@ -79,14 +81,16 @@ class ConfirmPage(override val node: HTMLDivElement) : Component<HTMLDivElement>
                 div {
                     className { "button-container" }
 
-                    button("Abbrechen") {
+                    button {
+                        name("Abbrechen")
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button("Bestätigen") {
+                    button {
+                        name("Bestätigen")
                         className { "btn-danger" }
                     }
                 }
@@ -99,22 +103,4 @@ class ConfirmPage(override val node: HTMLDivElement) : Component<HTMLDivElement>
 
     }
 
-}
-
-context(scope: NodeScope)
-fun confirmPage(block: context(NodeScope) ConfirmPage.() -> Unit = {}): ConfirmPage {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("confirm-page")
-    val c = ConfirmPage(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    with(childScope) {
-        c.afterBuild()
-    }
-
-    block(childScope, c)
-
-    return c
 }

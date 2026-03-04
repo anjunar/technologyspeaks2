@@ -4,7 +4,7 @@ package jFx2.modals
 
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
-import jFx2.core.dom.ElementInsertPoint
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dsl.renderComponent
 import jFx2.core.dsl.renderFields
 import jFx2.core.dsl.style
@@ -15,7 +15,6 @@ import jFx2.layout.div
 import jFx2.router.PageInfo
 import jFx2.state.ListProperty
 import jFx2.state.Property
-import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -32,13 +31,14 @@ class WindowConf(
     val id : String = Uuid.generateV4().toString()
 }
 
-class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
+@JfxComponentBuilder(classes = ["view-port"])
+class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     context(scope: NodeScope)
     fun afterBuild() {
 
         template {
-            renderFields(*this@ViewPort.children.toTypedArray())
+            renderFields(*this@Viewport.children.toTypedArray())
 
             foreach(windows, { key -> key.id }) { window, index ->
 
@@ -109,29 +109,4 @@ class ViewPort(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
         }
     }
 
-}
-
-context(scope: NodeScope)
-fun viewport(block: context(NodeScope) ViewPort.() -> Unit = {}): ViewPort {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("viewport")
-    val c = ViewPort(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(
-        parent = c.node,
-        owner = c,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(c.node)
-    )
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.afterBuild()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }

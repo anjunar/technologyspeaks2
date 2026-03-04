@@ -104,14 +104,16 @@ class WebAuthnLoginPage(override val node: HTMLDivElement) : Component<HTMLDivEl
                 div {
                     className { "button-container" }
 
-                    button("Abbrechen") {
+                    button {
+                        name("Abbrechen")
                         onClick {
                             close()
                         }
                         className { "btn-secondary" }
                     }
 
-                    button("Anmelden") {
+                    button() {
+                        name("Anmelden")
                         className { "btn-danger" }
                     }
                 }

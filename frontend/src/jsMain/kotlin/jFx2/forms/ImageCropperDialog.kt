@@ -7,7 +7,7 @@ import app.domain.core.Thumbnail
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.dom.ElementInsertPoint
-import jFx2.modals.ViewPort
+import jFx2.modals.Viewport
 import jFx2.modals.WindowConf
 import jFx2.state.Property
 import kotlinx.browser.document
@@ -122,7 +122,7 @@ class ImageCropperDialog(
             val media = cropToMedia() ?: return@onApplyClick
             session.applied = true
             field.valueProperty.set(media)
-            ViewPort.closeWindow(windowConf)
+            Viewport.closeWindow(windowConf)
         }
         applyBtn.addEventListener("click", onApplyClick)
         onDispose { applyBtn.removeEventListener("click", onApplyClick) }
@@ -136,7 +136,7 @@ class ImageCropperDialog(
         onDispose { resetBtn.removeEventListener("click", onResetClick) }
 
         val onCloseClick: (Event) -> Unit = {
-            ViewPort.closeWindow(windowConf)
+            Viewport.closeWindow(windowConf)
         }
         closeBtn.addEventListener("click", onCloseClick)
         onDispose { closeBtn.removeEventListener("click", onCloseClick) }

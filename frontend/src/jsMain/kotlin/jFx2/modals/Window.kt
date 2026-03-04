@@ -574,7 +574,8 @@ class Window(
                         justifyContent = "flex-end"
                     }
 
-                    button("stat_minus_1") {
+                    button {
+                        name("stat_minus_1")
                         className { "material-icons" }
                         onClick {
                             it.stopPropagation()
@@ -584,7 +585,8 @@ class Window(
 
                     condition({this@Window.onClose != null}) {
                         then {
-                            button("close") {
+                            button {
+                                name("close")
                                 className { "material-icons" }
                                 onClick {
                                     onClose?.invoke(this@Window)

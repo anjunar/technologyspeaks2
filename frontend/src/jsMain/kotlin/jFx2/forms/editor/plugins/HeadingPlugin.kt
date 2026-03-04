@@ -3,6 +3,7 @@ package jFx2.forms.editor.plugins
 import jFx2.controls.text
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.template
 import jFx2.forms.Select
@@ -19,7 +20,8 @@ import jFx2.forms.select
 import org.w3c.dom.HTMLDivElement
 import kotlin.js.json
 
-class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
+@JfxComponentBuilder(classes = ["heading-plugin"])
+class HeadingPlugin(override val node: HTMLDivElement) : Component<HTMLDivElement>(), EditorPlugin {
 
     override lateinit var view: EditorView
 
@@ -117,25 +119,32 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
                     "h6" -> setHeading(view, 6)
                 } }
 
-                option("p") {
+                option {
+                    value("p")
                     text { "Paragraph" }
                 }
-                option("h1") {
+                option {
+                    value("h1")
                     text { "Heading 1" }
                 }
-                option("h2") {
+                option {
+                    value("h2")
                     text { "Heading 2" }
                 }
-                option("h3") {
+                option {
+                    value("h3")
                     text { "Heading 3" }
                 }
-                option("h4") {
+                option {
+                    value("h4")
                     text { "Heading 4" }
                 }
-                option("h5") {
+                option {
+                    value("h5")
                     text { "Heading 5" }
                 }
-                option("h6") {
+                option {
+                    value("h6")
                     text { "Heading 6" }
                 }
             }
@@ -147,28 +156,4 @@ class Heading(override val node: HTMLDivElement) : Component<HTMLDivElement>(), 
         val KEY = PluginKey<Unit>("heading-sync")
     }
 
-}
-
-context(scope: NodeScope)
-fun headingPlugin(block: context(NodeScope) Heading.() -> Unit = {}): Heading {
-    val el = scope.create<HTMLDivElement>("div")
-    val c = Heading(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(
-        parent = c.node,
-        owner = c,
-        ctx = scope.ctx,
-        insertPoint = ElementInsertPoint(c.node)
-    )
-
-    scope.ui.build.afterBuild {
-        with(childScope) {
-            c.initialize()
-        }
-    }
-
-    block(childScope, c)
-
-    return c
 }

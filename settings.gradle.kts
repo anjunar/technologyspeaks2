@@ -23,6 +23,7 @@ include(":domain")
 include(":rest-api")
 include(":application")
 include(":frontend")
+include(":jfx2-component-ksp")
 
 rootProject.name = "technology-speaks"
 

@@ -5,6 +5,7 @@ import app.domain.timeline.Post
 import jFx2.controls.*
 import jFx2.core.Component
 import jFx2.core.capabilities.NodeScope
+import jFx2.core.codegen.JfxComponentBuilder
 import jFx2.core.dom.ElementInsertPoint
 import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
@@ -20,6 +21,7 @@ import kotlinx.datetime.toInstant
 import org.w3c.dom.HTMLDivElement
 import kotlin.time.Clock
 
+@JfxComponentBuilder(classes = ["component-header"])
 class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElement>() {
 
     private val model = Property<OwnerProvider>(Post())
@@ -127,7 +129,8 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("read", model.get().links) { navigate ->
-                    button("edit") {
+                    button {
+                        name("edit")
                         type("button")
                         className { "material-icons" }
                         onClick {
@@ -137,7 +140,8 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("update", model.get().links) { navigate ->
-                    button("edit") {
+                    button {
+                        name("edit")
                         type("button")
                         className { "material-icons" }
                         onClick {
@@ -151,7 +155,8 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
                 }
 
                 navigateByRel("delete", model.get().links) { navigate ->
-                    button("delete") {
+                    button {
+                        name("delete")
                         type("button")
                         className { "material-icons" }
                         onClick {
@@ -169,22 +174,4 @@ class ComponentHeader(override val node: HTMLDivElement) : Component<HTMLDivElem
         }
     }
 
-}
-
-context(scope: NodeScope)
-fun componentHeader(block: context(NodeScope) ComponentHeader.() -> Unit = {}): ComponentHeader {
-    val el = scope.create<HTMLDivElement>("div")
-    el.classList.add("post-header")
-    val c = ComponentHeader(el)
-    scope.attach(c)
-
-    val childScope = scope.fork(parent = c.node, owner = c, ctx = scope.ctx, ElementInsertPoint(c.node))
-
-    block(childScope, c)
-
-    with(childScope) {
-        scope.ui.build.afterBuild { c.afterBuild() }
-    }
-
-    return c
 }
