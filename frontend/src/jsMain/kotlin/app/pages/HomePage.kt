@@ -31,10 +31,6 @@ class HomePage(override var node: HTMLDivElement) : Component<HTMLDivElement>(),
     fun afterBuild() {
 
         template {
-            style {
-                height = "100%"
-                width = "100%"
-            }
 
             comboBox(
                 name = "placeholder",
@@ -62,7 +58,6 @@ class HomePage(override var node: HTMLDivElement) : Component<HTMLDivElement>(),
             }
 
         }
-
 
     }
 }

@@ -74,6 +74,7 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
         window.addEventListener("click", callback)
         onDispose {
             window.removeEventListener("click", callback)
+            println("disposing combo box")
         }
 
         fun closeOverlay() {

@@ -15,7 +15,7 @@ class TemplateOwner(override val node: Element) : Component<Element>() {
 }
 
 context(scope: NodeScope)
-fun template(block: context(NodeScope) () -> Unit) {
+fun template(block: context(NodeScope) () -> Unit) : TemplateOwner {
     val owner = TemplateOwner(scope.parent.unsafeCast<Element>())
     val s = scope.fork(owner = owner)
     with(s) {
@@ -23,4 +23,6 @@ fun template(block: context(NodeScope) () -> Unit) {
         owner.afterBuild()
         scope.ui.build.flush()
     }
+
+    return owner
 }

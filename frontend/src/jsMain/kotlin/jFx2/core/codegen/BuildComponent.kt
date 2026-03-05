@@ -66,10 +66,7 @@ inline fun <E : Element, C : Component<E>> buildComponent(
         }
     }
 
-    // Ensure that direct calls to `component.dispose()` (without disposing the surrounding NodeScope)
-    // still tear down everything that was registered on the component's scope tree.
     component.onDispose { childScope.dispose.dispose() }
-    component.onDispose { scope.owner.removeChild(component) }
 
     block(childScope, component)
 
