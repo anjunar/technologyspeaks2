@@ -38,12 +38,14 @@ class JsonContext(
     }
 
     fun path(): List<String> {
-        val parentPath = emptyList<String>()
+        val parentPath = mutableListOf<String>()
 
         var cursor: JsonContext? = this
 
         while (cursor != null) {
-            parentPath + cursor.name
+            if (cursor.name != null) {
+                parentPath.add(cursor.name)
+            }
             cursor = cursor.parent
         }
 
@@ -51,12 +53,18 @@ class JsonContext(
     }
 
     fun pathWithIndexes(): List<Any> {
-        val parentPath = emptyList<Any>()
+        val parentPath = mutableListOf<Any>()
 
         var cursor: JsonContext? = this
 
         while (cursor != null) {
-            parentPath + if (cursor.index > -1) cursor.index else cursor.name
+            if (cursor.index > -1) {
+                parentPath.add(cursor.index)
+            } else {
+                if (cursor.name != null) {
+                    parentPath.add(cursor.name)
+                }
+            }
             cursor = cursor.parent
         }
 

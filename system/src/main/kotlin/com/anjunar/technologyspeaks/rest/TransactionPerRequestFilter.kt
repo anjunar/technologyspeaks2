@@ -31,11 +31,15 @@ class TransactionPerRequestFilter(
             isReadOnly = request.method == "GET" || request.method == "HEAD"
         }
 
-        val status = txManager.getTransaction(def)
         try {
             filterChain.doFilter(request, response)
-            txManager.commit(status)
+            val status = txManager.getTransaction(def)
+
+            if (! status.isRollbackOnly) {
+                txManager.commit(status)
+            }
         } catch (t: Throwable) {
+            val status = txManager.getTransaction(def)
             txManager.rollback(status)
             throw t
         }

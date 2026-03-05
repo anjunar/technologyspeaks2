@@ -28,7 +28,7 @@ class UserInfo(
 
     @NotNull
     @JsonbProperty
-    var birthDate: LocalDate
+    var birthDate: LocalDate?
 ) : AbstractEntity(), OwnerProvider {
 
     @OneToOne(optional = false, mappedBy = "info")

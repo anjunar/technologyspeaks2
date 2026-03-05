@@ -18,13 +18,16 @@ object JsonMapper {
 
         val context = JsonContext(type, instance, graph, loader, validator, null, null)
 
-        if (context.violations.isEmpty()) {
-            return deserializer.deserialize(jsonNode, context)
-        } else {
-            val errorRequests = context.flatten()
-                .flatMap { context -> context.violations }
-                .map { violation -> ErrorRequest(context.pathWithIndexes(), violation.message) }
+        val deserialize = deserializer.deserialize(jsonNode, context)
 
+        val errorRequests = mutableListOf<ErrorRequest>()
+
+        context.flatten()
+            .forEach { context -> context.violations.forEach { violation -> errorRequests.add(ErrorRequest(context.pathWithIndexes() + listOf(violation.propertyPath.toString()), violation.message)) } }
+
+        if (errorRequests.isEmpty()) {
+            return deserialize
+        } else {
             throw ErrorRequestException(errorRequests)
         }
     }

@@ -1,3 +1,5 @@
 package com.anjunar.json.mapper
 
-class ErrorRequest(val path: List<Any>, val message: String)
+import jakarta.json.bind.annotation.JsonbProperty
+
+class ErrorRequest(@JsonbProperty val path: List<Any>, @JsonbProperty val message: String)
