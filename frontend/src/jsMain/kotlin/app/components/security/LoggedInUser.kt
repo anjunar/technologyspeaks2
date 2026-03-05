@@ -55,8 +55,8 @@ class LoggedInUser(override val node: HTMLDivElement) : Component<HTMLDivElement
                     }
 
                     div {
-                        if (model.user.info != null) {
-                            text(model.user.info!!.firstName.get() + " " + model.user.info!!.lastName.get())
+                        if (model.user.info.get() != null) {
+                            text(model.user.info.get()!!.firstName.get() + " " + model.user.info.get()!!.lastName.get())
                         } else {
                             text(model.user.nickName.get())
                         }

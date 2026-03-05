@@ -48,8 +48,8 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
     fun model(data : Data<User>) {
         model.set(data)
-        if (data.data.info != null) infoDisabled.set(false)
-        if (data.data.address != null) addressDisabled.set(false)
+        if (data.data.info.get() != null) infoDisabled.set(false)
+        if (data.data.address.get() != null) addressDisabled.set(false)
     }
 
     context(scope: NodeScope)
@@ -112,7 +112,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                 }
 
                                 observeRender(infoDisabled) { value ->
-                                    subForm("info", model = this@form.model.info, clazz = UserInfo::class) {
+                                    subForm("info", model = this@form.model.info.get(), clazz = UserInfo::class) {
 
                                         style {
                                             flex = "1"
@@ -150,10 +150,10 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                         className { "material-icons" }
                                         onClick {
                                             if (infoDisabled.get()) {
-                                                this@form.model.info = this@form.subForms["info"]!!.model as UserInfo
+                                                this@form.model.info.set(this@form.subForms["info"]!!.model as UserInfo)
                                                 infoDisabled.set(false)
                                             } else {
-                                                this@form.model.info = null
+                                                this@form.model.info.set(null)
                                                 infoDisabled.set(true)
                                             }
                                         }
@@ -168,7 +168,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                 }
 
                                 observeRender(addressDisabled) { value ->
-                                    subForm("address", model = this@form.model.address, clazz = Address::class) {
+                                    subForm("address", model = this@form.model.address.get(), clazz = Address::class) {
 
                                         style {
                                             flex = "1"
@@ -209,10 +209,10 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                         className { "material-icons" }
                                         onClick {
                                             if (addressDisabled.get()) {
-                                                this@form.model.address = this@form.subForms["address"]!!.model as Address
+                                                this@form.model.address.set(this@form.subForms["address"]!!.model as Address)
                                                 addressDisabled.set(false)
                                             } else {
-                                                this@form.model.address = null
+                                                this@form.model.address.set(null)
                                                 addressDisabled.set(true)
                                             }
                                         }

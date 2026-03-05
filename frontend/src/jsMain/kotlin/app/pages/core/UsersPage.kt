@@ -102,7 +102,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                         id = "firstName",
                         header = "First Name",
                         prefWidthPx = 200,
-                        valueProperty = { it.data.info?.firstName },
+                        valueProperty = { it.data.info.get()?.firstName },
                         cellFactory = {
                             val host = scope.create<HTMLDivElement>("div")
                             TextCell(host)
@@ -113,7 +113,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
                         id = "lastName",
                         header = "Last Name",
                         prefWidthPx = 200,
-                        valueProperty = { it.data.info?.lastName },
+                        valueProperty = { it.data.info.get()?.lastName },
                         cellFactory = {
                             val host = scope.create<HTMLDivElement>("div")
                             TextCell(host)

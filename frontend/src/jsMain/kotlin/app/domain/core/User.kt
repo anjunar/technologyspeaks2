@@ -25,8 +25,10 @@ data class User(
     val nickName: Property<String> = Property(""),
     @Serializable(with = PropertySerializer::class)
     val image : Property<Media?> = Property(null),
-    var info: UserInfo? = null,
-    var address: Address? = null,
+    @Serializable(with = PropertySerializer::class)
+    var info: Property<UserInfo?> = Property(null),
+    @Serializable(with = PropertySerializer::class)
+    var address: Property<Address?> = Property(null),
     @Serializable(with = ListPropertySerializer::class)
     val emails: ListProperty<Email> = ListProperty(),
     @SerialName($$"$links")
