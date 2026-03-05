@@ -35,6 +35,26 @@ class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz
             editable.set(!v)
         }
 
+    fun setErrors(errors : List<ErrorResponse>) {
+        for (response in errors) {
+
+            response.path.firstOrNull()?.let {
+
+                val formField = fields[it]
+
+                if (formField == null) {
+                    val subForm = subForms[it]
+                    subForm?.setErrors(listOf(ErrorResponse(response.message, response.path.drop(1))))
+                } else {
+                    formField.errorsProperty.add(response.message)
+                }
+
+
+            }
+
+        }
+    }
+
     context(scope: NodeScope)
     fun initialize() {
         renderFields(*this@Form.children.toTypedArray())

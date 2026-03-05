@@ -4,6 +4,7 @@ import app.domain.core.Address
 import app.domain.core.Data
 import app.domain.core.User
 import app.domain.core.UserInfo
+import jFx2.client.ErrorResponseException
 import jFx2.client.JsonClient
 import jFx2.controls.button
 import jFx2.core.Component
@@ -59,9 +60,13 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                 onSubmit {
 
-                    this@form.model.update()
-
-                    Viewport.notify("Benutzer gespeichert!", Viewport.Companion.NotificationKind.SUCCESS)
+                    try {
+                        this@form.model.update()
+                        Viewport.notify("Benutzer gespeichert!", Viewport.Companion.NotificationKind.SUCCESS)
+                    } catch (e: ErrorResponseException) {
+                        Viewport.notify("Fehler im Benutzer", Viewport.Companion.NotificationKind.ERROR)
+                        this.setErrors(e.errors)
+                    }
 
                 }
 
@@ -126,7 +131,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                         }
 
                                         inputContainer("Geburtsdatum") {
-                                            input("birthdate") {
+                                            input("birthDate") {
                                                 type("date")
                                                 subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
                                             }

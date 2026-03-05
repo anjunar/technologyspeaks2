@@ -12,6 +12,7 @@ import app.domain.security.WebAuthnLoginLink
 import app.domain.security.WebAuthnRegisterLink
 import app.domain.timeline.PostsLink
 import jFx2.encodeURIComponent
+import jFx2.forms.ErrorResponse
 import jFx2.router.navigate
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -28,13 +29,25 @@ object JsonClient {
         val response = window.fetch(url, requestInit).await()
 
         if (!response.ok) {
-            val platformAvailable = js("PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();")
-            if (!platformAvailable) {
-                navigate("/security/login?redirect=${encodeURIComponent(window.location.pathname)}")
+            if (response.status == 403.toShort()) {
+                val platformAvailable = js("PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();")
+                if (!platformAvailable) {
+                    navigate("/security/login?redirect=${encodeURIComponent(window.location.pathname)}")
+                } else {
+                    navigate("/security/login/options?redirect=${encodeURIComponent(window.location.pathname)}")
+                }
+                throw RuntimeException("Error not Allowed")
             } else {
-                navigate("/security/login/options?redirect=${encodeURIComponent(window.location.pathname)}")
+                if (response.status == 400.toShort()) {
+                    val defaultJson = configure()
+
+                    val responses = defaultJson.decodeFromString<List<ErrorResponse>>(response.text().await())
+
+                    throw ErrorResponseException(responses)
+                } else {
+                    throw RuntimeException("Error ${response.status} ${response.statusText}")
+                }
             }
-            throw RuntimeException("Error ${response.status} ${response.statusText}")
         } else {
             val defaultJson = configure()
 
