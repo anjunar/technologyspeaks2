@@ -2,22 +2,17 @@
 
 package jFx2.forms
 
-import app.domain.core.AbstractEntity
-import app.domain.core.Data
-import jFx2.controls.heading
-import jFx2.controls.image
 import jFx2.controls.text
+import jFx2.controls.textContent
 import jFx2.core.capabilities.NodeScope
 import jFx2.core.codegen.JfxComponentBuilder
-import jFx2.core.dsl.className
 import jFx2.core.dsl.onClick
 import jFx2.core.dsl.style
-import jFx2.core.rendering.condition
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.modals.Viewport
-import jFx2.router.navigateByRel
 import jFx2.state.Disposable
+import jFx2.state.ListProperty
 import jFx2.state.Property
 import jFx2.table.ComponentCell
 import jFx2.table.DataProvider
@@ -32,9 +27,10 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @JfxComponentBuilder(classes = ["combo-box"])
-class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: String, val provider : DataProvider<E>) : FormField<List<E>, HTMLDivElement>() {
+class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: String, val provider: DataProvider<E>) :
+    FormField<List<E>, HTMLDivElement>() {
 
-    val valueProperty = Property<List<E>>(emptyList())
+    val valueProperty = ListProperty<E>()
 
     val placeholderProperty = Property("")
 
@@ -44,6 +40,8 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
 
     var render: (context(NodeScope) (E, Int) -> Unit)? = null
 
+    var valueRenderer: ((E) -> String)? = null
+
     var onItemClick: ((E) -> Unit)? = null
 
     private val job = SupervisorJob()
@@ -51,7 +49,7 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
     private val model = LazyTableModel(cs, provider, pageSize = 200, prefetchPages = 2)
 
     override var disabled: Boolean
-        get() = ! editable.get()
+        get() = !editable.get()
         set(value) {
             editable.set(!value)
         }
@@ -60,8 +58,12 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
         placeholderProperty.set(value)
     }
 
-    fun render(function : context(NodeScope) (E, Int) -> Unit) {
+    fun render(function: context(NodeScope) (E, Int) -> Unit) {
         render = function
+    }
+
+    fun valueRenderer(function: (E) -> String) {
+        valueRenderer = function
     }
 
     context(scope: NodeScope)
@@ -107,6 +109,14 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
                     onRowDoubleClick { entity, _ ->
                         onItemClick?.invoke(entity)
                     }
+
+                    onRowClick { entity, _ ->
+                        if (valueProperty.contains(entity)) {
+                            valueProperty.remove(entity)
+                        } else {
+                            valueProperty.add(entity)
+                        }
+                    }
                 }
             }
 
@@ -132,12 +142,14 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
                     height = "16px"
                 }
 
-                text {
-                    if (valueProperty.get().isEmpty()) {
-                        placeholderProperty.get()
-                    } else {
-                        valueProperty.get().joinToString(", ")
-                    }
+                valueProperty.observe {
+                    textContent (
+                        if (it.isEmpty()) {
+                            placeholderProperty.get()
+                        } else {
+                            it.map { valueRenderer!!(it) }.joinToString(", ")
+                        }
+                    )
                 }
 
                 onClick {
@@ -151,7 +163,7 @@ class ComboBox<E : Any>(override val node: HTMLDivElement, override val name: St
     }
 
     override fun read(): List<E> {
-        return valueProperty.get()
+        return valueProperty
     }
 
     override fun observeValue(listener: (List<E>) -> Unit): Disposable {

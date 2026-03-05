@@ -14,6 +14,11 @@ class TextNode(override val node: Text) : Component<Text>() {
 }
 
 context(scope: NodeScope)
+fun textContent(value: String) {
+    scope.parent.textContent = value
+}
+
+context(scope: NodeScope)
 fun text(value: String): TextNode {
     val tn = TextNode(document.createTextNode(value))
     scope.parent.appendChild(tn.node)

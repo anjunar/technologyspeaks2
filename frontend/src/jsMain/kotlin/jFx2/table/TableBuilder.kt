@@ -7,6 +7,7 @@ class TableBuilder<R> {
     internal val cols = ArrayList<Column<R, *>>()
     internal var onSelectionChanged: ((List<R>) -> Unit)? = null
     internal var onRowDoubleClick: ((R, Int) -> Unit)? = null
+    internal var onRowClick: ((R, Int) -> Unit)? = null
 
     fun <V> columnValue(
         id : String,
@@ -50,6 +51,10 @@ class TableBuilder<R> {
     fun onRowDoubleClick(handler: (R, Int) -> Unit) {
         onRowDoubleClick = handler
     }
+
+    fun onRowClick(handler: (R, Int) -> Unit) {
+        onRowClick = handler
+    }
 }
 
 context(scope: NodeScope)
@@ -71,6 +76,7 @@ fun <R> tableView(
 
     tableView.onSelectionChanged = b.onSelectionChanged
     tableView.onRowDoubleClick = b.onRowDoubleClick
+    tableView.onRowClick = b.onRowClick
 
     scope.attach(tableView)
 

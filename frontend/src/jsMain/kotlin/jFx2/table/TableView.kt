@@ -34,6 +34,7 @@ class TableView<R>(
 
     var onSelectionChanged: ((List<R>) -> Unit)? = null
     var onRowDoubleClick: ((R, Int) -> Unit)? = null
+    var onRowClick: ((R, Int) -> Unit)? = null
 
     private lateinit var viewport: HTMLElement
     private lateinit var content: HTMLElement
@@ -319,6 +320,16 @@ class TableView<R>(
                     val item = model.get(idx)
                     if (item != null) {
                         onRowDoubleClick?.invoke(item, idx)
+                    }
+                }
+            })
+
+            rowEl.addEventListener("click", {
+                val idx = rows.firstOrNull { it.node === rowEl }?.boundIndex ?: -1
+                if (idx >= 0) {
+                    val item = model.get(idx)
+                    if (item != null) {
+                        onRowClick?.invoke(item, idx)
                     }
                 }
             })

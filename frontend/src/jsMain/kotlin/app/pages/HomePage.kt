@@ -57,6 +57,8 @@ class HomePage(override var node: HTMLDivElement) : Component<HTMLDivElement>(),
                     } }
                 }
 
+                valueRenderer { it.data.nickName.get() }
+
             }
 
         }
