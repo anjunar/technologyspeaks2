@@ -29,14 +29,15 @@ class TableBuilder<R> {
         id : String,
         header: String,
         prefWidthPx: Int = 160,
-        valueProperty: (R) -> ReadOnlyProperty<V>?,
+        value: ((R) -> V)? = null,
+        valueProperty: ((R) -> ReadOnlyProperty<V>?)? = null,
         cellFactory: context(NodeScope) () -> TableCell<R, V>
     ) {
         cols += Column(
             id = id,
             header = header,
             prefWidthPx = prefWidthPx,
-            value = null,
+            value = value,
             valueProperty = valueProperty,
             cellFactory = cellFactory
         )
