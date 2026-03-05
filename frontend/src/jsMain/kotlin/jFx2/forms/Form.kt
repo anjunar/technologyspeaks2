@@ -66,8 +66,8 @@ class Form<E : Any>(override val node: HTMLFormElement, var model : E, val clazz
                 node.setAttribute("disabled", "true")
             }
 
-            fields.forEach { it.value.disabled = ! v }
-            subForms.forEach { it.value.disabled = !v }
+            fields.values.toList().forEach { it.disabled = !v }
+            subForms.values.toList().forEach { it.disabled = !v }
         })
 
 
