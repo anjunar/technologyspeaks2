@@ -126,7 +126,7 @@ object JsonClient {
             serializersModule = module
             encodeDefaults = true
             ignoreUnknownKeys = true
-            explicitNulls = false
+            explicitNulls = true
         }
         return defaultJson
     }

@@ -32,6 +32,10 @@ class Input(
             editable.set(!value)
         }
 
+    fun addValidator(validator: Validator) {
+        validatorsProperty.add(validator)
+    }
+
     fun onChange(callback : (Event) -> Unit) {
         node.onchange = callback
     }

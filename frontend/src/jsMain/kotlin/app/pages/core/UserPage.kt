@@ -18,6 +18,7 @@ import jFx2.core.dsl.subscribeBidirectional
 import jFx2.core.rendering.observeRender
 import jFx2.core.template
 import jFx2.forms.NotBlankValidator
+import jFx2.forms.SizeValidator
 import jFx2.forms.form
 import jFx2.forms.imageCropper
 import jFx2.forms.input
@@ -86,7 +87,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                             outputMaxWidth = 512
                             outputMaxHeight = 512
 
-                            validatorsProperty.add(NotBlankValidator())
+                            addValidator(NotBlankValidator())
 
                             subscribeBidirectional(this@form.model.image, valueProperty)
                         }
@@ -99,6 +100,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                             inputContainer("Nick Name") {
                                 input("nickName") {
+                                    addValidator(SizeValidator(2, 80))
                                     subscribeBidirectional(this@form.model.nickName, valueProperty)
                                 }
                             }
@@ -120,12 +122,14 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                                         inputContainer("Vorname") {
                                             input("firstName") {
+                                                addValidator(SizeValidator(2, 80))
                                                 subscribeBidirectional(this@subForm.model.firstName, valueProperty)
                                             }
                                         }
 
                                         inputContainer("Nachame") {
                                             input("lastName") {
+                                                addValidator(SizeValidator(2, 80))
                                                 subscribeBidirectional(this@subForm.model.lastName, valueProperty)
                                             }
                                         }
@@ -133,6 +137,7 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
                                         inputContainer("Geburtsdatum") {
                                             input("birthDate") {
                                                 type("date")
+                                                addValidator(SizeValidator(2, 80))
                                                 subscribeBidirectional(this@subForm.model.birthDate, valueProperty)
                                             }
                                         }
@@ -173,21 +178,25 @@ class UserPage(override val node: HTMLDivElement) : Component<HTMLDivElement>(),
 
                                         inputContainer("Strasse") {
                                             input("street") {
+                                                addValidator(SizeValidator(2, 80))
                                                 subscribeBidirectional(this@subForm.model.street, valueProperty)
                                             }
                                         }
                                         inputContainer("Hausnummer") {
                                             input("number") {
+                                                addValidator(SizeValidator(1, 10))
                                                 subscribeBidirectional(this@subForm.model.number, valueProperty)
                                             }
                                         }
                                         inputContainer("Postleitzahl") {
                                             input("zipCode") {
+                                                addValidator(SizeValidator(5, 5))
                                                 subscribeBidirectional(this@subForm.model.zipCode, valueProperty)
                                             }
                                         }
                                         inputContainer("Land") {
                                             input("country") {
+                                                addValidator(SizeValidator(2, 80))
                                                 subscribeBidirectional(this@subForm.model.country, valueProperty)
                                             }
                                         }

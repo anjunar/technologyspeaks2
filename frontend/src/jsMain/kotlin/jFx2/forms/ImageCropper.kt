@@ -68,6 +68,10 @@ class ImageCropper(override val node: HTMLDivElement, override val name: String)
             editable.set(!value)
         }
 
+    fun addValidator(validator: Validator) {
+        validatorsProperty.add(validator)
+    }
+
     override fun observeValue(listener: (Media?) -> Unit): Disposable = valueProperty.observe(listener)
 
     override fun read(): Media? = valueProperty.get()
