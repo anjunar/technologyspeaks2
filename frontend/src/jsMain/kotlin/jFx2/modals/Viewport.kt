@@ -16,10 +16,12 @@ import jFx2.core.rendering.foreach
 import jFx2.core.template
 import jFx2.layout.div
 import jFx2.router.PageInfo
+import jFx2.state.Disposable
 import jFx2.state.ListProperty
 import jFx2.state.Property
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -67,6 +69,43 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                 }
             }
 
+            foreach(overlays, { key -> key.id }) { overlay, index ->
+                div {
+
+                    className { "jfx2-overlay" }
+
+                    onClick { it.stopPropagation() }
+
+                    val overlayElement = node as HTMLElement
+                    val follow = followAnchorFixed(
+                        overlayElement = overlayElement,
+                        anchorElement = overlay.anchor,
+                        offsetXPx = overlay.offsetXPx,
+                        offsetYPx = overlay.offsetYPx,
+                        widthPx = overlay.widthPx,
+                        minWidthPx = overlay.minWidthPx,
+                        maxHeightPx = overlay.maxHeightPx,
+                        marginViewportPx = overlay.marginViewportPx,
+                        flipY = overlay.flipY,
+                    )
+                    onDispose(follow)
+
+                    style {
+                        position = "fixed"
+
+                        background = "var(--glass-bg)"
+                        border = "1px solid var(--glass-border)"
+                        boxShadow = "0 6px 24px var(--glass-shadow)"
+                        borderRadius = "1rem"
+                        setProperty("backdropFilter", "blur(var(--glass-blur)) saturate(180%)")
+
+                        zIndex = overlay.zIndex.toString()
+                    }
+
+                    overlay.content()
+                }
+            }
+
             div {
                 className { "jfx2-notification-host" }
 
@@ -96,6 +135,12 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
     }
 
     companion object {
+        val windows = ListProperty<WindowConf>()
+        val notifications = ListProperty<NotificationConf>()
+        val overlays = ListProperty<OverlayConf>()
+
+        private const val notificationFadeOutMs: Int = 250
+
         enum class NotificationKind(val cssClass: String) {
             INFO("info"),
             SUCCESS("success"),
@@ -123,10 +168,31 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
             val id : String = Uuid.generateV4().toString()
         }
 
-        val windows = ListProperty<WindowConf>()
-        val notifications = ListProperty<NotificationConf>()
+        class OverlayConf(
+            val id: String = Uuid.generateV4().toString(),
+            val anchor: HTMLElement,
+            val offsetXPx: Double = 0.0,
+            val offsetYPx: Double = 0.0,
+            val widthPx: Double? = null,
+            val minWidthPx: Double? = null,
+            val maxHeightPx: Double? = null,
+            val marginViewportPx: Double = 8.0,
+            val flipY: Boolean = true,
+            val zIndex: Int = 90000,
+            val content: context(NodeScope) () -> Unit,
+        )
 
-        private const val notificationFadeOutMs: Int = 250
+        fun addOverlay(conf: OverlayConf) {
+            overlays.add(conf)
+        }
+
+        fun closeOverlay(conf: OverlayConf) {
+            overlays.remove(conf)
+        }
+
+        fun closeOverlayById(id: String) {
+            overlays.firstOrNull { it.id == id }?.let { overlays.remove(it) }
+        }
 
         fun notify(
             message: String,
@@ -177,4 +243,76 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
         }
     }
 
+}
+
+private fun followAnchorFixed(
+    overlayElement: HTMLElement,
+    anchorElement: HTMLElement,
+    offsetXPx: Double,
+    offsetYPx: Double,
+    widthPx: Double?,
+    minWidthPx: Double?,
+    maxHeightPx: Double?,
+    marginViewportPx: Double,
+    flipY: Boolean,
+): Disposable {
+    var disposed = false
+    var rafId: Int? = null
+
+    fun apply() {
+        if (disposed) return
+
+        val anchorRect = anchorElement.getBoundingClientRect()
+        val viewportWidth = window.innerWidth.toDouble()
+        val viewportHeight = window.innerHeight.toDouble()
+
+        val resolvedWidth = widthPx ?: anchorRect.width
+
+        val desiredLeft = anchorRect.left + offsetXPx
+        val minLeft = marginViewportPx
+        val maxLeft = viewportWidth - resolvedWidth - marginViewportPx
+        val left = if (maxLeft <= minLeft) minLeft else desiredLeft.coerceIn(minLeft, maxLeft)
+
+        val measuredOverlayHeight = overlayElement.offsetHeight.toDouble().takeIf { it > 0 } ?: 0.0
+
+        val belowTop = anchorRect.bottom + offsetYPx
+        val aboveTop = anchorRect.top - measuredOverlayHeight - offsetYPx
+
+        var top = belowTop
+
+        if (flipY && measuredOverlayHeight > 0) {
+            val spaceBelow = viewportHeight - belowTop - marginViewportPx
+            val spaceAbove = anchorRect.top - marginViewportPx
+
+            if (spaceBelow < measuredOverlayHeight && spaceAbove > spaceBelow) {
+                top = aboveTop
+            }
+        }
+
+        val desiredTop = top
+        val minTop = marginViewportPx
+        val maxTop = viewportHeight - marginViewportPx
+        top = if (maxTop <= minTop) minTop else desiredTop.coerceIn(minTop, maxTop)
+
+        overlayElement.style.left = "${left}px"
+        overlayElement.style.top = "${top}px"
+
+        if (widthPx != null) {
+            overlayElement.style.width = "${resolvedWidth}px"
+        } else {
+            overlayElement.style.minWidth = "${resolvedWidth}px"
+        }
+
+        minWidthPx?.let { overlayElement.style.minWidth = "${it}px" }
+        maxHeightPx?.let { overlayElement.style.maxHeight = "${it}px" }
+
+        rafId = window.requestAnimationFrame { apply() }
+    }
+
+    rafId = window.requestAnimationFrame { apply() }
+
+    return Disposable {
+        disposed = true
+        rafId?.let { window.cancelAnimationFrame(it) }
+    }
 }
