@@ -91,14 +91,6 @@ class Viewport(override val node: HTMLDivElement) : Component<HTMLDivElement>() 
                     onDispose(follow)
 
                     style {
-                        position = "fixed"
-
-                        background = "var(--glass-bg)"
-                        border = "1px solid var(--glass-border)"
-                        boxShadow = "0 6px 24px var(--glass-shadow)"
-                        borderRadius = "1rem"
-                        setProperty("backdropFilter", "blur(var(--glass-blur)) saturate(180%)")
-
                         zIndex = overlay.zIndex.toString()
                     }
 

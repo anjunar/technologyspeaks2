@@ -59,7 +59,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                 tableView(model, rowHeightPx = 64) {
 
-                    columnProperty("image", "Image", 160, valueProperty = { it.data.image }) {
+                    columnProperty("image", "Bild", 160, valueProperty = { it.data.image }) {
                         ComponentCell(
                             outerScope = scope,
                             node = scope.create("div"),
@@ -100,7 +100,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                     columnProperty(
                         id = "firstName",
-                        header = "First Name",
+                        header = "Vorname",
                         prefWidthPx = 200,
                         valueProperty = { it.data.info.get()?.firstName },
                         cellFactory = {
@@ -111,7 +111,7 @@ class UsersPage(override val node: HTMLDivElement) : Component<HTMLDivElement>()
 
                     columnProperty(
                         id = "lastName",
-                        header = "Last Name",
+                        header = "Nachname",
                         prefWidthPx = 200,
                         valueProperty = { it.data.info.get()?.lastName },
                         cellFactory = {
